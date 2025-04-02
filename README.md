@@ -297,7 +297,7 @@ realtime-forum/
 │   ├── src/
 │   │   ├── server.js          # エントリーポイント
 │   │   ├── config/            # 設定ファイル
-│   │   ├── models/            # Mongooseモデル
+│   │   ├── models/            # Sequelizeモデル
 │   │   │   ├── User.js
 │   │   │   ├── Category.js
 │   │   │   ├── Thread.js
