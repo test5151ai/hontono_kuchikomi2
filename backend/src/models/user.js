@@ -51,12 +51,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 'user',
       validate: {
-        isIn: [['admin', 'user']]
+        isIn: [['user', 'admin', 'superuser']]
       }
     },
     isApproved: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
+      defaultValue: false
+    },
+    isSuperAdmin: {
+      type: DataTypes.BOOLEAN,
       defaultValue: false
     },
     approvalScreenshot: DataTypes.STRING,

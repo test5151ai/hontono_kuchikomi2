@@ -6,7 +6,7 @@ const { Op } = require('sequelize');
 // 新規登録
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     // 入力値の検証
     if (!username || !email || !password) {
@@ -32,8 +32,8 @@ const register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role: 'user',
-      isApproved: false
+      role: role || 'user',
+      isApproved: role === 'admin'
     });
 
     // JWTトークンの生成
@@ -83,6 +83,11 @@ const login = async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'メールアドレスまたはパスワードが正しくありません' });
+    }
+
+    // 承認済みユーザーのみログイン可能
+    if (!user.isApproved) {
+      return res.status(403).json({ error: 'アカウントが承認されていません' });
     }
 
     // JWTトークンの生成
