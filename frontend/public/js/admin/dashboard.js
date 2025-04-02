@@ -6,7 +6,8 @@ const ADMIN_API = {
     PENDING_USERS: `${API_BASE_URL}/admin/users/pending`,
     APPROVE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/approve`,
     REJECT_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/reject`,
-    BULK_APPROVE: `${API_BASE_URL}/admin/users/bulk-approve`
+    BULK_APPROVE: `${API_BASE_URL}/admin/users/bulk-approve`,
+    USER_DETAILS: (userId) => `${API_BASE_URL}/admin/users/${userId}/details`
 };
 
 // ユーティリティ関数
@@ -23,18 +24,40 @@ const formatDate = (dateString) => {
 // APIリクエストヘルパー
 const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('token');
+    if (!token) {
+        // トークンがない場合はログインページにリダイレクト
+        window.location.href = '/login.html';
+        return;
+    }
+
     const defaultOptions = {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         },
+        credentials: 'include',
+        mode: 'cors',
         ...options
     };
-    const response = await fetch(url, defaultOptions);
-    if (!response.ok) {
-        throw new Error(`APIエラー: ${response.status}`);
+
+    try {
+        const response = await fetch(url, defaultOptions);
+        const data = await response.json();
+        
+        if (response.status === 401) {
+            // 認証エラーの場合はログインページにリダイレクト
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return;
+        }
+        if (!response.ok) {
+            throw new Error(data.error || `APIエラー: ${response.status}`);
+        }
+        return data;
+    } catch (error) {
+        console.error('APIリクエストエラー:', error);
+        throw error;
     }
-    return response.json();
 };
 
 // メイン機能
@@ -62,9 +85,13 @@ class AdminDashboard {
 
     async loadPendingUsers() {
         try {
-            const users = await fetchWithAuth(ADMIN_API.PENDING_USERS);
-            this.pendingUsers = users;
-            this.renderPendingUsers();
+            const response = await fetchWithAuth(ADMIN_API.PENDING_USERS);
+            if (response.success) {
+                this.pendingUsers = response.data;
+                this.renderPendingUsers();
+            } else {
+                throw new Error(response.error);
+            }
         } catch (error) {
             this.showError('承認待ちユーザーの取得に失敗しました');
             console.error('Error loading pending users:', error);
@@ -207,6 +234,22 @@ class AdminDashboard {
         const toast = new bootstrap.Toast(document.getElementById('errorToast'));
         document.getElementById('errorToastBody').textContent = message;
         toast.show();
+    }
+
+    // ユーザー詳細情報の取得
+    async getUserDetails(userId) {
+        try {
+            const response = await fetchWithAuth(ADMIN_API.USER_DETAILS(userId));
+            if (response.success) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            this.showError('ユーザー詳細の取得に失敗しました');
+            console.error('Error loading user details:', error);
+            return null;
+        }
     }
 }
 
