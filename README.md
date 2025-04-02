@@ -17,6 +17,9 @@
   - JWT認証
   - パスワードのハッシュ化
   - 基本的なバリデーション
+- スーパーユーザー機能
+  - 初回起動時のスーパーユーザー自動作成
+  - ロールベースの権限管理（user, admin, superuser）
 
 ### 実装予定の機能 📝
 - 管理者機能
@@ -53,6 +56,7 @@
 - 投稿の管理（編集・削除）
 - スレッド作成・管理機能
 - サイト統計情報の閲覧
+- スーパーユーザーによる管理者の任命
 
 ### 2.4 拡張機能
 - 投稿へのリアクション機能（参考になった等）
@@ -140,8 +144,9 @@
   username: String,
   email: String,
   password: String (hashed),
-  role: String, // 'user', 'admin'
+  role: String, // 'user', 'admin', 'superuser'
   isApproved: Boolean, // 承認状態
+  isSuperAdmin: Boolean, // スーパーユーザー権限
   approvalScreenshot: String (URL), // スクリーンショットのパス
   approvedAt: Date, // 承認日時
   approvedBy: UUID, // 承認した管理者のID
