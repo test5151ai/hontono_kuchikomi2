@@ -85,8 +85,8 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'メールアドレスまたはパスワードが正しくありません' });
     }
 
-    // 承認済みユーザーのみログイン可能
-    if (!user.isApproved) {
+    // スーパーユーザーと管理者は常にログイン可能
+    if (user.role !== 'superuser' && user.role !== 'admin' && !user.isApproved) {
       return res.status(403).json({ error: 'アカウントが承認されていません' });
     }
 
@@ -110,7 +110,10 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'ログインに失敗しました' });
+    res.status(500).json({ 
+      error: 'ログインに失敗しました',
+      details: error.message 
+    });
   }
 };
 

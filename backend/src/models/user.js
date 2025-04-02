@@ -63,7 +63,21 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
-    approvalScreenshot: DataTypes.STRING,
+    submissionMethod: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'email',
+      validate: {
+        isIn: [['email', 'line']]
+      }
+    },
+    submissionContact: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true
+      }
+    },
     approvedAt: DataTypes.DATE,
     approvedBy: DataTypes.UUID
   }, {

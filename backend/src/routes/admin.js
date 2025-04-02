@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken, checkAdminRole } = require('../middleware/auth');
 const {
   getPendingUsers,
   approveUser,
@@ -7,18 +8,15 @@ const {
   getUserDetails,
   bulkApproveUsers
 } = require('../controllers/admin');
-const { isAdmin } = require('../middleware/admin');
-const { authenticateToken } = require('../middleware/auth');
 
-// 全てのルートで認証とAdmin権限チェックを行う
-router.use(authenticateToken);
-router.use(isAdmin);
+// すべての管理者ルートに認証と管理者権限チェックを適用
+router.use(authenticateToken, checkAdminRole);
 
 // 承認待ちユーザー一覧の取得
 router.get('/users/pending', getPendingUsers);
 
 // ユーザー詳細情報の取得
-router.get('/users/:id', getUserDetails);
+router.get('/users/:id/details', getUserDetails);
 
 // ユーザーの承認
 router.put('/users/:id/approve', approveUser);

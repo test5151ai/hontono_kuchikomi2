@@ -7,8 +7,25 @@ const uploadRoutes = require('./routes/upload');
 
 const app = express();
 
-// ミドルウェアの設定
-app.use(cors());
+// CORSの設定を最初に行う
+const corsOptions = {
+    origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    maxAge: 86400 // プリフライトリクエストのキャッシュ時間（24時間）
+};
+
+// CORSミドルウェアを最初に適用
+app.use(cors(corsOptions));
+
+// プリフライトリクエストの処理
+app.options('*', cors(corsOptions));
+
+// その他のミドルウェア
 app.use(express.json());
 
 // 静的ファイルの提供
