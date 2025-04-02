@@ -57,7 +57,7 @@
 ### 3.3 バックエンド
 - **サーバー環境**: Node.js v20.12.0 LTS
 - **Webフレームワーク**: Express.js v4.18.3
-- **データベース**: PostgreSQL v16.2
+- **データベース**: PostgreSQL v17.4
 - **リアルタイム通信**: Socket.io v4.7.4
 - **主要パッケージ**:
   - express: v4.18.3
