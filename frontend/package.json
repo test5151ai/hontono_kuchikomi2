@@ -1,0 +1,19 @@
+{
+  "name": "realtime-forum-frontend",
+  "version": "1.0.0",
+  "description": "リアルタイム掲示板のフロントエンド",
+  "scripts": {
+    "start": "serve public",
+    "dev": "serve public"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.4",
+    "bootstrap": "^5.3.3",
+    "date-fns": "^3.3.1",
+    "dompurify": "^3.0.9",
+    "chart.js": "^4.4.2"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+} 
