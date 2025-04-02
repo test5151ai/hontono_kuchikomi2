@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const {
   getPendingUsers,
-  getApprovedUsers,
   approveUser,
   rejectUser,
-  getDashboardStats,
-  grantAdminRole
+  getUserDetails,
+  bulkApproveUsers
 } = require('../controllers/admin');
 const { isAdmin } = require('../middleware/admin');
 const { authenticateToken } = require('../middleware/auth');
@@ -15,22 +14,19 @@ const { authenticateToken } = require('../middleware/auth');
 router.use(authenticateToken);
 router.use(isAdmin);
 
-// ダッシュボード情報の取得
-router.get('/dashboard', getDashboardStats);
-
 // 承認待ちユーザー一覧の取得
-router.get('/pending-users', getPendingUsers);
+router.get('/users/pending', getPendingUsers);
 
-// 承認済みユーザー一覧の取得
-router.get('/approved-users', getApprovedUsers);
+// ユーザー詳細情報の取得
+router.get('/users/:id', getUserDetails);
 
 // ユーザーの承認
-router.post('/users/:userId/approve', approveUser);
+router.put('/users/:id/approve', approveUser);
 
-// ユーザーの承認拒否
-router.post('/users/:userId/reject', rejectUser);
+// ユーザーの拒否
+router.put('/users/:id/reject', rejectUser);
 
-// 管理者権限の付与（スーパーユーザーのみ可能）
-router.post('/users/:userId/grant-admin', grantAdminRole);
+// 一括承認
+router.put('/users/bulk-approve', bulkApproveUsers);
 
 module.exports = router; 

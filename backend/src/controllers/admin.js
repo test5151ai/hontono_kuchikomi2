@@ -1,111 +1,186 @@
 const { User } = require('../models');
 const { Op } = require('sequelize');
+const nodemailer = require('nodemailer');
+
+// メール送信の設定
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
 // 承認待ちユーザー一覧の取得
 const getPendingUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      where: {
-        isApproved: false,
-        role: 'user'
-      },
-      attributes: ['id', 'username', 'email', 'createdAt', 'approvalScreenshot']
+      where: { isApproved: false },
+      attributes: ['id', 'username', 'email', 'submissionMethod', 'submissionContact', 'createdAt']
     });
 
     res.json({
-      message: '承認待ちユーザー一覧を取得しました',
-      users
+      success: true,
+      data: users
     });
   } catch (error) {
-    console.error('Get pending users error:', error);
-    res.status(500).json({ error: '承認待ちユーザー一覧の取得に失敗しました' });
+    console.error('承認待ちユーザー取得エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: '承認待ちユーザーの取得に失敗しました'
+    });
   }
 };
 
-// 承認済みユーザー一覧の取得
-const getApprovedUsers = async (req, res) => {
+// ユーザー詳細情報の取得
+const getUserDetails = async (req, res) => {
   try {
-    const users = await User.findAll({
-      where: {
-        isApproved: true,
-        role: 'user'
-      },
-      attributes: ['id', 'username', 'email', 'createdAt', 'approvedAt']
+    const user = await User.findByPk(req.params.id, {
+      attributes: ['id', 'username', 'email', 'submissionMethod', 'submissionContact', 'createdAt']
     });
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'ユーザーが見つかりません'
+      });
+    }
+
     res.json({
-      message: '承認済みユーザー一覧を取得しました',
-      users
+      success: true,
+      data: user
     });
   } catch (error) {
-    console.error('Get approved users error:', error);
-    res.status(500).json({ error: '承認済みユーザー一覧の取得に失敗しました' });
+    console.error('ユーザー詳細取得エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: 'ユーザー詳細の取得に失敗しました'
+    });
   }
 };
 
 // ユーザーの承認
 const approveUser = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const adminId = req.user.id;
+    const user = await User.findByPk(req.params.id);
 
-    const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ error: 'ユーザーが見つかりません' });
-    }
-
-    if (user.isApproved) {
-      return res.status(400).json({ error: 'このユーザーは既に承認されています' });
+      return res.status(404).json({
+        success: false,
+        error: 'ユーザーが見つかりません'
+      });
     }
 
     await user.update({
       isApproved: true,
       approvedAt: new Date(),
-      approvedBy: adminId
+      approvedBy: req.user.id
+    });
+
+    // 承認メールの送信
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: user.email,
+      subject: 'アカウントが承認されました',
+      text: `${user.username}様\n\nアカウントが承認されました。\nログインして掲示板の機能をご利用いただけます。`
     });
 
     res.json({
+      success: true,
       message: 'ユーザーを承認しました',
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        isApproved: user.isApproved,
-        approvedAt: user.approvedAt
-      }
+      data: user
     });
   } catch (error) {
-    console.error('Approve user error:', error);
-    res.status(500).json({ error: 'ユーザーの承認に失敗しました' });
+    console.error('ユーザー承認エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: 'ユーザーの承認に失敗しました'
+    });
   }
 };
 
-// ユーザーの承認拒否
+// ユーザーの拒否
 const rejectUser = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const user = await User.findByPk(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'ユーザーが見つかりません'
+      });
+    }
+
     const { reason } = req.body;
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'ユーザーが見つかりません' });
-    }
-
-    if (user.isApproved) {
-      return res.status(400).json({ error: 'このユーザーは既に承認されています' });
-    }
-
-    // ユーザーを削除
-    await user.destroy();
+    // 拒否メールの送信
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: user.email,
+      subject: 'アカウント承認が拒否されました',
+      text: `${user.username}様\n\nアカウントの承認が拒否されました。\n\n理由：${reason || '基準を満たしていません'}\n\n基準を満たすスクリーンショットを再度提出してください。`
+    });
 
     res.json({
-      message: 'ユーザーの承認を拒否しました',
-      userId,
-      reason
+      success: true,
+      message: 'ユーザーを拒否しました'
     });
   } catch (error) {
-    console.error('Reject user error:', error);
-    res.status(500).json({ error: 'ユーザーの承認拒否に失敗しました' });
+    console.error('ユーザー拒否エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: 'ユーザーの拒否に失敗しました'
+    });
+  }
+};
+
+// 一括承認
+const bulkApproveUsers = async (req, res) => {
+  try {
+    const { userIds } = req.body;
+
+    await User.update(
+      {
+        isApproved: true,
+        approvedAt: new Date(),
+        approvedBy: req.user.id
+      },
+      {
+        where: {
+          id: userIds
+        }
+      }
+    );
+
+    // 承認されたユーザーの取得
+    const approvedUsers = await User.findAll({
+      where: {
+        id: userIds
+      }
+    });
+
+    // 各ユーザーにメール送信
+    for (const user of approvedUsers) {
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM,
+        to: user.email,
+        subject: 'アカウントが承認されました',
+        text: `${user.username}様\n\nアカウントが承認されました。\nログインして掲示板の機能をご利用いただけます。`
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `${userIds.length}人のユーザーを承認しました`
+    });
+  } catch (error) {
+    console.error('一括承認エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: '一括承認に失敗しました'
+    });
   }
 };
 
@@ -181,9 +256,10 @@ const grantAdminRole = async (req, res) => {
 
 module.exports = {
   getPendingUsers,
-  getApprovedUsers,
+  getUserDetails,
   approveUser,
   rejectUser,
+  bulkApproveUsers,
   getDashboardStats,
   grantAdminRole
 }; 
