@@ -17,63 +17,68 @@
     <site-header></site-header>
 
     <!-- メインコンテンツ -->
-    <main class="main-content">
-        <div class="container">
-            <!-- ヒーローセクション -->
-            <section class="text-center py-5 mb-5 bg-light rounded">
+    <main>
+        <!-- ヒーローセクション -->
+        <section class="hero-section">
+            <div class="container">
                 <h1 class="display-4 mb-3">信頼できる口コミだけを<br>厳選して掲載</h1>
                 <p class="lead mb-4">
                     15ch.netは、実際の利用者による確かな情報だけを<br>
                     厳格な審査を経て掲載する口コミサイトです。
                 </p>
                 <a href="/register" class="btn btn-primary btn-lg">新規登録はこちら</a>
-            </section>
+            </div>
+        </section>
 
-            <!-- 特徴セクション -->
-            <section class="mb-5">
-                <h2 class="text-center mb-4">なぜ15ch.netなのか？</h2>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h3 class="card-title h5">実際の利用者のみ</h3>
-                                <p class="card-text">
-                                    投稿できるのは、サービスを実際に利用した人だけ。
-                                    自作自演や虚偽の情報を排除します。
-                                </p>
+        <!-- 特徴セクション -->
+        <section class="section-full">
+            <div class="container">
+                <div class="feature-cards">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h3 class="card-title h5">実際の利用者のみ</h3>
+                                    <p class="card-text">
+                                        投稿できるのは、サービスを実際に利用した人だけ。
+                                        自作自演や虚偽の情報を排除します。
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h3 class="card-title h5">厳格な審査制度</h3>
-                                <p class="card-text">
-                                    新規登録後、利用を証明する書類の提出が必要です。
-                                    管理者による審査を経て、投稿が可能になります。
-                                </p>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h3 class="card-title h5">厳格な審査制度</h3>
+                                    <p class="card-text">
+                                        新規登録後、利用を証明する書類の提出が必要です。
+                                        管理者による審査を経て、投稿が可能になります。
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h3 class="card-title h5">プライバシーに配慮</h3>
-                                <p class="card-text">
-                                    個人情報は確実に保護。
-                                    書類の提出時も個人情報の削除をお願いしています。
-                                </p>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h3 class="card-title h5">プライバシーに配慮</h3>
+                                    <p class="card-text">
+                                        個人情報は確実に保護。
+                                        書類の提出時も個人情報の削除をお願いしています。
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- 新着・人気スレッド -->
-            <div class="row">
-                <!-- 新着スレッド -->
-                <div class="col-md-8">
-                    <section class="mb-5">
+        <!-- スレッドセクション -->
+        <section class="section-full section-light">
+            <div class="container">
+                <div class="row">
+                    <!-- 新着スレッド -->
+                    <div class="col-md-8">
                         <h2 class="mb-4">新着スレッド</h2>
                         <div class="thread-list">
                             <div class="thread-item">
@@ -89,12 +94,10 @@
                         <div class="text-center mt-4">
                             <a href="/threads" class="btn btn-outline-primary">すべてのスレッドを見る</a>
                         </div>
-                    </section>
-                </div>
+                    </div>
 
-                <!-- サイドバー：人気スレッド -->
-                <div class="col-md-4">
-                    <section class="mb-5">
+                    <!-- 人気スレッド -->
+                    <div class="col-md-4">
                         <h2 class="mb-4">人気スレッド</h2>
                         <div class="thread-list">
                             <div class="thread-item">
@@ -105,20 +108,14 @@
                             </div>
                             <!-- 追加の人気スレッド -->
                         </div>
-                    </section>
-
-                    <!-- ログインセクション -->
-                    <section class="login-section">
-                        <h3 class="h5 mb-3">ログイン</h3>
-                        <p class="mb-3">アカウントをお持ちの方はログインしてください。</p>
-                        <a href="/login" class="btn btn-primary w-100 mb-2">ログイン</a>
-                        <a href="/register" class="btn btn-outline-primary w-100">新規登録</a>
-                    </section>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <!-- 登録プロセス -->
-            <section class="mb-5">
+        <!-- 登録プロセス -->
+        <section class="section-full">
+            <div class="container">
                 <h2 class="text-center mb-4">投稿までの流れ</h2>
                 <div class="row">
                     <div class="col-lg-8 mx-auto">
@@ -149,17 +146,19 @@
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- CTAセクション -->
-            <section class="text-center py-5 bg-light rounded">
+        <!-- CTAセクション -->
+        <section class="section-full section-gradient">
+            <div class="container text-center">
                 <h2 class="mb-3">信頼できる情報を共有しませんか？</h2>
                 <p class="lead mb-4">
                     あなたの経験が、誰かの役に立つかもしれません。
                 </p>
                 <a href="/register" class="btn btn-primary btn-lg">新規登録する</a>
-            </section>
-        </div>
+            </div>
+        </section>
     </main>
 
     <!-- フッター -->

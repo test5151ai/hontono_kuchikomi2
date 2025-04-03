@@ -45,35 +45,64 @@ body {
     color: var(--accent-color);
 }
 
-/* フッタースタイル */
-.site-footer {
+/* ヘッダーのログインボタン */
+.header-auth {
+    display: flex;
+    gap: 1rem;
+}
+
+.header-auth .btn {
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* セクションスタイル */
+.section-full {
+    padding: 5rem 0;
+    margin: 0;
+    position: relative;
+}
+
+.section-light {
+    background-color: var(--light-gray);
+}
+
+.section-dark {
     background-color: var(--primary-color);
     color: var(--white);
-    padding: 2rem 0;
-    margin-top: 3rem;
 }
 
-.site-footer a {
-    color: var(--light-gray);
-    text-decoration: none;
+.section-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white);
 }
 
-.site-footer a:hover {
-    color: var(--accent-color);
+/* ヒーローセクション */
+.hero-section {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white);
+    text-align: center;
 }
 
-/* メインコンテンツ */
-.main-content {
-    padding: 2rem 0;
-    min-height: calc(100vh - 300px);
+.hero-section .lead {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-/* カード */
+/* カードスタイル */
+.feature-cards {
+    margin-top: -3rem;
+    position: relative;
+    z-index: 1;
+}
+
 .card {
     border: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
-    margin-bottom: 1rem;
+    height: 100%;
+    background: var(--white);
 }
 
 .card:hover {
@@ -84,7 +113,8 @@ body {
 .thread-list {
     background: var(--white);
     border-radius: 4px;
-    padding: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .thread-item {
@@ -111,21 +141,41 @@ body {
     color: var(--dark-gray);
 }
 
-/* ログインフォーム */
-.login-section {
-    background: var(--white);
+/* タイムライン */
+.timeline {
     padding: 2rem;
+    background: var(--white);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.timeline .step {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 2px solid var(--accent-color);
+    margin-left: 1rem;
+}
+
+.timeline .step:before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    background: var(--accent-color);
+    border-radius: 50%;
+}
+
+.timeline .step:last-child {
+    border-left: 2px solid transparent;
 }
 
 /* ボタン */
 .btn-primary {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
-    color: var(--white);
-    padding: 0.5rem 1.5rem;
-    border-radius: 4px;
+    padding: 0.75rem 2rem;
     transition: all 0.3s ease;
 }
 
@@ -134,23 +184,34 @@ body {
     border-color: var(--primary-color);
 }
 
-/* ユーティリティクラス */
-.text-accent {
-    color: var(--accent-color);
+/* フッター */
+.site-footer {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 3rem 0;
 }
 
-.bg-light-gray {
-    background-color: var(--light-gray);
+.site-footer a {
+    color: var(--light-gray);
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    color: var(--accent-color);
 }
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-    .site-header {
-        padding: 0.5rem 0;
+    .section-full {
+        padding: 3rem 0;
     }
     
-    .site-header .navbar-brand {
-        font-size: 1.2rem;
+    .hero-section {
+        padding: 4rem 0;
+    }
+    
+    .feature-cards {
+        margin-top: -2rem;
     }
     
     .thread-item {
@@ -174,39 +235,13 @@ body {
     }
 }
 
-/* タイムラインスタイル */
-.timeline .step {
-    position: relative;
-    padding-left: 2.5rem;
-    border-left: 2px solid var(--primary-color);
-    margin-left: 1rem;
-}
-
-.timeline .step:before {
-    content: '';
-    position: absolute;
-    left: -0.5rem;
-    top: 0.5rem;
-    width: 1rem;
-    height: 1rem;
-    background: var(--primary-color);
-    border-radius: 50%;
-}
-
-.timeline .step:last-child {
-    border-left: 2px solid transparent;
-}
-
-.timeline .step h3 {
+/* ユーティリティクラス */
+.text-accent {
     color: var(--accent-color);
-    margin-bottom: 1rem;
 }
 
-/* ヒーローセクションスタイル */
-.hero-section {
-    background: linear-gradient(rgba(33, 150, 243, 0.1), rgba(25, 118, 210, 0.1));
-    border-radius: var(--border-radius);
-    padding: 4rem 2rem;
+.bg-light-gray {
+    background-color: var(--light-gray);
 }
 
 /* CTAセクション */
