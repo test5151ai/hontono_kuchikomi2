@@ -51,6 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.message || 'ログインに失敗しました');
             }
 
+            // トークンのバリデーション
+            if (!data.token || typeof data.token !== 'string' || data.token.includes('Bearer')) {
+                throw new Error('無効なトークン形式です');
+            }
+
+            // 既存のデータをクリア
+            localStorage.clear();
+
             // トークンを保存（Bearerプレフィックスなし）
             localStorage.setItem('token', data.token);
             

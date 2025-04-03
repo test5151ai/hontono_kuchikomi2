@@ -16,6 +16,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // トークンのバリデーション
+        if (token.includes('Bearer')) {
+            console.error('トークンにBearerプレフィックスが含まれています');
+            localStorage.clear();
+            window.location.href = '/login.html';
+            return;
+        }
+
         // デバッグ用：トークン情報の詳細確認
         console.log('=== トークン情報 ===');
         console.log('LocalStorageから取得したトークン:', token);
