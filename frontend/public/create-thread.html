@@ -131,6 +131,8 @@
                         authorName: document.getElementById('authorName').value || '名無しさん'
                     };
 
+                    console.log('送信するデータ:', formData);  // デバッグログ追加
+
                     const response = await fetch('http://localhost:3000/api/threads', {
                         method: 'POST',
                         headers: {
@@ -139,12 +141,15 @@
                         body: JSON.stringify(formData)
                     });
 
+                    console.log('レスポンスステータス:', response.status);  // デバッグログ追加
+                    const responseData = await response.json();
+                    console.log('レスポンスデータ:', responseData);  // デバッグログ追加
+
                     if (!response.ok) {
                         throw new Error('スレッドの作成に失敗しました');
                     }
 
-                    const result = await response.json();
-                    window.location.href = `/thread.html?id=${result.id}`;
+                    window.location.href = `/thread.html?id=${responseData.id}`;
                 } catch (error) {
                     console.error('スレッド作成エラー:', error);
                     alert('スレッドの作成に失敗しました。もう一度お試しください。');

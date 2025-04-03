@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:;">
     <title>カテゴリー一覧 - 15ch.net</title>
     
     <!-- Bootstrap CSS -->
@@ -35,8 +36,11 @@
         // カテゴリー一覧を取得して表示
         async function loadCategories() {
             try {
+                console.log('カテゴリー一覧を取得中...');
                 const response = await fetch('http://localhost:3000/api/categories');
+                console.log('APIレスポンス:', response.status);
                 const categories = await response.json();
+                console.log('取得したカテゴリー:', categories);
                 
                 const categoriesContainer = document.getElementById('categories');
                 categoriesContainer.innerHTML = categories.map(category => `
@@ -60,6 +64,11 @@
     </script>
 
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+        }
+
         .categories {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

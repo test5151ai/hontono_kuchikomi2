@@ -25,7 +25,7 @@ const formatDate = (dateString) => {
 const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('token');
     if (!token) {
-        // トークンがない場合はログインページにリダイレクト
+        console.error('認証トークンが存在しません');
         window.location.href = '/login.html';
         return;
     }
@@ -41,11 +41,16 @@ const fetchWithAuth = async (url, options = {}) => {
     };
 
     try {
+        console.log('リクエスト送信:', {
+            url,
+            headers: defaultOptions.headers
+        });
+
         const response = await fetch(url, defaultOptions);
         const data = await response.json();
         
         if (response.status === 401) {
-            // 認証エラーの場合はログインページにリダイレクト
+            console.error('認証エラー:', data);
             localStorage.removeItem('token');
             window.location.href = '/login.html';
             return;
