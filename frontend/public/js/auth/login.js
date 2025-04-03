@@ -40,12 +40,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
 
+            // デバッグ用：詳細なレスポンス情報
+            console.log('=== ログイン処理 ===');
+            console.log('レスポンスステータス:', response.status);
+            console.log('レスポンスヘッダー:', Object.fromEntries(response.headers));
+            console.log('レスポンスデータ:', data);
+            console.log('生のトークン:', data.token);
+
             if (!response.ok) {
                 throw new Error(data.message || 'ログインに失敗しました');
             }
 
-            // トークンを保存
+            // トークンを保存（Bearerプレフィックスなし）
             localStorage.setItem('token', data.token);
+            
+            // デバッグ用：保存確認
+            console.log('=== トークン保存確認 ===');
+            console.log('LocalStorageに保存したトークン:', localStorage.getItem('token'));
+            console.log('トークンの長さ:', localStorage.getItem('token').length);
+
             if (rememberMe) {
                 localStorage.setItem('refreshToken', data.refreshToken);
             }

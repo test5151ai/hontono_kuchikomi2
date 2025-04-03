@@ -16,20 +16,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // デバッグ用：トークン情報の詳細確認
+        console.log('=== トークン情報 ===');
+        console.log('LocalStorageから取得したトークン:', token);
+        console.log('トークンの長さ:', token.length);
+        console.log('トークンにBearerが含まれているか:', token.includes('Bearer'));
+        console.log('作成するAuthorizationヘッダー:', `Bearer ${token}`);
+
         const response = await fetch('http://localhost:3000/api/users/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
+        // デバッグ用：レスポンスの詳細確認
+        console.log('=== ユーザー情報取得 ===');
+        console.log('レスポンスステータス:', response.status);
+        console.log('レスポンスヘッダー:', Object.fromEntries(response.headers));
+        const userData = await response.json();
+        console.log('レスポンスデータ:', userData);
+
         if (!response.ok) {
-            throw new Error('ユーザー情報の取得に失敗しました');
+            throw new Error(userData.error || 'ユーザー情報の取得に失敗しました');
         }
 
-        const userData = await response.json();
-
         // プロフィール情報を表示
-        userNickname.textContent = userData.nickname;
+        userNickname.textContent = userData.username;
         userEmail.textContent = userData.email;
         userCreatedAt.textContent = new Date(userData.createdAt).toLocaleDateString('ja-JP');
 
