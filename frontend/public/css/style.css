@@ -111,15 +111,19 @@ body {
 
 /* スレッドセクション */
 .thread-section {
-    background-color: var(--light-gray);
     padding: 5rem 0;
+}
+
+.thread-section:nth-of-type(even) {
+    background-color: var(--light-gray);
 }
 
 .thread-section h2 {
     font-size: 1.75rem;
     font-weight: 700;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     color: var(--primary-color);
+    text-align: center;
 }
 
 /* スレッドリスト */
@@ -128,16 +132,21 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow: hidden;
+    height: 100%;
 }
 
 .thread-item {
     padding: 1.5rem;
     border-bottom: 1px solid var(--light-gray);
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .thread-item:hover {
     background-color: rgba(52, 152, 219, 0.05);
+    transform: translateY(-2px);
 }
 
 .thread-item:last-child {
@@ -149,7 +158,7 @@ body {
     font-weight: 600;
     text-decoration: none;
     font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     display: block;
 }
 
@@ -160,8 +169,9 @@ body {
 .thread-excerpt {
     color: var(--secondary-color);
     font-size: 0.95rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     line-height: 1.5;
+    flex-grow: 1;
 }
 
 .thread-meta {
@@ -170,6 +180,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    margin-top: auto;
 }
 
 .thread-meta span {
@@ -183,7 +194,7 @@ body {
 
 /* 人気スレッド */
 .popular-threads .thread-item {
-    padding: 1.25rem 1.5rem;
+    padding: 1.25rem;
 }
 
 .popular-threads .thread-title {
@@ -191,9 +202,15 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.popular-threads .thread-excerpt {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
 .popular-threads .thread-meta {
     color: var(--accent-color);
     font-weight: 500;
+    justify-content: flex-end;
 }
 
 /* スレッド一覧ボタン */
@@ -206,12 +223,32 @@ body {
     font-weight: 600;
     border-radius: 50px;
     transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .view-all-btn:hover {
     background-color: var(--accent-color);
     color: var(--white);
     transform: translateY(-2px);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .thread-section {
+        padding: 3rem 0;
+    }
+    
+    .thread-item {
+        padding: 1rem;
+    }
+    
+    .thread-title {
+        font-size: 1rem;
+    }
+    
+    .thread-excerpt {
+        font-size: 0.9rem;
+    }
 }
 
 /* タイムライン */
@@ -271,25 +308,6 @@ body {
 
 .site-footer a:hover {
     color: var(--accent-color);
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-    .section-full {
-        padding: 3rem 0;
-    }
-    
-    .hero-section {
-        padding: 4rem 0;
-    }
-    
-    .feature-cards {
-        margin-top: -2rem;
-    }
-    
-    .thread-item {
-        padding: 0.75rem;
-    }
 }
 
 /* アニメーション */
