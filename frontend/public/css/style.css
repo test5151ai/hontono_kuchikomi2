@@ -26,12 +26,12 @@ body {
 .site-header {
     background-color: var(--primary-color);
     color: var(--white);
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .site-header .navbar-brand {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: bold;
     color: var(--white);
 }
@@ -39,6 +39,7 @@ body {
 .site-header .nav-link {
     color: var(--white);
     transition: color 0.3s ease;
+    padding: 0.5rem 1rem;
 }
 
 .site-header .nav-link:hover {
