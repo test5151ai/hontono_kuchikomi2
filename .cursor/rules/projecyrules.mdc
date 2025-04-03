@@ -1,0 +1,41 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+---
+description: プロジェクトの基本ルール
+globs:
+  - "backend/src/**/*.js"
+alwaysApply: true
+---
+
+# データベース設定ルール
+
+## データベース同期（Sequelize）
+- テーブル構造の変更は必ずマイグレーションファイルを使用
+- `sequelize.sync({ force: true })`の使用は禁止
+- `sequelize.sync({ alter: true })`の使用は禁止
+- 基本は`sequelize.sync()`のみを使用
+
+## マイグレーション
+- テーブル構造の変更が必要な場合：
+  1. マイグレーションファイルを作成
+  2. `npx sequelize-cli db:migrate`を実行
+  3. 必要に応じて`db:migrate:undo`で戻す
+
+## データの永続化
+- サーバー再起動時にデータが消えない設計を維持
+- 初期データはシーダーで管理
+- テスト環境でもデータを保持
+
+## シードデータ
+- シードデータは`backend/src/seeders/`に配置
+- サーバー起動時には自動実行しない
+- 必要な時のみ手動で`node src/seeders/index.js`を実行
+- シードデータの種類：
+  - スーパーユーザー（必須）
+  - テストユーザー（開発環境のみ）
+  - カテゴリー（必要に応じて）
+```
