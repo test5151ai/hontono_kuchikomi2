@@ -40,7 +40,7 @@ class Header extends HTMLElement {
                             <!-- 認証メニュー -->
                             <div class="auth-menu">
                                 <div class="guest-menu">
-                                    <a href="/login" class="btn btn-outline-light">ログイン</a>
+                                    <a href="/login.html" class="btn btn-outline-light">ログイン</a>
                                     <a href="/register-guide.html" class="btn btn-primary">新規登録</a>
                                 </div>
                                 <div class="user-menu" style="display: none;">
@@ -89,7 +89,7 @@ class Header extends HTMLElement {
     async handleLogout() {
         try {
             localStorage.removeItem('token');
-            window.location.href = '/login';
+            window.location.href = '/login.html';
         } catch (error) {
             console.error('ログアウトエラー:', error);
         }

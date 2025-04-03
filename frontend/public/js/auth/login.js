@@ -1,28 +1,62 @@
-try {
-    const response = await fetch(API_ENDPOINTS.LOGIN, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        credentials: 'include',
-        mode: 'cors',
-        body: JSON.stringify({ email, password })
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const togglePasswordButton = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    // パスワードの表示/非表示切り替え
+    togglePasswordButton.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        togglePasswordButton.querySelector('i').classList.toggle('fa-eye');
+        togglePasswordButton.querySelector('i').classList.toggle('fa-eye-slash');
     });
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'ログインに失敗しました');
-    }
+    // ログインフォームの送信処理
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(loginForm);
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const rememberMe = formData.get('rememberMe') === 'on';
 
-    const data = await response.json();
-    if (data.token) {
-        localStorage.setItem('token', data.token);
-        window.location.href = '/admin';
-    } else {
-        throw new Error('トークンが取得できませんでした');
-    }
-} catch (error) {
-    console.error('Error logging in:', error);
-    showError(error.message);
-} 
+        try {
+            // エラーメッセージをクリア
+            errorMessage.classList.add('d-none');
+            
+            // ログインAPIを呼び出す
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    rememberMe
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'ログインに失敗しました');
+            }
+
+            // トークンを保存
+            localStorage.setItem('token', data.token);
+            if (rememberMe) {
+                localStorage.setItem('refreshToken', data.refreshToken);
+            }
+
+            // ログイン成功後のリダイレクト
+            window.location.href = '/';
+
+        } catch (error) {
+            // エラーメッセージを表示
+            errorMessage.textContent = error.message;
+            errorMessage.classList.remove('d-none');
+        }
+    });
+}); 
