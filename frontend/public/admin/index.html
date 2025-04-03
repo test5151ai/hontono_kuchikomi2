@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理者ダッシュボード</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
         .table-responsive {
@@ -19,100 +20,159 @@
         }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">管理者ダッシュボード</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">承認待ちユーザー</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">ユーザー一覧</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">統計情報</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/categories.html">カテゴリー管理</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <button class="btn btn-outline-light" id="logoutBtn">
-                            <i class="bi bi-box-arrow-right"></i> ログアウト
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<body class="hold-transition sidebar-mini">
+    <div class="wrapper">
+        <!-- 共通ヘッダー -->
+        <div id="header"></div>
 
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">承認待ちユーザー一覧</h5>
-                        <button class="btn btn-primary" id="bulkApproveBtn" disabled>
-                            <i class="bi bi-check2-all"></i> 一括承認
-                        </button>
+        <!-- 共通サイドバー -->
+        <div id="sidebar"></div>
+
+        <!-- メインコンテンツ -->
+        <div class="content-wrapper">
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">ダッシュボード</h1>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <input type="checkbox" id="selectAllCheckbox">
-                                        </th>
-                                        <th>ユーザー名</th>
-                                        <th>メールアドレス</th>
-                                        <th>提出方法</th>
-                                        <th>連絡先</th>
-                                        <th>登録日時</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pendingUsersTableBody">
-                                    <!-- JavaScriptで動的に追加 -->
-                                </tbody>
-                            </table>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="container-fluid">
+                    <!-- 統計カード -->
+                    <div class="row">
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3 id="pendingUsersCount">0</h3>
+                                    <p>承認待ちユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <a href="/admin/pending-users.html" class="small-box-footer">
+                                    詳細を見る <i class="bi bi-arrow-right-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3 id="totalUsersCount">0</h3>
+                                    <p>登録ユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-person-check"></i>
+                                </div>
+                                <a href="/admin/users.html" class="small-box-footer">
+                                    詳細を見る <i class="bi bi-arrow-right-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3 id="totalCategoriesCount">0</h3>
+                                    <p>カテゴリー数</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-tags"></i>
+                                </div>
+                                <a href="/admin/categories.html" class="small-box-footer">
+                                    詳細を見る <i class="bi bi-arrow-right-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3 id="totalThreadsCount">0</h3>
+                                    <p>スレッド数</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-chat-dots"></i>
+                                </div>
+                                <a href="/admin/stats.html" class="small-box-footer">
+                                    詳細を見る <i class="bi bi-arrow-right-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最近のアクティビティ -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">最近のアクティビティ</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="timeline" id="recentActivities">
+                                        <!-- アクティビティはJavaScriptで動的に追加 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">システム情報</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-info"><i class="bi bi-server"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">サーバー状態</span>
+                                            <span class="info-box-number" id="serverStatus">正常</span>
+                                        </div>
+                                    </div>
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-success"><i class="bi bi-database"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">データベース</span>
+                                            <span class="info-box-number" id="dbStatus">接続中</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- フッター -->
+        <footer class="main-footer">
+            <strong>Copyright &copy; 2024 <a href="#">Hontono Kuchikomi</a>.</strong>
+            All rights reserved.
+        </footer>
     </div>
 
     <!-- トースト通知 -->
-    <div class="toast-container">
-        <!-- 成功通知 -->
-        <div class="toast" id="successToast" role="alert">
-            <div class="toast-header bg-success text-white">
-                <i class="bi bi-check-circle me-2"></i>
-                <strong class="me-auto">成功</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body" id="successToastBody"></div>
-        </div>
+    <div class="toast-container"></div>
 
-        <!-- エラー通知 -->
-        <div class="toast" id="errorToast" role="alert">
-            <div class="toast-header bg-danger text-white">
-                <i class="bi bi-exclamation-circle me-2"></i>
-                <strong class="me-auto">エラー</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body" id="errorToastBody"></div>
-        </div>
-    </div>
-
+    <!-- AdminLTE JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/admin/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
+    <script src="/js/admin/dashboard.js"></script>
+    <script>
+        // 共通ヘッダーの読み込み
+        fetch('/admin/components/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+            });
+
+        // 共通サイドバーの読み込み
+        fetch('/admin/components/sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar').innerHTML = html;
+            });
+    </script>
 </body>
 </html> 

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統計情報 - 管理者ダッシュボード</title>
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body class="hold-transition sidebar-mini">
+    <div class="wrapper">
+        <!-- 共通ヘッダー -->
+        <div id="header"></div>
+
+        <!-- 共通サイドバー -->
+        <div id="sidebar"></div>
+
+        <!-- メインコンテンツ -->
+        <div class="content-wrapper">
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">統計情報</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="container-fluid">
+                    <!-- ユーザー統計 -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">ユーザー統計</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="userStatsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">カテゴリー別スレッド数</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="categoryStatsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- アクセス統計 -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">月間アクセス統計</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="accessStatsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 詳細データ -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">人気スレッドランキング</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>順位</th>
+                                                    <th>スレッドタイトル</th>
+                                                    <th>投稿数</th>
+                                                    <th>閲覧数</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="popularThreads">
+                                                <!-- データはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">アクティブユーザーランキング</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>順位</th>
+                                                    <th>ユーザー名</th>
+                                                    <th>投稿数</th>
+                                                    <th>スレッド数</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="activeUsers">
+                                                <!-- データはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- フッター -->
+        <footer class="main-footer">
+            <strong>Copyright &copy; 2024 <a href="#">Hontono Kuchikomi</a>.</strong>
+            All rights reserved.
+        </footer>
+    </div>
+
+    <!-- AdminLTE JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/admin/stats.js"></script>
+    <script>
+        // 共通ヘッダーの読み込み
+        fetch('/admin/components/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+            });
+
+        // 共通サイドバーの読み込み
+        fetch('/admin/components/sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar').innerHTML = html;
+            });
+    </script>
+</body>
+</html> 
