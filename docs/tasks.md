@@ -19,11 +19,11 @@
 - [x] カテゴリー関連のモデル作成
   - Categoryモデル
   - Threadモデル（カテゴリー関連）
-- [ ] カテゴリー関連のコントローラー作成
+- [x] カテゴリー関連のコントローラー作成
   - カテゴリー一覧取得
   - カテゴリー別スレッド一覧取得
   - カテゴリー詳細取得
-- [ ] ルーティングの設定
+- [x] ルーティングの設定
   - GET /api/categories
   - GET /api/categories/:id
   - GET /api/categories/:id/threads

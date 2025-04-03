@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/upload');
 const userRoutes = require('./routes/users');
+const categoryRoutes = require('./routes/categories');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // エラーハンドリング
 app.use((err, req, res, next) => {
