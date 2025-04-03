@@ -55,5 +55,6 @@ router.get('/categories', authenticateToken, isAdmin, categoryController.getCate
 router.post('/categories', authenticateToken, isAdmin, categoryController.createCategory);
 router.put('/categories/:id', authenticateToken, isAdmin, categoryController.updateCategory);
 router.delete('/categories/:id', authenticateToken, isAdmin, categoryController.deleteCategory);
+router.post('/categories/:id/move-threads', authenticateToken, isAdmin, categoryController.moveThreadsToUncategorized);
 
 module.exports = router; 

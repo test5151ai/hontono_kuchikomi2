@@ -114,8 +114,11 @@
             try {
                 const response = await fetch('http://localhost:3000/api/admin/categories', {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
                 });
                 const data = await response.json();
                 
@@ -129,10 +132,10 @@
                                     <p class="card-text">${category.description || '説明なし'}</p>
                                     <p class="thread-count">スレッド数: ${category.threadCount}</p>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="editCategory(${category.id})">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editCategory('${category.id}')">
                                             <i class="fas fa-edit"></i> 編集
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${category.id})">
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory('${category.id}')">
                                             <i class="fas fa-trash"></i> 削除
                                         </button>
                                     </div>
@@ -187,8 +190,11 @@
             try {
                 const response = await fetch(`http://localhost:3000/api/admin/categories/${id}`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
                 });
                 const data = await response.json();
                 
@@ -200,6 +206,8 @@
                     document.getElementById('modalTitle').textContent = 'カテゴリーを編集';
                     
                     new bootstrap.Modal(document.getElementById('categoryModal')).show();
+                } else {
+                    alert(data.error || 'カテゴリー情報の取得に失敗しました');
                 }
             } catch (error) {
                 console.error('カテゴリー情報の取得に失敗:', error);
@@ -209,26 +217,77 @@
 
         // カテゴリーを削除
         async function deleteCategory(id) {
-            if (confirm('このカテゴリーを削除してもよろしいですか？\n※スレッドが存在するカテゴリーは削除できません。')) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/admin/categories/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
+            try {
+                // まずカテゴリー情報を取得してスレッド数を確認
+                const response = await fetch(`http://localhost:3000/api/admin/categories/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+                const data = await response.json();
 
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        loadCategories();
-                    } else {
-                        alert(data.error || 'カテゴリーの削除に失敗しました');
-                    }
-                } catch (error) {
-                    console.error('カテゴリーの削除に失敗:', error);
-                    alert('カテゴリーの削除に失敗しました');
+                if (!data.success) {
+                    alert(data.error || 'カテゴリー情報の取得に失敗しました');
+                    return;
                 }
+
+                const category = data.data;
+                if (category.threadCount > 0) {
+                    const action = confirm(
+                        `このカテゴリーには${category.threadCount}件のスレッドが存在します。\n` +
+                        '以下のいずれかの操作を選択してください：\n\n' +
+                        'OK: スレッドを「未分類」カテゴリーに移動して削除\n' +
+                        'キャンセル: 削除を中止'
+                    );
+
+                    if (action) {
+                        // スレッドを移動してから削除
+                        const moveResponse = await fetch(`http://localhost:3000/api/admin/categories/${id}/move-threads`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include',
+                            mode: 'cors'
+                        });
+                        const moveData = await moveResponse.json();
+                        
+                        if (!moveData.success) {
+                            alert(moveData.error || 'スレッドの移動に失敗しました');
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                } else if (!confirm('このカテゴリーを削除してもよろしいですか？')) {
+                    return;
+                }
+
+                // カテゴリーを削除
+                const deleteResponse = await fetch(`http://localhost:3000/api/admin/categories/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+
+                const deleteData = await deleteResponse.json();
+                
+                if (deleteData.success) {
+                    loadCategories();
+                } else {
+                    alert(deleteData.error || 'カテゴリーの削除に失敗しました');
+                }
+            } catch (error) {
+                console.error('カテゴリーの削除に失敗:', error);
+                alert('カテゴリーの削除に失敗しました');
             }
         }
 

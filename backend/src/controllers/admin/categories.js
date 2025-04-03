@@ -9,6 +9,7 @@ exports.getCategories = async (req, res) => {
     const categories = await Category.findAll({
       include: [{
         model: Thread,
+        as: 'threads',
         attributes: ['id'],
       }],
       order: [['name', 'ASC']],
@@ -17,7 +18,7 @@ exports.getCategories = async (req, res) => {
     // スレッド数を追加
     const categoriesWithCount = categories.map(category => ({
       ...category.toJSON(),
-      threadCount: category.Threads.length,
+      threadCount: category.threads.length,
     }));
 
     res.json({
@@ -153,7 +154,7 @@ exports.deleteCategory = async (req, res) => {
     }
 
     // スレッドが存在する場合は削除不可
-    if (category.Threads.length > 0) {
+    if (category.threads.length > 0) {
       return res.status(400).json({
         success: false,
         error: 'スレッドが存在するカテゴリーは削除できません'
@@ -171,6 +172,45 @@ exports.deleteCategory = async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'カテゴリーの削除に失敗しました'
+    });
+  }
+};
+
+/**
+ * カテゴリーのスレッドを未分類カテゴリーに移動
+ */
+exports.moveThreadsToUncategorized = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 未分類カテゴリーを取得または作成
+    let uncategorizedCategory = await Category.findOne({
+      where: { slug: 'uncategorized' }
+    });
+
+    if (!uncategorizedCategory) {
+      uncategorizedCategory = await Category.create({
+        name: '未分類',
+        slug: 'uncategorized',
+        description: 'カテゴリーが削除されたスレッド'
+      });
+    }
+
+    // スレッドを移動
+    await Thread.update(
+      { categoryId: uncategorizedCategory.id },
+      { where: { categoryId: id } }
+    );
+
+    res.json({
+      success: true,
+      message: 'スレッドを未分類カテゴリーに移動しました'
+    });
+  } catch (error) {
+    console.error('スレッド移動エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: 'スレッドの移動に失敗しました'
     });
   }
 }; 
