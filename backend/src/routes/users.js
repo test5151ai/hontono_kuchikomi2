@@ -1,21 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const auth = require('../middleware/auth');
+const { User } = require('../models');
+const { authenticateToken } = require('../middleware/auth');
 
 // ユーザー情報を取得
-router.get('/me', auth, async (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.id },
-            select: {
-                id: true,
-                nickname: true,
-                email: true,
-                createdAt: true,
-                updatedAt: true
-            }
+        const user = await User.findByPk(req.user.id, {
+            attributes: ['id', 'username', 'email', 'createdAt', 'updatedAt']
         });
 
         if (!user) {
@@ -29,26 +21,20 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
-// ユーザーの投稿履歴を取得
-router.get('/me/posts', auth, async (req, res) => {
-    try {
-        const posts = await prisma.post.findMany({
-            where: { userId: req.user.id },
-            orderBy: { createdAt: 'desc' },
-            select: {
-                id: true,
-                title: true,
-                content: true,
-                createdAt: true,
-                updatedAt: true
-            }
-        });
+// 投稿履歴取得は一時的に無効化
+// router.get('/me/posts', authenticateToken, async (req, res) => {
+//     try {
+//         const posts = await Post.findAll({
+//             where: { userId: req.user.id },
+//             order: [['createdAt', 'DESC']],
+//             attributes: ['id', 'title', 'content', 'createdAt', 'updatedAt']
+//         });
 
-        res.json(posts);
-    } catch (error) {
-        console.error('投稿履歴取得エラー:', error);
-        res.status(500).json({ message: 'サーバーエラーが発生しました' });
-    }
-});
+//         res.json(posts);
+//     } catch (error) {
+//         console.error('投稿履歴取得エラー:', error);
+//         res.status(500).json({ message: 'サーバーエラーが発生しました' });
+//     }
+// });
 
 module.exports = router; 

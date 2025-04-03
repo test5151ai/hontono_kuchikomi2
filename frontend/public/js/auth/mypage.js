@@ -53,7 +53,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         userEmail.textContent = userData.email;
         userCreatedAt.textContent = new Date(userData.createdAt).toLocaleDateString('ja-JP');
 
-        // 投稿履歴を取得
+        // 投稿履歴は一時的に無効化
+        userPosts.innerHTML = '<p class="text-muted">投稿機能は準備中です</p>';
+
+        // 投稿履歴を取得（一時的に無効化）
+        /*
         const postsResponse = await fetch(`http://localhost:3000/api/users/me/posts`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -80,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `).join('');
         }
+        */
 
     } catch (error) {
         console.error('エラー:', error);
