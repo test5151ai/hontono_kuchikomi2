@@ -85,4 +85,77 @@
 - 401: 認証エラー
 - 403: 権限エラー
 - 404: リソースが見つからない
-- 500: サーバーエラー 
+- 500: サーバーエラー
+
+## カテゴリー関連API
+
+### カテゴリー一覧の取得
+
+```
+GET /api/categories
+```
+
+#### レスポンス
+```json
+[
+  {
+    "id": "uuid",
+    "name": "カテゴリー名",
+    "description": "カテゴリーの説明",
+    "slug": "category-slug",
+    "createdAt": "2024-04-03T07:50:59.038Z",
+    "updatedAt": "2024-04-03T07:50:59.038Z"
+  }
+]
+```
+
+### カテゴリー詳細の取得
+
+```
+GET /api/categories/:id
+```
+
+#### パラメータ
+- `id`: カテゴリーのUUID
+
+#### レスポンス
+```json
+{
+  "id": "uuid",
+  "name": "カテゴリー名",
+  "description": "カテゴリーの説明",
+  "slug": "category-slug",
+  "createdAt": "2024-04-03T07:50:59.038Z",
+  "updatedAt": "2024-04-03T07:50:59.038Z"
+}
+```
+
+### カテゴリー別スレッド一覧の取得
+
+```
+GET /api/categories/:id/threads
+```
+
+#### パラメータ
+- `id`: カテゴリーのUUID
+- `page`: ページ番号（オプション、デフォルト: 1）
+- `limit`: 1ページあたりの表示件数（オプション、デフォルト: 20）
+
+#### レスポンス
+```json
+{
+  "threads": [
+    {
+      "id": "uuid",
+      "title": "スレッドタイトル",
+      "createdAt": "2024-04-03T07:50:59.038Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "totalPages": 5,
+    "totalItems": 100
+  }
+}
+``` 
