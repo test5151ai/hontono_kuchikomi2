@@ -38,9 +38,15 @@ class Header extends HTMLElement {
                             </ul>
 
                             <!-- 認証メニュー -->
-                            <div class="header-auth">
-                                <a href="/login" class="btn btn-outline-light">ログイン</a>
-                                <a href="/register" class="btn btn-primary">新規登録</a>
+                            <div class="auth-menu">
+                                <div class="guest-menu">
+                                    <a href="/login" class="btn btn-outline-light">ログイン</a>
+                                    <a href="/register-guide.html" class="btn btn-primary">新規登録</a>
+                                </div>
+                                <div class="user-menu" style="display: none;">
+                                    <span class="username"></span>
+                                    <button id="logoutButton" class="btn btn-outline-light">ログアウト</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -67,7 +73,8 @@ class Header extends HTMLElement {
         const token = localStorage.getItem('token');
         const guestMenu = this.querySelector('.guest-menu');
         const userMenu = this.querySelector('.user-menu');
-        const username = this.querySelector('.username');
+
+        if (!guestMenu || !userMenu) return;
 
         if (token) {
             guestMenu.style.display = 'none';

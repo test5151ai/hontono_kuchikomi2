@@ -46,13 +46,29 @@ body {
 }
 
 /* ヘッダーのログインボタン */
-.header-auth {
+.auth-menu {
     display: flex;
     gap: 1rem;
 }
 
-.header-auth .btn {
+.auth-menu .btn {
     padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+}
+
+.guest-menu {
+    display: flex;
+    gap: 1rem;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-menu .username {
+    color: var(--white);
     font-size: 0.875rem;
 }
 
@@ -259,32 +275,155 @@ body {
 
 /* タイムライン */
 .timeline {
-    padding: 2rem;
+    padding: 3rem;
     background: var(--white);
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin: 3rem auto;
+    max-width: 800px;
 }
 
 .timeline .step {
     position: relative;
-    padding-left: 2rem;
-    border-left: 2px solid var(--accent-color);
+    padding-left: 3rem;
+    border-left: 3px solid var(--accent-color);
     margin-left: 1rem;
+    padding-bottom: 3rem;
 }
 
 .timeline .step:before {
     content: '';
     position: absolute;
-    left: -0.5rem;
-    top: 0.5rem;
-    width: 1rem;
-    height: 1rem;
-    background: var(--accent-color);
+    left: -0.85rem;
+    top: 0;
+    width: 1.7rem;
+    height: 1.7rem;
+    background: var(--white);
+    border: 3px solid var(--accent-color);
     border-radius: 50%;
 }
 
 .timeline .step:last-child {
-    border-left: 2px solid transparent;
+    border-left: none;
+    padding-bottom: 0;
+}
+
+.timeline .step h3 {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.timeline .step p {
+    color: var(--secondary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.timeline .step ul {
+    background: var(--light-gray);
+    padding: 1.5rem 1.5rem 1.5rem 2.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    list-style-type: none;
+}
+
+.timeline .step ul li {
+    margin-bottom: 0.75rem;
+    color: var(--secondary-color);
+    font-size: 1rem;
+    position: relative;
+    line-height: 1.6;
+}
+
+.timeline .step ul li:before {
+    content: "•";
+    color: var(--accent-color);
+    position: absolute;
+    left: -1.25rem;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.timeline .step ul li:last-child {
+    margin-bottom: 0;
+}
+
+.timeline .step .text-muted {
+    font-size: 0.9rem;
+    color: var(--dark-gray) !important;
+    margin-top: 1rem;
+    display: block;
+}
+
+/* FAQセクション */
+.section-light {
+    background-color: var(--light-gray);
+    padding: 5rem 0;
+}
+
+.faq-list {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .timeline {
+        padding: 2rem;
+        margin: 2rem auto;
+    }
+    
+    .timeline .step {
+        padding-left: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .timeline .step:before {
+        left: -0.7rem;
+        width: 1.4rem;
+        height: 1.4rem;
+    }
+
+    .timeline .step h3 {
+        font-size: 1.1rem;
+    }
+
+    .timeline .step p,
+    .timeline .step ul li {
+        font-size: 0.95rem;
+    }
+
+    .timeline .step ul {
+        padding: 1.25rem 1.25rem 1.25rem 2rem;
+    }
+}
+
+/* 新規登録ボタン */
+.btn-register {
+    display: inline-block;
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--white);
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-top: 2rem;
+}
+
+.btn-register:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-2px);
+    color: var(--white);
 }
 
 /* ボタン */
@@ -298,6 +437,16 @@ body {
 .btn-primary:hover {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+}
+
+.btn-outline-light {
+    color: var(--white);
+    border-color: var(--white);
+}
+
+.btn-outline-light:hover {
+    background-color: var(--white);
+    color: var(--primary-color);
 }
 
 /* フッター */
@@ -347,4 +496,79 @@ body {
     border-radius: var(--border-radius);
     padding: 4rem 2rem;
     margin: 3rem 0;
+}
+
+/* サブヒーローセクション */
+.sub-hero-section {
+    background: var(--light-gray);
+    color: var(--text-color);
+    padding: 4rem 0;
+    margin-bottom: 0;
+}
+
+.sub-hero-section h1 {
+    font-weight: 700;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.sub-hero-section .lead {
+    font-size: 1.1rem;
+    text-align: center;
+    color: var(--secondary-color);
+    margin-bottom: 0;
+}
+
+.faq-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.faq-item h3 {
+    color: var(--text-color);
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.faq-item p {
+    color: var(--secondary-color);
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+    .sub-hero-section {
+        padding: 2rem 0;
+    }
+
+    .sub-hero-section h1 {
+        font-size: 1.75rem;
+    }
+
+    .sub-hero-section .lead {
+        font-size: 1rem;
+    }
+
+    .timeline {
+        padding: 1.5rem;
+    }
+
+    .timeline .step {
+        padding-left: 1.5rem;
+    }
+
+    .faq-list {
+        padding: 1.5rem;
+    }
+
+    .faq-item {
+        padding: 1rem 0;
+    }
 } 
