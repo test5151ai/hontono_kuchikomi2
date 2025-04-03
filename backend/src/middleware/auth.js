@@ -3,16 +3,31 @@ const { User } = require('../models');
 
 const authenticateToken = async (req, res, next) => {
   try {
+    console.log('authenticateToken ミドルウェア実行:', {
+      headers: req.headers,
+      authorization: req.header('Authorization')
+    });
+
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
+      console.log('トークンが存在しません');
       throw new Error();
     }
 
+    console.log('トークンを検証:', token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    console.log('トークン検証結果:', decoded);
+
     const user = await User.findOne({ where: { id: decoded.id } });
+    console.log('ユーザー検索結果:', user ? {
+      id: user.id,
+      role: user.role,
+      isApproved: user.isApproved
+    } : null);
 
     if (!user) {
+      console.log('ユーザーが見つかりません');
       throw new Error();
     }
 
@@ -20,26 +35,42 @@ const authenticateToken = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
+    console.error('authenticateToken ミドルウェアエラー:', error.message);
     res.status(401).json({ error: '認証が必要です' });
   }
 };
 
-// 管理者権限チェックミドルウェア
-const checkAdminRole = async (req, res, next) => {
+const isAdmin = async (req, res, next) => {
   try {
+    console.log('isAdmin ミドルウェア実行:', {
+      user: req.user ? {
+        id: req.user.id,
+        role: req.user.role,
+        isApproved: req.user.isApproved
+      } : null,
+      headers: req.headers
+    });
+
     if (!req.user) {
-      return res.status(401).json({ error: '認証が必要です' });
+      throw new Error('認証が必要です');
     }
 
-    // スーパーユーザーまたは管理者の場合のみ許可
-    if (req.user.role === 'superuser' || req.user.role === 'admin' || req.user.isSuperAdmin) {
-      next();
-    } else {
-      res.status(403).json({ error: '管理者権限が必要です' });
+    if (!req.user.isApproved) {
+      throw new Error('アカウントが承認されていません');
     }
+
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin' && req.user.role !== 'superuser') {
+      throw new Error('管理者権限が必要です');
+    }
+
+    next();
   } catch (error) {
-    res.status(500).json({ error: 'サーバーエラーが発生しました' });
+    console.error('isAdmin ミドルウェアエラー:', error.message);
+    res.status(403).json({ error: error.message });
   }
 };
 
-module.exports = { authenticateToken, checkAdminRole }; 
+module.exports = {
+  authenticateToken,
+  isAdmin
+}; 

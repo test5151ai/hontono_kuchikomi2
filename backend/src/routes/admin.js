@@ -1,30 +1,59 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, checkAdminRole } = require('../middleware/auth');
-const {
-  getPendingUsers,
-  approveUser,
-  rejectUser,
-  getUserDetails,
-  bulkApproveUsers
-} = require('../controllers/admin');
+const { authenticateToken, isAdmin } = require('../middleware/auth');
+const adminController = require('../controllers/admin');
+const categoryController = require('../controllers/admin/categories');
 
-// すべての管理者ルートに認証と管理者権限チェックを適用
-router.use(authenticateToken, checkAdminRole);
+// デバッグ用のログ出力
+console.log('admin.js ルートファイルの読み込み開始');
 
-// 承認待ちユーザー一覧の取得
-router.get('/users/pending', getPendingUsers);
+// isAdminミドルウェアの状態を確認（認証エラーの原因特定に必要）
+console.log('isAdmin ミドルウェアの状態:', {
+  type: typeof isAdmin,
+  isFunction: typeof isAdmin === 'function'
+});
 
-// ユーザー詳細情報の取得
-router.get('/users/:id/details', getUserDetails);
+// adminControllerの構造確認
+console.log('adminController の構造:', {
+  type: typeof adminController,
+  isObject: adminController instanceof Object,
+  ownProperties: Object.getOwnPropertyNames(adminController)
+});
 
-// ユーザーの承認
-router.put('/users/:id/approve', approveUser);
+// 各関数の状態確認
+const functionNames = ['getPendingUsers', 'getUserDetails', 'approveUser', 'rejectUser', 'bulkApproveUsers', 'getDashboardStats', 'grantAdminRole'];
+functionNames.forEach(name => {
+  console.log(`${name} の状態:`, {
+    exists: name in adminController,
+    type: typeof adminController[name],
+    isFunction: typeof adminController[name] === 'function'
+  });
+});
 
-// ユーザーの拒否
-router.put('/users/:id/reject', rejectUser);
+// ユーザー管理
+router.get('/users/pending', authenticateToken, isAdmin, adminController.getPendingUsers);
+router.get('/users/:id', authenticateToken, isAdmin, adminController.getUserDetails);
+router.post('/users/:id/approve', authenticateToken, isAdmin, adminController.approveUser);
+router.post('/users/:id/reject', authenticateToken, isAdmin, adminController.rejectUser);
+router.post('/users/bulk-approve', authenticateToken, isAdmin, adminController.bulkApproveUsers);
+router.post('/users/:id/grant-admin', authenticateToken, isAdmin, adminController.grantAdminRole);
 
-// 一括承認
-router.put('/users/bulk-approve', bulkApproveUsers);
+// ダッシュボード（ダミーデータを返す実装）
+router.get('/dashboard', authenticateToken, isAdmin, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      pendingCount: 0,
+      approvedCount: 0,
+      recentUsers: []
+    }
+  });
+});
+
+// カテゴリー管理
+router.get('/categories', authenticateToken, isAdmin, categoryController.getCategories);
+router.post('/categories', authenticateToken, isAdmin, categoryController.createCategory);
+router.put('/categories/:id', authenticateToken, isAdmin, categoryController.updateCategory);
+router.delete('/categories/:id', authenticateToken, isAdmin, categoryController.deleteCategory);
 
 module.exports = router; 
