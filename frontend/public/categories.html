@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カテゴリー一覧 - 掲示板</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="/" class="logo">掲示板</a>
+            <div class="nav-links">
+                <a href="/categories.html" class="active">カテゴリー一覧</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="category-list">
+            <h1>カテゴリー一覧</h1>
+            <div id="categories" class="categories">
+                <!-- カテゴリー一覧がここに動的に追加されます -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // カテゴリー一覧を取得して表示
+        async function loadCategories() {
+            try {
+                const response = await fetch('http://localhost:3000/api/categories');
+                const categories = await response.json();
+                
+                const categoriesContainer = document.getElementById('categories');
+                categoriesContainer.innerHTML = categories.map(category => `
+                    <div class="category-card">
+                        <a href="/category.html?id=${category.id}">
+                            <h2>${category.name}</h2>
+                            <p class="description">${category.description}</p>
+                            <p class="thread-count">スレッド数: ${category.threadCount}</p>
+                        </a>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('カテゴリー一覧の取得に失敗しました:', error);
+            }
+        }
+
+        // ページ読み込み時にカテゴリー一覧を表示
+        document.addEventListener('DOMContentLoaded', loadCategories);
+    </script>
+
+    <style>
+        .category-list {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .category-card a {
+            display: block;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        h2 {
+            margin: 0 0 10px;
+            color: #2c3e50;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .thread-count {
+            color: #42b983;
+            font-weight: bold;
+            margin: 0;
+        }
+    </style>
+</body>
+</html> 

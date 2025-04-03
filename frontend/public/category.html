@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カテゴリー詳細 - 掲示板</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="/" class="logo">掲示板</a>
+            <div class="nav-links">
+                <a href="/categories.html">カテゴリー一覧</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="category-detail">
+            <div id="category-header" class="category-header">
+                <!-- カテゴリー情報がここに動的に追加されます -->
+            </div>
+
+            <div class="threads-section">
+                <div class="threads-header">
+                    <h2>スレッド一覧</h2>
+                    <button id="create-thread-btn" class="create-thread-btn">新規スレッド作成</button>
+                </div>
+
+                <div id="threads" class="threads">
+                    <!-- スレッド一覧がここに動的に追加されます -->
+                </div>
+
+                <div id="pagination" class="pagination">
+                    <!-- ページネーションがここに動的に追加されます -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // URLパラメータからカテゴリーIDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryId = urlParams.get('id');
+
+        // カテゴリー情報を取得して表示
+        async function loadCategory() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/categories/${categoryId}`);
+                const category = await response.json();
+                
+                const categoryHeader = document.getElementById('category-header');
+                categoryHeader.innerHTML = `
+                    <h1>${category.name}</h1>
+                    <p class="description">${category.description}</p>
+                `;
+            } catch (error) {
+                console.error('カテゴリー詳細の取得に失敗しました:', error);
+            }
+        }
+
+        // スレッド一覧を取得して表示
+        async function loadThreads(page = 1) {
+            try {
+                const response = await fetch(
+                    `http://localhost:3000/api/categories/${categoryId}/threads?page=${page}&limit=20`
+                );
+                const data = await response.json();
+                
+                const threadsContainer = document.getElementById('threads');
+                if (data.threads.length > 0) {
+                    threadsContainer.innerHTML = data.threads.map(thread => `
+                        <div class="thread-card">
+                            <a href="/thread.html?id=${thread.id}">
+                                <h3>${thread.title}</h3>
+                                <p class="created-at">${formatDate(thread.createdAt)}</p>
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    threadsContainer.innerHTML = '<div class="no-threads"><p>スレッドがありません</p></div>';
+                }
+
+                // ページネーションの表示
+                const paginationContainer = document.getElementById('pagination');
+                if (data.pagination.totalPages > 1) {
+                    paginationContainer.innerHTML = `
+                        <button 
+                            ${data.pagination.page === 1 ? 'disabled' : ''}
+                            onclick="loadThreads(${data.pagination.page - 1})"
+                        >
+                            前へ
+                        </button>
+                        <span>${data.pagination.page} / ${data.pagination.totalPages}</span>
+                        <button 
+                            ${data.pagination.page === data.pagination.totalPages ? 'disabled' : ''}
+                            onclick="loadThreads(${data.pagination.page + 1})"
+                        >
+                            次へ
+                        </button>
+                    `;
+                } else {
+                    paginationContainer.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('スレッド一覧の取得に失敗しました:', error);
+            }
+        }
+
+        // 日付をフォーマット
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
+        }
+
+        // 新規スレッド作成ボタンのイベントハンドラ
+        document.getElementById('create-thread-btn').addEventListener('click', () => {
+            // TODO: スレッド作成ページへの遷移を実装
+            console.log('スレッド作成');
+        });
+
+        // ページ読み込み時にデータを表示
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategory();
+            loadThreads();
+        });
+    </script>
+
+    <style>
+        .category-detail {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .category-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .threads-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .threads-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .create-thread-btn {
+            background: #42b983;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .create-thread-btn:hover {
+            background: #3aa876;
+        }
+
+        .threads {
+            display: grid;
+            gap: 15px;
+        }
+
+        .thread-card {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            transition: background-color 0.2s;
+        }
+
+        .thread-card:hover {
+            background: #e9ecef;
+        }
+
+        .thread-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        h3 {
+            margin: 0 0 5px;
+            color: #2c3e50;
+        }
+
+        .created-at {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0;
+        }
+
+        .no-threads {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .pagination button {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f8f9fa;
+        }
+    </style>
+</body>
+</html> 
