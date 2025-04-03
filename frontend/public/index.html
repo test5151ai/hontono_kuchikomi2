@@ -9,6 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts - Noto Sans JP -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <!-- カスタムCSS -->
     <link href="/css/style.css" rel="stylesheet">
 </head>
@@ -74,39 +76,74 @@
         </section>
 
         <!-- スレッドセクション -->
-        <section class="section-full section-light">
+        <section class="thread-section">
             <div class="container">
                 <div class="row">
                     <!-- 新着スレッド -->
-                    <div class="col-md-8">
-                        <h2 class="mb-4">新着スレッド</h2>
+                    <div class="col-lg-8">
+                        <h2>新着スレッド</h2>
                         <div class="thread-list">
                             <div class="thread-item">
-                                <a href="#" class="thread-title h5 d-block mb-2">スレッドタイトル</a>
-                                <p class="thread-excerpt mb-2">最新の投稿内容がここに表示されます...</p>
+                                <a href="#" class="thread-title">消費者金融の審査が通りやすい時期について</a>
+                                <p class="thread-excerpt">年末年始は審査が厳しくなる傾向があります。4月や10月など、比較的審査が通りやすい時期について情報共有します。</p>
                                 <div class="thread-meta">
-                                    <span class="me-3">3分前</span>
-                                    <span>返信 10件</span>
+                                    <span><i class="far fa-clock"></i>3分前</span>
+                                    <span><i class="far fa-comment"></i>返信 10件</span>
+                                    <span><i class="far fa-eye"></i>閲覧 52件</span>
                                 </div>
                             </div>
-                            <!-- 追加のスレッドアイテム -->
+                            <div class="thread-item">
+                                <a href="#" class="thread-title">おすすめの即日融資サービス</a>
+                                <p class="thread-excerpt">急な出費で即日融資を利用しました。審査時間や必要書類など、実際の体験をシェアします。</p>
+                                <div class="thread-meta">
+                                    <span><i class="far fa-clock"></i>15分前</span>
+                                    <span><i class="far fa-comment"></i>返信 8件</span>
+                                    <span><i class="far fa-eye"></i>閲覧 43件</span>
+                                </div>
+                            </div>
+                            <div class="thread-item">
+                                <a href="#" class="thread-title">学生でも借りられる消費者金融</a>
+                                <p class="thread-excerpt">学生の方向けに、審査基準や必要書類について詳しく解説します。アルバイト収入での借入実績も共有。</p>
+                                <div class="thread-meta">
+                                    <span><i class="far fa-clock"></i>1時間前</span>
+                                    <span><i class="far fa-comment"></i>返信 15件</span>
+                                    <span><i class="far fa-eye"></i>閲覧 127件</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-center mt-4">
-                            <a href="/threads" class="btn btn-outline-primary">すべてのスレッドを見る</a>
+                        <div class="text-center">
+                            <a href="/threads" class="view-all-btn">すべてのスレッドを見る</a>
                         </div>
                     </div>
 
                     <!-- 人気スレッド -->
-                    <div class="col-md-4">
-                        <h2 class="mb-4">人気スレッド</h2>
-                        <div class="thread-list">
+                    <div class="col-lg-4">
+                        <h2>人気スレッド</h2>
+                        <div class="thread-list popular-threads">
                             <div class="thread-item">
-                                <a href="#" class="thread-title h6 d-block mb-1">人気スレッドタイトル</a>
+                                <a href="#" class="thread-title">初めての消費者金融利用ガイド</a>
                                 <div class="thread-meta">
-                                    <span class="me-2">閲覧数: 1.2k</span>
+                                    <span><i class="far fa-eye"></i>閲覧数: 2.4k</span>
                                 </div>
                             </div>
-                            <!-- 追加の人気スレッド -->
+                            <div class="thread-item">
+                                <a href="#" class="thread-title">審査に通りやすい時間帯の傾向</a>
+                                <div class="thread-meta">
+                                    <span><i class="far fa-eye"></i>閲覧数: 1.8k</span>
+                                </div>
+                            </div>
+                            <div class="thread-item">
+                                <a href="#" class="thread-title">おすすめの返済プラン比較</a>
+                                <div class="thread-meta">
+                                    <span><i class="far fa-eye"></i>閲覧数: 1.5k</span>
+                                </div>
+                            </div>
+                            <div class="thread-item">
+                                <a href="#" class="thread-title">在籍確認の対応方法まとめ</a>
+                                <div class="thread-meta">
+                                    <span><i class="far fa-eye"></i>閲覧数: 1.2k</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
