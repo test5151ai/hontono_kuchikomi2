@@ -1,0 +1,218 @@
+/* 共通スタイル */
+:root {
+    /* カラーパレット */
+    --primary-color: #2C3E50;    /* ダークブルー：ヘッダー背景など */
+    --secondary-color: #34495E;  /* やや明るいブルー：セカンダリーボタンなど */
+    --accent-color: #3498DB;     /* 明るいブルー：アクセント、リンク */
+    --success-color: #27AE60;    /* グリーン：成功メッセージ */
+    --warning-color: #F1C40F;    /* イエロー：警告 */
+    --danger-color: #E74C3C;     /* レッド：エラー、削除 */
+    --text-color: #333;          /* テキストの基本色 */
+    --light-gray: #ECF0F1;       /* 薄いグレー：背景色 */
+    --dark-gray: #95A5A6;        /* 濃いグレー：テキスト */
+    --white: #FFFFFF;            /* 白：テキスト、背景 */
+    --border-radius: 8px;        /* 角の丸みのサイズ */
+}
+
+/* ベーススタイル */
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--white);
+    color: var(--primary-color);
+    line-height: 1.6;
+}
+
+/* ヘッダースタイル */
+.site-header {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.site-header .navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--white);
+}
+
+.site-header .nav-link {
+    color: var(--white);
+    transition: color 0.3s ease;
+}
+
+.site-header .nav-link:hover {
+    color: var(--accent-color);
+}
+
+/* フッタースタイル */
+.site-footer {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.site-footer a {
+    color: var(--light-gray);
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    color: var(--accent-color);
+}
+
+/* メインコンテンツ */
+.main-content {
+    padding: 2rem 0;
+    min-height: calc(100vh - 300px);
+}
+
+/* カード */
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* スレッドリスト */
+.thread-list {
+    background: var(--white);
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.thread-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.thread-item:last-child {
+    border-bottom: none;
+}
+
+.thread-title {
+    color: var(--primary-color);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.thread-title:hover {
+    color: var(--accent-color);
+}
+
+.thread-meta {
+    font-size: 0.875rem;
+    color: var(--dark-gray);
+}
+
+/* ログインフォーム */
+.login-section {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ボタン */
+.btn-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--white);
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* ユーティリティクラス */
+.text-accent {
+    color: var(--accent-color);
+}
+
+.bg-light-gray {
+    background-color: var(--light-gray);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .site-header {
+        padding: 0.5rem 0;
+    }
+    
+    .site-header .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .thread-item {
+        padding: 0.75rem;
+    }
+}
+
+/* アニメーション */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* タイムラインスタイル */
+.timeline .step {
+    position: relative;
+    padding-left: 2.5rem;
+    border-left: 2px solid var(--primary-color);
+    margin-left: 1rem;
+}
+
+.timeline .step:before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    background: var(--primary-color);
+    border-radius: 50%;
+}
+
+.timeline .step:last-child {
+    border-left: 2px solid transparent;
+}
+
+.timeline .step h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+/* ヒーローセクションスタイル */
+.hero-section {
+    background: linear-gradient(rgba(33, 150, 243, 0.1), rgba(25, 118, 210, 0.1));
+    border-radius: var(--border-radius);
+    padding: 4rem 2rem;
+}
+
+/* CTAセクション */
+.cta-section {
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+    padding: 4rem 2rem;
+    margin: 3rem 0;
+} 
