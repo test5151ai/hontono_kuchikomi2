@@ -3,10 +3,16 @@ const { Category, Thread } = require('../models');
 // カテゴリー一覧を取得
 exports.getAllCategories = async (req, res) => {
     try {
+        console.log('カテゴリー一覧を取得開始');
         const categories = await Category.findAll({
-            attributes: ['id', 'name', 'description'],
+            attributes: ['id', 'name', 'description', 'slug'],
             order: [['id', 'ASC']]
         });
+        console.log('取得したカテゴリー:', JSON.stringify(categories, null, 2));
+        
+        // データベースの接続状態を確認
+        const [results] = await Category.sequelize.query('SELECT * FROM categories;');
+        console.log('生のSQLクエリ結果:', JSON.stringify(results, null, 2));
         
         res.json(categories);
     } catch (error) {
