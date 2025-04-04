@@ -97,6 +97,9 @@ const login = async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // 最終ログイン日時を更新
+    await user.update({ lastLoginAt: new Date() });
+
     res.json({
       message: 'ログインに成功しました',
       user: {

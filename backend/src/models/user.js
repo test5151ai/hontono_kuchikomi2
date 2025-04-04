@@ -79,7 +79,8 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     approvedAt: DataTypes.DATE,
-    approvedBy: DataTypes.UUID
+    approvedBy: DataTypes.UUID,
+    lastLoginAt: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'User',
