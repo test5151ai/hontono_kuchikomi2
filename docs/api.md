@@ -158,4 +158,187 @@ GET /api/categories/:id/threads
     "totalItems": 100
   }
 }
-``` 
+```
+
+## 管理者用API
+
+### ユーザー管理
+
+#### 承認待ちユーザー一覧の取得
+- **エンドポイント**: `GET /api/admin/users/pending`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "users": [
+      {
+        "id": "uuid",
+        "username": "string",
+        "email": "string",
+        "submissionMethod": "string",
+        "submissionContact": "string",
+        "createdAt": "string"
+      }
+    ]
+  }
+  ```
+
+#### ユーザーの承認
+- **エンドポイント**: `POST /api/admin/users/:id/approve`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "success": true,
+    "message": "ユーザーを承認しました"
+  }
+  ```
+
+#### ユーザーの一括承認
+- **エンドポイント**: `POST /api/admin/users/bulk-approve`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **リクエスト**:
+  ```json
+  {
+    "userIds": ["uuid"]
+  }
+  ```
+- **レスポンス**:
+  ```json
+  {
+    "success": true,
+    "message": "選択したユーザーを承認しました"
+  }
+  ```
+
+#### 管理者権限の付与
+- **エンドポイント**: `POST /api/admin/users/:id/grant-admin`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "success": true,
+    "message": "管理者権限を付与しました"
+  }
+  ```
+
+### カテゴリー管理
+
+#### カテゴリー一覧の取得（管理者用）
+- **エンドポイント**: `GET /api/admin/categories`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "categories": [
+      {
+        "id": "uuid",
+        "name": "string",
+        "description": "string",
+        "slug": "string",
+        "threadCount": "number",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    ]
+  }
+  ```
+
+#### カテゴリーの作成
+- **エンドポイント**: `POST /api/admin/categories`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **リクエスト**:
+  ```json
+  {
+    "name": "string",
+    "description": "string"
+  }
+  ```
+- **レスポンス**:
+  ```json
+  {
+    "id": "uuid",
+    "name": "string",
+    "description": "string",
+    "slug": "string",
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+  ```
+
+#### カテゴリーの更新
+- **エンドポイント**: `PUT /api/admin/categories/:id`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **リクエスト**:
+  ```json
+  {
+    "name": "string",
+    "description": "string"
+  }
+  ```
+- **レスポンス**:
+  ```json
+  {
+    "id": "uuid",
+    "name": "string",
+    "description": "string",
+    "slug": "string",
+    "updatedAt": "string"
+  }
+  ```
+
+#### カテゴリーの削除
+- **エンドポイント**: `DELETE /api/admin/categories/:id`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "success": true,
+    "message": "カテゴリーを削除しました"
+  }
+  ```
+
+#### スレッドの未分類カテゴリーへの移動
+- **エンドポイント**: `POST /api/admin/categories/:id/move-threads`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "success": true,
+    "message": "スレッドを未分類カテゴリーに移動しました"
+  }
+  ```
+
+### ダッシュボード
+
+#### ダッシュボード統計情報の取得
+- **エンドポイント**: `GET /api/admin/dashboard`
+- **ヘッダー**: `Authorization: Bearer {token}`
+- **権限**: 管理者のみ
+- **レスポンス**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "pendingCount": "number",
+      "approvedCount": "number",
+      "recentUsers": [
+        {
+          "id": "uuid",
+          "username": "string",
+          "email": "string",
+          "createdAt": "string"
+        }
+      ]
+    }
+  }
+  ``` 

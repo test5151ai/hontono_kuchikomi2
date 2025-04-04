@@ -1,0 +1,82 @@
+/* 管理画面共通スタイル */
+
+/* コンテンツヘッダー */
+.content-header {
+    padding: 15px 0.5rem;
+}
+
+/* カード */
+.card {
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    padding: 0.75rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* テーブル */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+/* バッジ */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* ボタン */
+.btn {
+    margin-right: 0.25rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+}
+
+/* モーダル */
+.modal-header {
+    padding: 1rem;
+}
+
+.modal-body {
+    padding: 1.25rem;
+}
+
+/* タブ */
+.nav-tabs {
+    margin-bottom: 1rem;
+}
+
+.tab-content {
+    padding: 1rem 0;
+}
+
+/* フォーム */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* ページネーション */
+.pagination {
+    margin-bottom: 0;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        margin-bottom: 0;
+    }
+} 

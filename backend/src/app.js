@@ -90,6 +90,22 @@ const corsOptions = {
     maxAge: 86400 // プリフライトリクエストのキャッシュ時間（24時間）
 };
 
+// デバッグ用のリクエストログ
+app.use((req, res, next) => {
+    console.log('=== リクエスト情報 ===');
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    console.log('Path:', req.path);
+    console.log('Base URL:', req.baseUrl);
+    console.log('Original URL:', req.originalUrl);
+    console.log('Headers:', {
+        'authorization': req.headers.authorization,
+        'origin': req.headers.origin,
+        'host': req.headers.host
+    });
+    next();
+});
+
 // CORSミドルウェアを最初に適用
 app.use(cors(corsOptions));
 
@@ -118,11 +134,22 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ルートの設定
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/threads', threadRoutes);
+
+// ルートのデバッグログ
+app.use((req, res, next) => {
+    console.log('=== ルーティング情報 ===');
+    console.log('Matched Route:', req.route ? req.route.path : 'No route matched');
+    console.log('Router Stack:', req.app._router.stack.map(layer => ({
+        path: layer.route ? layer.route.path : 'middleware',
+        method: layer.route ? layer.route.methods : 'middleware'
+    })));
+    next();
+});
 
 // エラーハンドリング
 app.use((err, req, res, next) => {

@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticateToken, isAdmin } = require('../middleware/auth');
 const adminController = require('../controllers/admin');
 const categoryController = require('../controllers/admin/categories');
+const userController = require('../controllers/admin/users');
 
 // デバッグ用のログ出力
 console.log('admin.js ルートファイルの読み込み開始');
@@ -31,24 +32,17 @@ functionNames.forEach(name => {
 });
 
 // ユーザー管理
-router.get('/users/pending', authenticateToken, isAdmin, adminController.getPendingUsers);
-router.get('/users/:id', authenticateToken, isAdmin, adminController.getUserDetails);
-router.post('/users/:id/approve', authenticateToken, isAdmin, adminController.approveUser);
-router.post('/users/:id/reject', authenticateToken, isAdmin, adminController.rejectUser);
-router.post('/users/bulk-approve', authenticateToken, isAdmin, adminController.bulkApproveUsers);
-router.post('/users/:id/grant-admin', authenticateToken, isAdmin, adminController.grantAdminRole);
+router.get('/users', authenticateToken, isAdmin, userController.getUsers);
+router.get('/users/:id', authenticateToken, isAdmin, userController.getUserDetails);
+router.post('/users/:id/approve', authenticateToken, isAdmin, userController.approveUser);
+router.post('/users/:id/suspend', authenticateToken, isAdmin, userController.suspendUser);
+router.post('/users/bulk-approve', authenticateToken, isAdmin, userController.bulkApproveUsers);
+router.post('/users/bulk-suspend', authenticateToken, isAdmin, userController.bulkSuspendUsers);
+router.post('/users/export', authenticateToken, isAdmin, userController.exportUsers);
+router.post('/users/:id/grant-admin', authenticateToken, isAdmin, userController.grantAdminRole);
 
-// ダッシュボード（ダミーデータを返す実装）
-router.get('/dashboard', authenticateToken, isAdmin, (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      pendingCount: 0,
-      approvedCount: 0,
-      recentUsers: []
-    }
-  });
-});
+// ダッシュボード
+router.get('/dashboard', authenticateToken, isAdmin, adminController.getDashboardStats);
 
 // カテゴリー管理
 router.get('/categories', authenticateToken, isAdmin, categoryController.getCategories);
