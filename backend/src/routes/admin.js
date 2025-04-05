@@ -33,6 +33,7 @@ functionNames.forEach(name => {
 
 // ユーザー管理
 router.get('/users', authenticateToken, isAdmin, userController.getUsers);
+router.get('/users/pending', authenticateToken, isAdmin, userController.getPendingUsers);
 router.get('/users/:id', authenticateToken, isAdmin, userController.getUserDetails);
 router.post('/users/:id/approve', authenticateToken, isAdmin, userController.approveUser);
 router.post('/users/:id/suspend', authenticateToken, isAdmin, userController.suspendUser);

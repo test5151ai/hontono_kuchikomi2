@@ -97,7 +97,9 @@ exports.approveUser = async (req, res) => {
             return res.status(404).json({ message: 'ユーザーが見つかりません' });
         }
 
-        user.status = 'approved';
+        user.isApproved = true;
+        user.approvedAt = new Date();
+        user.approvedBy = req.user.id;
         await user.save();
 
         res.json({
@@ -114,8 +116,14 @@ exports.approveUser = async (req, res) => {
 exports.bulkApproveUsers = async (req, res) => {
     try {
         const { userIds } = req.body;
+        const now = new Date();
+        
         await User.update(
-            { status: 'approved' },
+            { 
+                isApproved: true,
+                approvedAt: now,
+                approvedBy: req.user.id
+            },
             { where: { id: userIds } }
         );
 
@@ -241,5 +249,34 @@ exports.grantAdminRole = async (req, res) => {
     } catch (error) {
         console.error('管理者権限付与エラー:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+};
+
+// 承認待ちユーザーを取得
+exports.getPendingUsers = async (req, res) => {
+    try {
+        console.log('=== 承認待ちユーザー取得開始 ===');
+        
+        const users = await User.findAll({
+            where: {
+                isApproved: false
+            },
+            attributes: ['id', 'username', 'email', 'submissionMethod', 'submissionContact', 'createdAt'],
+            order: [['createdAt', 'DESC']]
+        });
+
+        console.log('取得した承認待ちユーザー数:', users.length);
+
+        res.json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        console.error('承認待ちユーザー取得エラー:', error);
+        res.status(500).json({
+            success: false,
+            message: '承認待ちユーザーの取得に失敗しました',
+            error: error.message
+        });
     }
 }; 
