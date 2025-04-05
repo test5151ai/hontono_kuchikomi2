@@ -114,8 +114,6 @@ class PendingUsers {
                 </td>
                 <td>${user.username}</td>
                 <td>${user.email}</td>
-                <td>${user.submissionMethod}</td>
-                <td>${user.contactInfo}</td>
                 <td>
                     <button class="btn btn-sm btn-success" onclick="pendingUsers.approveUser('${user.id}')">
                         <i class="bi bi-check-circle"></i> 承認
