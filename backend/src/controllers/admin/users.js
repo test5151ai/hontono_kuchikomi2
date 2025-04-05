@@ -37,7 +37,7 @@ exports.getUsers = async (req, res) => {
             where,
             limit,
             offset,
-            attributes: ['id', 'username', 'email', 'createdAt', 'lastLoginAt'],
+            attributes: ['id', 'username', 'email', 'createdAt', 'lastLoginAt', 'isApproved', 'role'],
             order: [['createdAt', 'DESC']]
         });
 
