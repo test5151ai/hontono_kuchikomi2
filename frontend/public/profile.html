@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール - 15ch.net</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        .profile-wrapper {
+            flex: 1 0 auto;
+            width: 100%;
+            padding: 20px 0;
+            margin-bottom: 60px;
+        }
+        
+        .profile-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .user-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #3498db;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        .user-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .user-info h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        
+        .user-info p {
+            color: #7f8c8d;
+            margin: 5px 0 0;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+        
+        .action-button {
+            border-radius: 50px;
+            padding: 8px 20px;
+            margin: 5px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .document-section {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .document-upload {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .document-preview {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .document-image-container {
+            max-height: 300px;
+            overflow: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 5px;
+            background-color: #fff;
+        }
+        
+        .post-list {
+            margin-top: 20px;
+        }
+        
+        .post-item {
+            background-color: #fff;
+            border-left: 3px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s;
+        }
+        
+        .post-item:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .footer-wrapper {
+            flex-shrink: 0;
+            width: 100%;
+            background-color: #2c3e50;
+            color: white;
+            padding: 40px 0;
+            position: relative;
+            z-index: 10;
+            margin-top: auto;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #3498db;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .social-links a {
+            display: block;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background-color: #3498db;
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 既存のマイページ互換性用 */
+        #userNickname, #userEmail, #userCreatedAt, #documentStatusAlert, 
+        #documentUploadForm, #uploadForm, #documentFile, #uploadButton, 
+        #documentPreview, #documentImage, #documentUploadDate, 
+        #deleteDocumentBtn, #userPosts, #editProfileBtn, 
+        #logoutBtn, #deleteAccountBtn {
+            /* 空のスタイルだが、JavaScriptのquerySelectorで要素を取得できるようにする */
+        }
+        
+        .d-none {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        console.log('プロフィールページを読み込みました');
+    </script>
+    
+    <site-header></site-header>
+    
+    <div class="profile-wrapper">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <!-- ユーザープロフィールカード -->
+                    <div class="profile-card">
+                        <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="User Avatar" class="user-avatar">
+                        <div class="user-info">
+                            <h2 id="userNickname">ユーザー名</h2>
+                            <p id="userEmail">メールアドレス</p>
+                            <p id="userCreatedAt">アカウント作成日</p>
+                        </div>
+                        
+                        <div class="section-title">
+                            <i class="fas fa-cog"></i>アカウント設定
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary action-button" id="editProfileBtn">
+                                <i class="fas fa-user-edit me-2"></i>プロフィールを編集
+                            </button>
+                            <button class="btn btn-outline-warning action-button" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt me-2"></i>ログアウト
+                            </button>
+                            <button class="btn btn-outline-danger action-button" id="deleteAccountBtn">
+                                <i class="fas fa-user-times me-2"></i>アカウントを削除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-8">
+                    <!-- 本人確認書類セクション -->
+                    <div class="document-section">
+                        <div class="section-title">
+                            <i class="fas fa-id-card"></i>本人確認書類
+                        </div>
+                        
+                        <!-- ステータス表示 -->
+                        <div class="document-status mb-3">
+                            <div class="alert" id="documentStatusAlert">
+                                <!-- ステータスメッセージがここに表示されます -->
+                            </div>
+                        </div>
+                        
+                        <!-- アップロードフォーム -->
+                        <div id="documentUploadForm" class="document-upload">
+                            <p class="text-muted mb-3">書き込み権限を得るには、本人確認書類のアップロードが必要です</p>
+                            <form id="uploadForm" class="needs-validation" novalidate>
+                                <div class="mb-3">
+                                    <label for="documentFile" class="form-label">確認書類をアップロード</label>
+                                    <input type="file" class="form-control" id="documentFile" name="document" 
+                                        accept=".jpg,.jpeg,.png,.gif,.pdf" required>
+                                    <div class="form-text">JPG, PNG, GIF, PDF形式のみ（最大5MB）</div>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary action-button" id="uploadButton">
+                                        <i class="fas fa-upload me-2"></i>アップロード
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- 書類プレビュー -->
+                        <div id="documentPreview" class="document-preview d-none">
+                            <h5>アップロード済み書類</h5>
+                            <div class="document-image-container mb-3">
+                                <img id="documentImage" src="" alt="アップロード済み書類" class="img-fluid">
+                            </div>
+                            <p><strong>アップロード日時:</strong> <span id="documentUploadDate"></span></p>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-danger action-button" id="deleteDocumentBtn">
+                                    <i class="fas fa-trash-alt me-2"></i>書類を削除して再アップロード
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 投稿履歴セクション -->
+                    <div class="document-section">
+                        <div class="section-title">
+                            <i class="fas fa-history"></i>投稿履歴
+                        </div>
+                        <div id="userPosts" class="post-list">
+                            <!-- 投稿が動的に追加されます -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer-wrapper">
+        <div class="container">
+            <div class="row">
+                <!-- サイト情報 -->
+                <div class="col-md-4 mb-4">
+                    <h5>15ch.net について</h5>
+                    <p>実際の利用者による信頼できる口コミのみを厳選して掲載する掲示板コミュニティです。全ての投稿は利用証明書類による厳格な審査を経て承認されます。</p>
+                </div>
+
+                <!-- リンク -->
+                <div class="col-md-4 mb-4">
+                    <h5>リンク</h5>
+                    <ul class="footer-links">
+                        <li><a href="/about">このサイトについて</a></li>
+                        <li><a href="/terms">利用規約</a></li>
+                        <li><a href="/privacy">プライバシーポリシー</a></li>
+                        <li><a href="/contact">お問い合わせ</a></li>
+                    </ul>
+                </div>
+
+                <!-- ソーシャル -->
+                <div class="col-md-4 mb-4">
+                    <h5>フォローする</h5>
+                    <div class="social-links">
+                        <a href="https://twitter.com/15ch_net" target="_blank">
+                            <i class="fab fa-twitter text-white"></i>
+                        </a>
+                        <a href="https://github.com/test5151ai/hontono_kuchikomi2" target="_blank">
+                            <i class="fab fa-github text-white"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <p class="mb-0">&copy; 2025 15ch.net All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/components/header.js"></script>
+    <script src="/js/auth/mypage.js"></script>
+</body>
+</html> 

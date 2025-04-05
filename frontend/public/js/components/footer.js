@@ -4,6 +4,19 @@ class Footer extends HTMLElement {
     }
 
     connectedCallback() {
+        // フッターの前にクリア要素を挿入（フロート対策）
+        if (!document.getElementById('footer-float-clear')) {
+            const clearDiv = document.createElement('div');
+            clearDiv.id = 'footer-float-clear';
+            clearDiv.style.clear = 'both';
+            clearDiv.style.display = 'block';
+            clearDiv.style.width = '100%';
+            clearDiv.style.height = '0';
+            this.parentNode.insertBefore(clearDiv, this);
+            
+            console.log('フッタークリア要素を挿入しました');
+        }
+        
         this.render();
     }
 
@@ -11,6 +24,51 @@ class Footer extends HTMLElement {
         const currentYear = new Date().getFullYear();
         
         this.innerHTML = `
+            <style>
+                .site-footer {
+                    background-color: var(--primary-color);
+                    color: var(--white);
+                    padding: 3rem 0;
+                    width: 100%;
+                    position: relative;
+                    z-index: 1;
+                    display: block;
+                    clear: both;
+                }
+                
+                :host {
+                    display: block;
+                    width: 100%;
+                    clear: both;
+                    margin-top: auto;
+                }
+                
+                .site-footer a {
+                    color: var(--light-gray);
+                    text-decoration: none;
+                }
+                
+                .site-footer a:hover {
+                    color: var(--accent-color);
+                }
+                
+                .site-footer hr {
+                    border-color: rgba(255,255,255,0.1);
+                }
+                
+                .social-links {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .social-links a {
+                    transition: opacity 0.3s;
+                }
+                
+                .social-links a:hover {
+                    opacity: 0.8;
+                }
+            </style>
             <footer class="site-footer">
                 <div class="container">
                     <div class="row">

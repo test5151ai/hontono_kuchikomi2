@@ -455,6 +455,9 @@ body {
     background-color: var(--primary-color);
     color: var(--white);
     padding: 3rem 0;
+    clear: both;
+    position: relative;
+    z-index: 1;
 }
 
 .site-footer a {
@@ -664,4 +667,19 @@ body {
         font-size: 1.5rem;
         margin-bottom: 1.5rem;
     }
+}
+
+/* レイアウト修正 - フロート問題解決 */
+.main-body {
+    overflow: hidden; /* フロート要素を内包 */
+}
+
+.row::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.container {
+    overflow: hidden; /* コンテナ内のフロートをクリア */
 } 

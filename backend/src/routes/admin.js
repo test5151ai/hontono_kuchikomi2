@@ -4,6 +4,7 @@ const { authenticateToken, isAdmin } = require('../middleware/auth');
 const adminController = require('../controllers/admin');
 const categoryController = require('../controllers/admin/categories');
 const userController = require('../controllers/admin/users');
+const documentController = require('../controllers/admin/document');
 
 // デバッグ用のログ出力
 console.log('admin.js ルートファイルの読み込み開始');
@@ -41,6 +42,11 @@ router.post('/users/bulk-approve', authenticateToken, isAdmin, userController.bu
 router.post('/users/bulk-suspend', authenticateToken, isAdmin, userController.bulkSuspendUsers);
 router.post('/users/export', authenticateToken, isAdmin, userController.exportUsers);
 router.post('/users/:id/grant-admin', authenticateToken, isAdmin, userController.grantAdminRole);
+
+// 書類管理
+router.get('/users/:id/document', authenticateToken, isAdmin, documentController.getDocumentDetails);
+router.post('/users/:id/document/approve', authenticateToken, isAdmin, documentController.approveDocument);
+router.post('/users/:id/document/reject', authenticateToken, isAdmin, documentController.rejectDocument);
 
 // ダッシュボード
 router.get('/dashboard', authenticateToken, isAdmin, adminController.getDashboardStats);

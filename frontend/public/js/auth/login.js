@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // ログイン成功後のリダイレクト
-            window.location.href = '/';
+            window.location.href = '/profile.html';
 
         } catch (error) {
             // エラーメッセージを表示

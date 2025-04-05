@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
+// コントローラーがまだ存在しないためコメントアウト
+// const userController = require('../controllers/user');
+const documentController = require('../controllers/user/document');
+const documentUpload = require('../middleware/upload/document');
 
 // ユーザー情報を取得
 router.get('/me', authenticateToken, async (req, res) => {
@@ -20,6 +24,11 @@ router.get('/me', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
     }
 });
+
+// 書類管理ルート
+router.post('/document/upload', authenticateToken, documentUpload, documentController.uploadDocument);
+router.get('/document/status', authenticateToken, documentController.getDocumentStatus);
+router.delete('/document', authenticateToken, documentController.deleteDocument);
 
 // 投稿履歴取得は一時的に無効化
 // router.get('/me/posts', authenticateToken, async (req, res) => {

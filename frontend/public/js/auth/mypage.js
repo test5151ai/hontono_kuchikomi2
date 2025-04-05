@@ -7,14 +7,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     const editProfileBtn = document.getElementById('editProfileBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    
+    // 書類アップロード関連の要素
+    const documentStatusAlert = document.getElementById('documentStatusAlert');
+    const documentUploadForm = document.getElementById('documentUploadForm');
+    const uploadForm = document.getElementById('uploadForm');
+    const documentFile = document.getElementById('documentFile');
+    const uploadButton = document.getElementById('uploadButton');
+    const documentPreview = document.getElementById('documentPreview');
+    const documentImage = document.getElementById('documentImage');
+    const documentUploadDate = document.getElementById('documentUploadDate');
+    const deleteDocumentBtn = document.getElementById('deleteDocumentBtn');
+    
+    // ベースURL
+    const API_BASE_URL = 'http://localhost:3000/api';
 
-    // ユーザー情報を取得
-    try {
+    // トークンの取得
+    const getToken = () => {
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = '/login.html';
-            return;
+            return null;
         }
+        return token;
+    };
+    
+    // APIリクエストヘルパー
+    const fetchWithAuth = async (url, options = {}) => {
+        const token = getToken();
+        if (!token) return null;
+        
+        const defaultOptions = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            },
+            ...options
+        };
+        
+        const response = await fetch(url, defaultOptions);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return null;
+        }
+        
+        return response;
+    };
+
+    // ユーザー情報を取得
+    try {
+        const token = getToken();
+        if (!token) return;
 
         // トークンのバリデーション
         if (token.includes('Bearer')) {
@@ -31,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('トークンにBearerが含まれているか:', token.includes('Bearer'));
         console.log('作成するAuthorizationヘッダー:', `Bearer ${token}`);
 
-        const response = await fetch('http://localhost:3000/api/users/me', {
+        const response = await fetch(`${API_BASE_URL}/users/me`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -48,6 +93,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(userData.error || 'ユーザー情報の取得に失敗しました');
         }
 
+        // デバッグ用：レンダリング前のデータ確認
+        console.log('=== レンダリング対象のユーザーデータ ===');
+        console.log('ユーザー名:', userData.username);
+        console.log('メール:', userData.email);
+        console.log('作成日:', userData.createdAt);
+        console.log('全データ:', userData);
+
         // プロフィール情報を表示
         userNickname.textContent = userData.username;
         userEmail.textContent = userData.email;
@@ -55,41 +107,206 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 投稿履歴は一時的に無効化
         userPosts.innerHTML = '<p class="text-muted">投稿機能は準備中です</p>';
-
-        // 投稿履歴を取得（一時的に無効化）
-        /*
-        const postsResponse = await fetch(`http://localhost:3000/api/users/me/posts`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!postsResponse.ok) {
-            throw new Error('投稿履歴の取得に失敗しました');
-        }
-
-        const postsData = await postsResponse.json();
-
-        // 投稿履歴を表示
-        if (postsData.length === 0) {
-            userPosts.innerHTML = '<p class="text-muted">まだ投稿がありません</p>';
-        } else {
-            userPosts.innerHTML = postsData.map(post => `
-                <div class="list-group-item">
-                    <h4 class="h6 mb-1">${post.title}</h4>
-                    <p class="mb-1">${post.content}</p>
-                    <small class="text-muted">
-                        投稿日時: ${new Date(post.createdAt).toLocaleString('ja-JP')}
-                    </small>
-                </div>
-            `).join('');
-        }
-        */
+        
+        // 書類ステータスを取得
+        await loadDocumentStatus();
 
     } catch (error) {
         console.error('エラー:', error);
         alert(error.message);
     }
+    
+    // 書類ステータスを取得して表示
+    async function loadDocumentStatus() {
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/users/document/status`);
+            if (!response) return;
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || '書類ステータスの取得に失敗しました');
+            }
+            
+            if (data.success) {
+                updateDocumentStatusUI(data.data);
+            }
+        } catch (error) {
+            console.error('書類ステータス取得エラー:', error);
+            documentStatusAlert.className = 'alert alert-danger';
+            documentStatusAlert.textContent = '書類ステータスの取得に失敗しました';
+        }
+    }
+    
+    // 書類ステータスUIの更新
+    function updateDocumentStatusUI(statusData) {
+        const { documentStatus, documentSubmittedAt, documentVerifiedAt, documentRejectReason, hasDocument } = statusData;
+        
+        // ステータスに応じて表示を切り替え
+        switch (documentStatus) {
+            case 'not_submitted':
+                documentStatusAlert.className = 'alert alert-warning';
+                documentStatusAlert.textContent = '書類が未提出です。書き込みを行うには本人確認書類の提出が必要です。';
+                documentUploadForm.classList.remove('d-none');
+                documentPreview.classList.add('d-none');
+                break;
+                
+            case 'submitted':
+                documentStatusAlert.className = 'alert alert-info';
+                documentStatusAlert.textContent = '書類を提出済みです。管理者の確認をお待ちください。';
+                documentUploadForm.classList.add('d-none');
+                
+                if (hasDocument) {
+                    showDocumentPreview(statusData);
+                } else {
+                    documentPreview.classList.add('d-none');
+                }
+                break;
+                
+            case 'approved':
+                documentStatusAlert.className = 'alert alert-success';
+                documentStatusAlert.textContent = '書類が承認されました。書き込み機能が利用可能です。';
+                documentUploadForm.classList.add('d-none');
+                
+                if (hasDocument) {
+                    showDocumentPreview(statusData);
+                } else {
+                    documentPreview.classList.add('d-none');
+                }
+                break;
+                
+            case 'rejected':
+                documentStatusAlert.className = 'alert alert-danger';
+                let rejectMessage = '書類が拒否されました。';
+                if (documentRejectReason) {
+                    rejectMessage += ` 理由: ${documentRejectReason}`;
+                }
+                documentStatusAlert.textContent = rejectMessage;
+                documentUploadForm.classList.remove('d-none');
+                documentPreview.classList.add('d-none');
+                break;
+                
+            default:
+                documentStatusAlert.className = 'alert alert-secondary';
+                documentStatusAlert.textContent = '書類ステータスが不明です。';
+                documentUploadForm.classList.remove('d-none');
+                documentPreview.classList.add('d-none');
+        }
+    }
+    
+    // 書類プレビュー表示
+    function showDocumentPreview(statusData) {
+        // プレビューエリアを表示
+        documentPreview.classList.remove('d-none');
+        
+        // 書類画像パスが取得できた場合
+        if (statusData.documentPath) {
+            documentImage.src = statusData.documentPath;
+        } else {
+            documentImage.src = '/assets/images/document-placeholder.png';
+        }
+        
+        // アップロード日時
+        if (statusData.documentSubmittedAt) {
+            documentUploadDate.textContent = new Date(statusData.documentSubmittedAt).toLocaleString('ja-JP');
+        } else {
+            documentUploadDate.textContent = '不明';
+        }
+        
+        // 承認済みの場合は削除ボタンを無効化
+        if (statusData.documentStatus === 'approved') {
+            deleteDocumentBtn.disabled = true;
+            deleteDocumentBtn.title = '承認済みの書類は削除できません';
+        } else {
+            deleteDocumentBtn.disabled = false;
+            deleteDocumentBtn.title = '';
+        }
+    }
+    
+    // 書類アップロードフォームの送信処理
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!documentFile.files[0]) {
+            alert('ファイルを選択してください');
+            return;
+        }
+        
+        // フォームデータの作成
+        const formData = new FormData();
+        formData.append('document', documentFile.files[0]);
+        
+        // アップロードボタンを無効化
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>アップロード中...';
+        
+        try {
+            const token = getToken();
+            if (!token) return;
+            
+            const response = await fetch(`${API_BASE_URL}/users/document/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'アップロードに失敗しました');
+            }
+            
+            // ステータスを更新
+            await loadDocumentStatus();
+            
+            // 成功メッセージ
+            alert('書類がアップロードされました');
+            
+        } catch (error) {
+            console.error('書類アップロードエラー:', error);
+            alert('書類のアップロードに失敗しました: ' + error.message);
+        } finally {
+            // アップロードボタンを元に戻す
+            uploadButton.disabled = false;
+            uploadButton.innerHTML = '<i class="fas fa-upload me-2"></i>アップロード';
+            
+            // フォームをリセット
+            uploadForm.reset();
+        }
+    });
+    
+    // 書類削除処理
+    deleteDocumentBtn.addEventListener('click', async () => {
+        if (!confirm('書類を削除して再アップロードしますか？')) {
+            return;
+        }
+        
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/users/document`, {
+                method: 'DELETE'
+            });
+            
+            if (!response) return;
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || data.message || '削除に失敗しました');
+            }
+            
+            // ステータスを更新
+            await loadDocumentStatus();
+            
+            // 成功メッセージ
+            alert('書類が削除されました。新しい書類をアップロードしてください。');
+            
+        } catch (error) {
+            console.error('書類削除エラー:', error);
+            alert('書類の削除に失敗しました: ' + error.message);
+        }
+    });
 
     // プロフィール編集ボタンのイベントリスナー
     editProfileBtn.addEventListener('click', () => {

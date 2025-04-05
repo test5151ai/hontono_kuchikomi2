@@ -30,7 +30,7 @@ class SiteHeader extends HTMLElement {
                                     <a href="/register-guide.html" class="btn btn-primary">新規登録</a>
                                 </div>
                                 <div class="user-menu" style="display: none;">
-                                    <a href="/mypage.html" class="btn btn-outline-light">
+                                    <a href="/profile.html" class="btn btn-outline-light">
                                         <i class="fas fa-user me-2"></i>マイページ
                                     </a>
                                 </div>

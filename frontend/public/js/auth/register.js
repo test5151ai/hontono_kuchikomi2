@@ -78,17 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || '登録に失敗しました');
+            if (result.success) {
+                // トークンをローカルストレージに保存
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('refreshToken', result.refreshToken);
+                
+                // マイページにリダイレクト
+                window.location.href = '/profile.html';
+                
+                // 成功メッセージを表示
+                showAlert('success', '登録が完了しました！');
+            } else {
+                showAlert('danger', result.message || '登録に失敗しました。');
             }
-
-            // 登録成功後、自動ログイン
-            localStorage.setItem('token', data.token);
-
-            // プロフィールページにリダイレクト
-            window.location.href = '/profile.html';
 
         } catch (error) {
             // エラーメッセージを表示

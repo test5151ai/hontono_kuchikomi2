@@ -7,7 +7,10 @@ const ADMIN_API = {
     APPROVE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/approve`,
     REJECT_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/reject`,
     BULK_APPROVE: `${API_BASE_URL}/admin/users/bulk-approve`,
-    USER_DETAILS: (userId) => `${API_BASE_URL}/admin/users/${userId}/details`
+    USER_DETAILS: (userId) => `${API_BASE_URL}/admin/users/${userId}/details`,
+    GET_DOCUMENT: (userId) => `${API_BASE_URL}/admin/users/${userId}/document`,
+    APPROVE_DOCUMENT: (userId) => `${API_BASE_URL}/admin/users/${userId}/document/approve`,
+    REJECT_DOCUMENT: (userId) => `${API_BASE_URL}/admin/users/${userId}/document/reject`
 };
 
 // ユーティリティ関数
@@ -114,16 +117,165 @@ class PendingUsers {
                 </td>
                 <td>${user.username}</td>
                 <td>${user.email}</td>
+                <td>${this.renderDocumentBadge(user.documentStatus)}</td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="pendingUsers.approveUser('${user.id}')">
-                        <i class="bi bi-check-circle"></i> 承認
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="pendingUsers.rejectUser('${user.id}')">
-                        <i class="bi bi-x-circle"></i> 拒否
-                    </button>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success" onclick="pendingUsers.approveUser('${user.id}')">
+                            <i class="bi bi-check-circle"></i> 承認
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="pendingUsers.rejectUser('${user.id}')">
+                            <i class="bi bi-x-circle"></i> 拒否
+                        </button>
+                        ${user.documentStatus === 'submitted' ? `
+                        <button class="btn btn-sm btn-info" onclick="pendingUsers.viewDocument('${user.id}')">
+                            <i class="bi bi-file-earmark"></i> 書類
+                        </button>
+                        ` : ''}
+                    </div>
                 </td>
             </tr>
         `).join('');
+    }
+
+    // 書類状態バッジの生成
+    renderDocumentBadge(status) {
+        switch(status) {
+            case 'submitted':
+                return '<span class="badge bg-info">提出済</span>';
+            case 'approved':
+                return '<span class="badge bg-success">承認済</span>';
+            case 'rejected':
+                return '<span class="badge bg-danger">拒否</span>';
+            case 'not_submitted':
+            default:
+                return '<span class="badge bg-secondary">未提出</span>';
+        }
+    }
+
+    // 書類を表示
+    async viewDocument(userId) {
+        try {
+            const response = await fetchWithAuth(ADMIN_API.GET_DOCUMENT(userId));
+            
+            if (response.success) {
+                // 書類プレビューモーダルを表示
+                this.showDocumentModal(response.data);
+            } else {
+                throw new Error(response.message || '書類の取得に失敗しました');
+            }
+        } catch (error) {
+            console.error('書類表示エラー:', error);
+            alert('書類の表示に失敗しました: ' + error.message);
+        }
+    }
+
+    // 書類プレビューモーダルを表示
+    showDocumentModal(documentData) {
+        // モーダルHTML作成
+        const modalHtml = `
+            <div class="modal fade" id="documentModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">書類確認 - ${documentData.username}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="document-preview mb-3">
+                                <img src="${documentData.documentPath}" class="img-fluid" alt="書類" 
+                                     style="max-height: 500px; width: auto; margin: 0 auto; display: block;">
+                            </div>
+                            <div class="document-info">
+                                <p><strong>提出日時:</strong> ${formatDate(documentData.documentSubmittedAt)}</p>
+                                <p><strong>ステータス:</strong> ${this.renderDocumentBadge(documentData.documentStatus)}</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-success" onclick="pendingUsers.approveDocument('${documentData.id}')">
+                                承認
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#rejectForm">
+                                拒否
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                        </div>
+                        <div class="collapse p-3" id="rejectForm">
+                            <div class="mb-3">
+                                <label for="rejectReason" class="form-label">拒否理由</label>
+                                <textarea class="form-control" id="rejectReason" rows="3" placeholder="拒否理由を入力してください"></textarea>
+                            </div>
+                            <button class="btn btn-danger" onclick="pendingUsers.rejectDocument('${documentData.id}')">
+                                拒否を確定
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 既存のモーダルがあれば削除
+        const existingModal = document.getElementById('documentModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // モーダルをページに追加
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // モーダルを表示
+        const modal = new bootstrap.Modal(document.getElementById('documentModal'));
+        modal.show();
+    }
+
+    // 書類を承認
+    async approveDocument(userId) {
+        try {
+            const response = await fetchWithAuth(ADMIN_API.APPROVE_DOCUMENT(userId), {
+                method: 'POST'
+            });
+            
+            if (response.success) {
+                alert('書類を承認しました');
+                // モーダルを閉じる
+                bootstrap.Modal.getInstance(document.getElementById('documentModal')).hide();
+                // 一覧を更新
+                this.loadPendingUsers();
+            } else {
+                throw new Error(response.message || '書類の承認に失敗しました');
+            }
+        } catch (error) {
+            console.error('書類承認エラー:', error);
+            alert('書類の承認に失敗しました: ' + error.message);
+        }
+    }
+
+    // 書類を拒否
+    async rejectDocument(userId) {
+        try {
+            const reason = document.getElementById('rejectReason').value;
+            if (!reason) {
+                alert('拒否理由を入力してください');
+                return;
+            }
+            
+            const response = await fetchWithAuth(ADMIN_API.REJECT_DOCUMENT(userId), {
+                method: 'POST',
+                body: JSON.stringify({ reason })
+            });
+            
+            if (response.success) {
+                alert('書類を拒否しました');
+                // モーダルを閉じる
+                bootstrap.Modal.getInstance(document.getElementById('documentModal')).hide();
+                // 一覧を更新
+                this.loadPendingUsers();
+            } else {
+                throw new Error(response.message || '書類の拒否に失敗しました');
+            }
+        } catch (error) {
+            console.error('書類拒否エラー:', error);
+            alert('書類の拒否に失敗しました: ' + error.message);
+        }
     }
 
     handleUserSelection(checkbox) {

@@ -261,7 +261,7 @@ exports.getPendingUsers = async (req, res) => {
             where: {
                 isApproved: false
             },
-            attributes: ['id', 'username', 'email', 'submissionMethod', 'submissionContact', 'createdAt'],
+            attributes: ['id', 'username', 'email', 'documentStatus', 'documentSubmittedAt', 'createdAt'],
             order: [['createdAt', 'DESC']]
         });
 

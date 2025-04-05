@@ -80,7 +80,20 @@ module.exports = (sequelize, DataTypes) => {
     },
     approvedAt: DataTypes.DATE,
     approvedBy: DataTypes.UUID,
-    lastLoginAt: DataTypes.DATE
+    lastLoginAt: DataTypes.DATE,
+    documentStatus: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'not_submitted',
+      validate: {
+        isIn: [['not_submitted', 'submitted', 'approved', 'rejected']]
+      }
+    },
+    documentSubmittedAt: DataTypes.DATE,
+    documentVerifiedAt: DataTypes.DATE,
+    documentVerifiedBy: DataTypes.UUID,
+    documentRejectReason: DataTypes.TEXT,
+    documentPath: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'User',
