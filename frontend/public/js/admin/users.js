@@ -121,20 +121,26 @@ function renderUsers(users) {
       </td>
       <td>${escapeHtml(user.username)}</td>
       <td>${escapeHtml(user.email)}</td>
-      <td>${renderStatusBadge(user.status)}</td>
+      <td>${renderStatusBadge(user)}</td>
       <td>${renderDocumentBadge(user.documentStatus)}</td>
       <td>${formatDate(user.createdAt)}</td>
       <td>${formatDate(user.lastLoginAt)}</td>
       <td>
-        <button class="btn btn-sm btn-secondary" disabled title="未実装">
-          <i class="bi bi-eye"></i>
-        </button>
-        <button class="btn btn-sm btn-secondary" disabled title="未実装">
-          <i class="bi bi-check-circle"></i>
-        </button>
-        <button class="btn btn-sm btn-secondary" disabled title="未実装">
-          <i class="bi bi-x-circle"></i>
-        </button>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-info" onclick="showUserDetail('${user.id}')" title="詳細">
+            <i class="bi bi-eye"></i>
+          </button>
+          ${!user.isApproved ? `
+          <button class="btn btn-sm btn-success" onclick="approveUser('${user.id}')" title="承認">
+            <i class="bi bi-check-circle"></i>
+          </button>
+          ` : ''}
+          ${user.isApproved && user.role !== 'admin' ? `
+          <button class="btn btn-sm btn-warning" onclick="suspendUser('${user.id}')" title="停止">
+            <i class="bi bi-x-circle"></i>
+          </button>
+          ` : ''}
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -155,8 +161,19 @@ function renderUsers(users) {
 }
 
 // ステータスバッジの生成
-function renderStatusBadge(status) {
-  return '<span class="badge bg-secondary">未実装</span>';
+function renderStatusBadge(user) {
+  // ユーザーオブジェクトがない場合やプロパティが不足している場合
+  if (!user || (typeof user !== 'object')) {
+    return '<span class="badge bg-secondary">未設定</span>';
+  }
+
+  if (user.role === 'admin') {
+    return '<span class="badge bg-danger">管理者</span>';
+  } else if (user.isApproved) {
+    return '<span class="badge bg-success">承認済</span>';
+  } else {
+    return '<span class="badge bg-warning">承認待ち</span>';
+  }
 }
 
 // 書類状態バッジの生成
@@ -236,7 +253,7 @@ function renderUserDetail(user) {
         <div class="col-md-6">
           <p><strong>ユーザー名:</strong> ${escapeHtml(user.username)}</p>
           <p><strong>メールアドレス:</strong> ${escapeHtml(user.email)}</p>
-          <p><strong>ステータス:</strong> ${renderStatusBadge(user.status)}</p>
+          <p><strong>ステータス:</strong> ${renderStatusBadge(user)}</p>
           <p><strong>登録日時:</strong> ${formatDate(user.createdAt)}</p>
         </div>
         <div class="col-md-6">
