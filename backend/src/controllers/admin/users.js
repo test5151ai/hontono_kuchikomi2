@@ -27,8 +27,9 @@ exports.getUsers = async (req, res) => {
                 { email: { [Op.like]: `%${keyword}%` } }
             ];
         }
-        if (status) where.status = status;
-        if (documentStatus) where.documentStatus = documentStatus;
+        // ステータスと書類状態は未実装のため、一時的にコメントアウト
+        // if (status) where.status = status;
+        // if (documentStatus) where.documentStatus = documentStatus;
 
         console.log('WHERE条件:', where);
 

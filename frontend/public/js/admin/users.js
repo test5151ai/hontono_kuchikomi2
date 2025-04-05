@@ -94,7 +94,10 @@ async function loadUsers() {
         currentPage: result.data.currentPage
       });
       renderUsers(result.data.users);
-      updatePagination(result.data.totalPages, result.data.currentPage);
+      renderPagination({ 
+        totalPages: result.data.totalPages, 
+        currentPage: result.data.currentPage 
+      });
     } else {
       console.error('APIエラー:', result.message);
       showError(result.message);
@@ -123,13 +126,13 @@ function renderUsers(users) {
       <td>${formatDate(user.createdAt)}</td>
       <td>${formatDate(user.lastLoginAt)}</td>
       <td>
-        <button class="btn btn-sm btn-info me-1" onclick="showUserDetail('${user.id}')">
+        <button class="btn btn-sm btn-secondary" disabled title="未実装">
           <i class="bi bi-eye"></i>
         </button>
-        <button class="btn btn-sm btn-warning me-1" onclick="approveUser('${user.id}')" ${user.status === 'approved' ? 'disabled' : ''}>
+        <button class="btn btn-sm btn-secondary" disabled title="未実装">
           <i class="bi bi-check-circle"></i>
         </button>
-        <button class="btn btn-sm btn-danger" onclick="suspendUser('${user.id}')" ${user.status === 'suspended' ? 'disabled' : ''}>
+        <button class="btn btn-sm btn-secondary" disabled title="未実装">
           <i class="bi bi-x-circle"></i>
         </button>
       </td>
@@ -153,22 +156,12 @@ function renderUsers(users) {
 
 // ステータスバッジの生成
 function renderStatusBadge(status) {
-  const badges = {
-    pending: '<span class="badge bg-warning">承認待ち</span>',
-    approved: '<span class="badge bg-success">承認済み</span>',
-    suspended: '<span class="badge bg-danger">停止中</span>'
-  };
-  return badges[status] || '';
+  return '<span class="badge bg-secondary">未実装</span>';
 }
 
 // 書類状態バッジの生成
 function renderDocumentBadge(status) {
-  const badges = {
-    not_submitted: '<span class="badge bg-secondary">未提出</span>',
-    submitted: '<span class="badge bg-info">提出済み</span>',
-    verified: '<span class="badge bg-success">確認済み</span>'
-  };
-  return badges[status] || '';
+  return '<span class="badge bg-secondary">未実装</span>';
 }
 
 // ページネーションの描画
@@ -444,4 +437,27 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// エラーメッセージの表示
+function showError(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const container = document.querySelector('#userList') || document.querySelector('main');
+    if (container) {
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // 5秒後に自動で消える
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    } else {
+        console.error('エラーメッセージを表示するための要素が見つかりません');
+    }
 } 
