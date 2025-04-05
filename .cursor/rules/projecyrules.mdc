@@ -1,10 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
-
----
 description: プロジェクトの基本ルール
 globs:
   - "backend/src/**/*.js"
