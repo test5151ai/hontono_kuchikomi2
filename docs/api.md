@@ -538,4 +538,163 @@ GET /api/categories/:id/threads
     "updatedAt": "2025-04-07T10:11:12.789Z"
   }
 }
+```
+
+## 5ちゃんねるライクな掲示板機能関連API
+
+### スレッド制限・連鎖関連
+
+#### スレッドステータス取得
+```
+GET /api/threads/:id/status
+```
+
+**レスポンス:**
+```json
+{
+  "id": "UUID",
+  "isLocked": boolean,
+  "postCount": number,
+  "maxPosts": number,
+  "previousThreadId": "UUID or null",
+  "nextThreadId": "UUID or null"
+}
+```
+
+#### 次スレッド作成
+```
+POST /api/threads/:id/next
+```
+
+**リクエスト:**
+```json
+{
+  "customTitle": "string (optional)",
+  "customContent": "string (optional)"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "success": true,
+  "message": "次スレッドを作成しました",
+  "id": "新しいスレッドのUUID",
+  "title": "新しいスレッドのタイトル",
+  "url": "新しいスレッドのURL"
+}
+```
+
+#### スレッド連鎖取得
+```
+GET /api/threads/:id/chain
+```
+
+**レスポンス:**
+```json
+{
+  "currentThread": {
+    "id": "UUID",
+    "title": "現在のスレッドタイトル",
+    "postCount": number,
+    "createdAt": "date"
+  },
+  "previousThreads": [
+    {
+      "id": "UUID",
+      "title": "過去スレッドタイトル",
+      "postCount": number,
+      "createdAt": "date"
+    }
+  ],
+  "nextThreads": [
+    {
+      "id": "UUID",
+      "title": "次スレッドタイトル",
+      "postCount": number,
+      "createdAt": "date"
+    }
+  ]
+}
+```
+
+### レス管理関連
+
+#### レス情報取得
+```
+GET /api/posts/:id/info
+```
+
+**レスポンス:**
+```json
+{
+  "id": "UUID",
+  "number": number,
+  "threadId": "UUID",
+  "content": "string",
+  "authorName": "string",
+  "createdAt": "date",
+  "references": [number] // このレスが参照しているレス番号
+}
+```
+
+#### レスへの参照取得
+```
+GET /api/posts/:id/references
+```
+
+**レスポンス:**
+```json
+{
+  "id": "UUID",
+  "number": number,
+  "referencedBy": [
+    {
+      "id": "UUID",
+      "number": number,
+      "excerpt": "string" // 引用部分のプレビュー
+    }
+  ]
+}
+```
+
+### ページネーション関連
+
+#### カスタムページネーション
+```
+GET /api/threads/:id/posts
+```
+
+**パラメータ:**
+```
+page: number (デフォルト: 1)
+limit: number (デフォルト: 100, 最大: 1000)
+mode: string (options: "all", "latest", "range")
+start: number (modeが"range"の場合必須)
+end: number (modeが"range"の場合必須)
+```
+
+**レスポンス:**
+```json
+{
+  "posts": [
+    {
+      "id": "UUID",
+      "number": number,
+      "content": "string",
+      "authorName": "string",
+      "createdAt": "date",
+      "helpfulCount": number
+    }
+  ],
+  "pagination": {
+    "currentPage": number,
+    "totalPages": number,
+    "totalPosts": number,
+    "firstPost": number,
+    "lastPost": number,
+    "hasNext": boolean,
+    "hasPrevious": boolean
+  }
+}
 ``` 
