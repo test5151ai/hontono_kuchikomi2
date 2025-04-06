@@ -14,6 +14,264 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <!-- カスタムCSS -->
     <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f8fa;
+        }
+        
+        /* 引用スタイル */
+        .quote-line {
+            background-color: #f5f5f5;
+            border-left: 3px solid #007bff;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        
+        /* 投稿番号のスタイル */
+        .post-number {
+            display: inline-block;
+            background-color: #e9f7fe;
+            color: #0056b3;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        /* アンカーリンクのスタイル */
+        .post-anchor, .post-anchor-range {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .post-anchor:hover, .post-anchor-range:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+        
+        /* ポップアッププレビューのスタイル */
+        .anchor-preview {
+            position: absolute;
+            z-index: 1000;
+            width: 300px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        
+        .anchor-preview.show {
+            opacity: 1;
+        }
+        
+        .thread-detail, .post-form.card {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .thread-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .post {
+            background: #fff;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-author {
+            font-weight: 300;
+            color: #2e8b57;
+            font-size: 0.75rem;
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .post-content {
+            line-height: 1.4;
+            margin-top: -4px;
+            padding-top: 0;
+            white-space: pre-line;
+        }
+
+        .helpful-button {
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            padding: 0.15rem 0.4rem;
+            line-height: 1;
+            color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .helpful-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .helpful-button.btn-info {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            color: white;
+        }
+        
+        .helpful-text {
+            font-size: 0.75rem;
+            font-weight: 300;
+        }
+
+        .helpful-count {
+            margin-left: 0.25rem;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+        
+        .admin-actions {
+            border-top: 1px solid #f0f0f0;
+            padding-top: 0.75rem;
+        }
+        
+        /* 投稿フォームカードのスタイル修正 */
+        .post-form.card {
+            height: auto;
+        }
+        
+        .post-form .card-body {
+            padding: 1rem;
+        }
+        
+        .post-form .form-label {
+            margin-bottom: 0.25rem;
+        }
+        
+        .post-form .mb-3 {
+            margin-bottom: 0.75rem;
+        }
+        
+        .post-form .form-text {
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .post-form textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* サイドバーカードのスタイル修正 */
+        .col-lg-3 .card {
+            height: auto;
+        }
+        
+        .col-lg-3 .card-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .col-lg-3 .list-group-item {
+            padding: 0.6rem 1rem;
+            border-left: none;
+            border-right: none;
+        }
+        
+        .col-lg-3 .list-group-item:first-child {
+            border-top: none;
+        }
+        
+        .col-lg-3 .list-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* スケルトンローディングのスタイル */
+        .skeleton-loading {
+            height: auto;
+        }
+        
+        .skeleton-line {
+            height: 12px;
+            margin-bottom: 8px;
+            background: #eee;
+            border-radius: 4px;
+        }
+        
+        /* バッジのサイズ調整 */
+        .badge.bg-light {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.35rem;
+        }
+
+        .post-date {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .card-body {
+            padding: 0.75rem 1rem;
+        }
+        
+        .post-header {
+            margin-bottom: 0;
+        }
+        
+        .post-content {
+            line-height: 1.4;
+        }
+
+        /* パンくずリストのスタイル */
+        .breadcrumb {
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            padding: 0.4rem 0.75rem;
+            background-color: #f8f9fa;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: ">";
+            color: #6c757d;
+        }
+        
+        .breadcrumb-item a {
+            color: #0056b3;
+        }
+        
+        .breadcrumb-item.active {
+            color: #495057;
+        }
+
+        .post-actions {
+            margin-top: 0.75rem;
+        }
+
+        /* 店舗情報のスタイル */
+        .shop-details {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-left: 3px solid #2e8b57;
+        }
+        
+        .shop-url {
+            font-size: 0.85rem;
+        }
+        
+        .shop-description {
+            white-space: pre-line;
+        }
+
+        /* 投稿のハイライト */
+        .post.highlighted {
+            border-left: 4px solid #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+            transition: background-color 0.5s ease-in-out;
+        }
+    </style>
 </head>
 <body>
     <!-- ヘッダー -->
@@ -41,8 +299,11 @@
                 </div>
 
                 <div class="post-form card mt-3 shadow-sm">
-                    <div class="card-header bg-white py-2">
+                    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                         <h3 class="card-title h5 mb-0">新規投稿</h3>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#replyHelpModal">
+                            <i class="fas fa-question-circle me-1"></i>レスの仕方
+                        </button>
                     </div>
                     <div class="card-body">
                         <form id="postForm" class="needs-validation" novalidate>
@@ -173,6 +434,89 @@
         </div>
     </div>
 
+    <!-- レスの仕方説明モーダル -->
+    <div class="modal fade" id="replyHelpModal" tabindex="-1" aria-labelledby="replyHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="replyHelpModalLabel">レスの仕方ガイド</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">アンカー機能の使い方</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>特定の投稿を参照する：</strong></p>
+                                    <div class="bg-light p-2 mb-3 border">
+                                        <code>>>1</code> → 1番の投稿を参照
+                                    </div>
+                                    
+                                    <p><strong>複数の投稿を参照する：</strong></p>
+                                    <div class="bg-light p-2 mb-3 border">
+                                        <code>>>1-3</code> → 1〜3番の投稿を参照
+                                    </div>
+                                    
+                                    <p><strong>使用例：</strong></p>
+                                    <div class="bg-light p-2 border">
+                                        >>1 の言っていることに賛成です。<br>
+                                        >>2-3 は同じ内容を言っていますね。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="card-title mb-0">基本的な書き方</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>引用の書き方：</strong></p>
+                                    <div class="bg-light p-2 mb-3 border">
+                                        <code>></code> で始まる行は引用になります<br>
+                                        <code>> これは引用文です</code>
+                                    </div>
+                                    
+                                    <p><strong>URLの書き方：</strong></p>
+                                    <div class="bg-light p-2 mb-3 border">
+                                        URLをそのまま書くと自動的にリンクになります<br>
+                                        <code>https://example.com</code>
+                                    </div>
+                                    
+                                    <p><strong>改行について：</strong></p>
+                                    <div class="bg-light p-2 border">
+                                        改行はそのまま反映されます
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-2">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">便利なTips</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>投稿番号（レス番）は、各投稿の左上に表示されています</li>
+                                <li>アンカーリンクをクリックすると、該当の投稿へジャンプします</li>
+                                <li>特定の投稿に返信したい場合は、その投稿番号を使ってアンカーを記述すると、文脈がわかりやすくなります</li>
+                                <li>長文を書く場合は、適宜改行を入れると読みやすくなります</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- コンポーネント -->
@@ -206,15 +550,21 @@
                     return;
                 }
                 
+                // 投稿番号を確認（デバッグ用）
+                console.log('投稿番号確認:');
+                posts.forEach((post, index) => {
+                    console.log(`投稿インデックス ${index}, ID: ${post.id}, 投稿番号: ${post.postNumber}`);
+                });
+                
                 const postsContainer = document.getElementById('posts');
                 
                 const postsHtml = posts.map((post, index) => {
                     return `
-                        <div class="post card mb-3 shadow-sm" id="post-${post.id}">
+                        <div class="post card mb-3 shadow-sm" id="post-${post.id}" data-post-number="${post.postNumber}">
                             <div class="card-body">
                                 <div class="post-header d-flex justify-content-between align-items-center mb-2">
                                     <div>
-                                        <span class="post-number">${index + 1}</span>
+                                        <span class="post-number">${post.postNumber}</span>
                                         <span class="post-author">${post.authorName || '名無しさん'}</span>
                                     </div>
                                     <div class="post-date">
@@ -255,6 +605,9 @@
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', deletePost);
                 });
+                
+                // アンカーリンクのクリックイベントを設定
+                setupAnchorLinks();
                 
                 showLoading(false);
             } catch (error) {
@@ -639,23 +992,39 @@
             }
         });
         
-        // HTMLの特殊文字をエスケープする関数
-        function escapeHTML(str) {
-            return str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+        // HTMLエスケープ関数
+        function escapeHTML(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // 投稿内容のフォーマット
         function formatContent(content) {
+            if (!content) return '';
+            
             // HTMLエスケープ
             let escapedContent = escapeHTML(content);
             
+            // 改行を保持
+            escapedContent = escapedContent.replace(/\n/g, '<br>');
+            
+            // 引用部分をスタイリング（> で始まる行）
+            escapedContent = escapedContent.replace(/^&gt;(.*)(<br>|$)/gm, '<div class="quote-line">&gt;$1</div>');
+            
+            // アンカー（>>数字）とアンカー範囲（>>数字-数字）をリンクに変換
+            // 1. 範囲指定のアンカー（>>1-3）
+            escapedContent = escapedContent.replace(/&gt;&gt;(\d+)-(\d+)/g, (match, start, end) => {
+                return `<a href="#" class="post-anchor-range" data-start="${start}" data-end="${end}">${match}</a>`;
+            });
+            
+            // 2. 単一のアンカー（>>1）
+            escapedContent = escapedContent.replace(/&gt;&gt;(\d+)(?!-\d+)/g, (match, postNumber) => {
+                return `<a href="#" class="post-anchor" data-post-number="${postNumber}">${match}</a>`;
+            });
+            
             // URLをリンクに変換
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const urlRegex = /(https?:\/\/[^\s<]+)/g;
             escapedContent = escapedContent.replace(urlRegex, url => {
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
@@ -741,217 +1110,154 @@
             }
         }
         
+        // アンカーリンクのセットアップ
+        function setupAnchorLinks() {
+            // プレビュー表示用の要素
+            const previewEl = document.createElement('div');
+            previewEl.className = 'anchor-preview';
+            document.body.appendChild(previewEl);
+            
+            // 単一アンカーのクリックイベント
+            document.querySelectorAll('.post-anchor').forEach(anchor => {
+                // クリックで対象投稿へジャンプ
+                anchor.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const postNumber = anchor.getAttribute('data-post-number');
+                    jumpToPost(postNumber);
+                });
+                
+                // ホバーでプレビュー表示
+                anchor.addEventListener('mouseenter', (e) => {
+                    const postNumber = anchor.getAttribute('data-post-number');
+                    showPostPreview(anchor, postNumber);
+                });
+                
+                anchor.addEventListener('mouseleave', () => {
+                    hidePostPreview();
+                });
+            });
+            
+            // 範囲アンカーのクリックイベント
+            document.querySelectorAll('.post-anchor-range').forEach(anchor => {
+                anchor.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const start = parseInt(anchor.getAttribute('data-start'));
+                    const end = parseInt(anchor.getAttribute('data-end'));
+                    
+                    // 範囲の最初の投稿へジャンプ
+                    jumpToPost(start);
+                });
+                
+                // ホバーでプレビュー表示（先頭の投稿のみ）
+                anchor.addEventListener('mouseenter', (e) => {
+                    const start = anchor.getAttribute('data-start');
+                    showPostPreview(anchor, start, true);
+                });
+                
+                anchor.addEventListener('mouseleave', () => {
+                    hidePostPreview();
+                });
+            });
+        }
+        
+        // 投稿へのジャンプ
+        function jumpToPost(postNumber) {
+            const posts = document.querySelectorAll('.post');
+            let targetPost = null;
+            
+            for (const post of posts) {
+                if (post.getAttribute('data-post-number') === postNumber) {
+                    targetPost = post;
+                    break;
+                }
+            }
+            
+            if (targetPost) {
+                // 以前にハイライトされた投稿があれば解除
+                document.querySelectorAll('.post.highlighted').forEach(p => {
+                    p.classList.remove('highlighted');
+                });
+                
+                // 対象の投稿をハイライト
+                targetPost.classList.add('highlighted');
+                
+                // 対象の投稿へスクロール
+                targetPost.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // 一定時間後にハイライトを解除
+                setTimeout(() => {
+                    targetPost.classList.remove('highlighted');
+                }, 3000);
+            }
+        }
+        
+        // 投稿プレビューの表示
+        function showPostPreview(anchorEl, postNumber, isRange = false) {
+            const posts = document.querySelectorAll('.post');
+            let targetPost = null;
+            
+            for (const post of posts) {
+                if (post.getAttribute('data-post-number') === postNumber) {
+                    targetPost = post;
+                    break;
+                }
+            }
+            
+            if (targetPost) {
+                const previewEl = document.querySelector('.anchor-preview');
+                let content = targetPost.querySelector('.post-content').innerHTML;
+                
+                // 長すぎる内容は省略
+                if (content.length > 200) {
+                    content = content.substring(0, 200) + '...';
+                }
+                
+                // プレビュー内容を設定
+                previewEl.innerHTML = `
+                    <div class="preview-header mb-1">
+                        <strong>${postNumber}:</strong> 
+                        <span class="preview-author">${targetPost.querySelector('.post-author').textContent}</span>
+                    </div>
+                    <div class="preview-content small">
+                        ${content}
+                    </div>
+                    ${isRange ? '<div class="text-end small text-muted mt-1">※範囲の先頭の投稿のみ表示</div>' : ''}
+                `;
+                
+                // アンカー要素の位置を基準にプレビューを配置
+                const rect = anchorEl.getBoundingClientRect();
+                const scrollY = window.scrollY || window.pageYOffset;
+                
+                // 画面下部の場合は上に表示
+                if (rect.bottom + 320 > window.innerHeight) {
+                    previewEl.style.top = (rect.top + scrollY - 10 - previewEl.offsetHeight) + 'px';
+                } else {
+                    previewEl.style.top = (rect.bottom + scrollY + 10) + 'px';
+                }
+                
+                // 画面右端の場合は左に表示
+                if (rect.right + 320 > window.innerWidth) {
+                    previewEl.style.left = (rect.left - 250) + 'px';
+                } else {
+                    previewEl.style.left = rect.left + 'px';
+                }
+                
+                // プレビューを表示
+                previewEl.classList.add('show');
+            }
+        }
+        
+        // 投稿プレビューの非表示
+        function hidePostPreview() {
+            const previewEl = document.querySelector('.anchor-preview');
+            previewEl.classList.remove('show');
+        }
+        
         // ページ読み込み時に実行
         document.addEventListener('DOMContentLoaded', () => {
             loadThread();
             loadPosts();
         });
     </script>
-
-    <style>
-        body {
-            background-color: #f5f8fa;
-        }
-        
-        .thread-detail, .post-form.card {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .thread-title {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .post {
-            background: #fff;
-            border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .post-number {
-            font-weight: normal;
-            color: var(--primary-color);
-            margin-right: 0.5rem;
-        }
-
-        .post-author {
-            font-weight: 300;
-            color: #2e8b57;
-            font-size: 0.75rem;
-            background-color: transparent;
-            padding: 0;
-        }
-
-        .post-content {
-            line-height: 1.4;
-            margin-top: -4px;
-            padding-top: 0;
-            white-space: pre-line;
-        }
-
-        .helpful-button {
-            font-size: 0.75rem;
-            transition: all 0.2s ease;
-            padding: 0.15rem 0.4rem;
-            line-height: 1;
-            color: #0056b3;
-            border-color: #0056b3;
-        }
-        
-        .helpful-button:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .helpful-button.btn-info {
-            background-color: #0056b3;
-            border-color: #0056b3;
-            color: white;
-        }
-        
-        .helpful-text {
-            font-size: 0.75rem;
-            font-weight: 300;
-        }
-
-        .helpful-count {
-            margin-left: 0.25rem;
-            font-weight: bold;
-            font-size: 0.75rem;
-        }
-        
-        .admin-actions {
-            border-top: 1px solid #f0f0f0;
-            padding-top: 0.75rem;
-        }
-        
-        /* 投稿フォームカードのスタイル修正 */
-        .post-form.card {
-            height: auto;
-        }
-        
-        .post-form .card-body {
-            padding: 1rem;
-        }
-        
-        .post-form .form-label {
-            margin-bottom: 0.25rem;
-        }
-        
-        .post-form .mb-3 {
-            margin-bottom: 0.75rem;
-        }
-        
-        .post-form .form-text {
-            margin-top: 0.25rem;
-            font-size: 0.75rem;
-        }
-        
-        .post-form textarea.form-control {
-            min-height: 80px;
-            resize: vertical;
-        }
-        
-        /* サイドバーカードのスタイル修正 */
-        .col-lg-3 .card {
-            height: auto;
-        }
-        
-        .col-lg-3 .card-header {
-            padding: 0.75rem 1rem;
-        }
-        
-        .col-lg-3 .list-group-item {
-            padding: 0.6rem 1rem;
-            border-left: none;
-            border-right: none;
-        }
-        
-        .col-lg-3 .list-group-item:first-child {
-            border-top: none;
-        }
-        
-        .col-lg-3 .list-group-item:last-child {
-            border-bottom: none;
-        }
-        
-        /* スケルトンローディングのスタイル */
-        .skeleton-loading {
-            height: auto;
-        }
-        
-        .skeleton-line {
-            height: 12px;
-            margin-bottom: 8px;
-            background: #eee;
-            border-radius: 4px;
-        }
-        
-        /* バッジのサイズ調整 */
-        .badge.bg-light {
-            font-size: 0.7rem;
-            padding: 0.1rem 0.35rem;
-        }
-
-        .post-date {
-            font-size: 0.7rem;
-            color: #6c757d;
-        }
-
-        .card-body {
-            padding: 0.75rem 1rem;
-        }
-        
-        .post-header {
-            margin-bottom: 0;
-        }
-        
-        .post-content {
-            line-height: 1.4;
-        }
-
-        /* パンくずリストのスタイル */
-        .breadcrumb {
-            font-size: 0.75rem;
-            margin-bottom: 0.5rem;
-            border-radius: 4px;
-            padding: 0.4rem 0.75rem;
-            background-color: #f8f9fa;
-        }
-        
-        .breadcrumb-item + .breadcrumb-item::before {
-            content: ">";
-            color: #6c757d;
-        }
-        
-        .breadcrumb-item a {
-            color: #0056b3;
-        }
-        
-        .breadcrumb-item.active {
-            color: #495057;
-        }
-
-        .post-actions {
-            margin-top: 0.75rem;
-        }
-
-        /* 店舗情報のスタイル */
-        .shop-details {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            border-left: 3px solid #2e8b57;
-        }
-        
-        .shop-url {
-            font-size: 0.85rem;
-        }
-        
-        .shop-description {
-            white-space: pre-line;
-        }
-    </style>
 </body>
 </html> 
