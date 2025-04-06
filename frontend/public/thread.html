@@ -308,6 +308,18 @@
             background-color: rgba(13, 110, 253, 0.05);
             transition: background-color 0.5s ease-in-out;
         }
+
+        .reply-button {
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            padding: 0.15rem 0.4rem;
+            line-height: 1;
+        }
+        
+        .reply-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -619,12 +631,12 @@
                                 </div>
                                 <div class="post-actions d-flex justify-content-between align-items-center">
                                     <div>
-                                        <button class="helpful-button btn btn-xs btn-outline-info me-2" data-post-id="${post.id}">
+                                        <button class="helpful-button btn btn-outline-info me-2" data-post-id="${post.id}">
                                             <i class="far fa-thumbs-up me-1"></i>
                                             <span class="helpful-text">参考になった</span>
                                             <span class="helpful-count">${post.helpfulCount || 0}</span>
                                         </button>
-                                        <button class="reply-button btn btn-xs btn-outline-secondary" data-post-number="${post.postNumber}">
+                                        <button class="reply-button btn btn-outline-secondary" data-post-number="${post.postNumber}">
                                             <i class="fas fa-reply me-1"></i>返信
                                         </button>
                                     </div>

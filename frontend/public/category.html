@@ -161,7 +161,7 @@
                     <div class="threads-section">
                         <div class="threads-header d-flex justify-content-between align-items-center mb-4">
                             <h2 class="h4 mb-0">スレッド一覧</h2>
-                            <button id="create-thread-btn" class="btn btn-success">
+                            <button id="create-thread-btn" class="btn btn-success d-none">
                                 <i class="fas fa-plus me-2"></i>新規スレッド作成
                             </button>
                         </div>
@@ -252,6 +252,31 @@
             order: 'desc',
             page: 1
         };
+
+        // 管理者権限のチェック
+        async function checkAdminStatus() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return false;
+
+                // JWTトークンをデコードして権限を確認（簡易版）
+                const tokenParts = token.split('.');
+                if (tokenParts.length !== 3) return false;
+                
+                const payload = JSON.parse(atob(tokenParts[1]));
+                
+                // roleがadmin, superadmin, superuserのいずれかであれば管理者
+                if (payload.role === 'admin' || payload.role === 'superadmin' || payload.role === 'superuser') {
+                    document.getElementById('create-thread-btn').classList.remove('d-none');
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('管理者権限の確認に失敗しました:', error);
+                return false;
+            }
+        }
 
         // カテゴリー情報を取得して表示
         async function loadCategory() {
@@ -571,6 +596,9 @@
 
         // ページ読み込み時に実行
         document.addEventListener('DOMContentLoaded', () => {
+            // 管理者権限チェック
+            checkAdminStatus();
+            
             // カテゴリー詳細を取得
             loadCategory();
             
