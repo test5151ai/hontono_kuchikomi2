@@ -44,6 +44,14 @@ module.exports = (sequelize, DataTypes) => {
         model: 'users',
         key: 'id'
       }
+    },
+    shopUrl: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    shopDetails: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     sequelize,

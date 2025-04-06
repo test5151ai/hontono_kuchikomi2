@@ -85,7 +85,11 @@ exports.getThread = async (req, res) => {
                 model: Category,
                 as: 'category',
                 attributes: ['id', 'name', 'description']
-            }]
+            }],
+            attributes: [
+                'id', 'title', 'categoryId', 'authorId', 
+                'shopUrl', 'shopDetails', 'createdAt', 'updatedAt'
+            ]
         });
         
         if (!thread) {
@@ -350,6 +354,45 @@ exports.getPopularThreads = async (req, res) => {
         res.status(500).json({ 
             message: '人気スレッドの取得に失敗しました',
             error: error.message 
+        });
+    }
+};
+
+// 管理者用 - スレッドの店舗情報を更新
+exports.updateShopDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { shopUrl, shopDetails } = req.body;
+        
+        debug('店舗情報更新: リクエスト受信', { id, shopUrl, shopDetails });
+        
+        // 編集対象のスレッドを取得
+        const thread = await Thread.findByPk(id);
+        if (!thread) {
+            return res.status(404).json({
+                success: false,
+                message: 'スレッドが見つかりません'
+            });
+        }
+        
+        // 店舗情報を更新
+        await thread.update({
+            shopUrl: shopUrl || null,
+            shopDetails: shopDetails || null
+        });
+        
+        debug('店舗情報更新: 完了', { id, shopUrl, shopDetails });
+        
+        res.json({
+            success: true,
+            message: '店舗情報を更新しました',
+            thread
+        });
+    } catch (error) {
+        console.error('店舗情報更新エラー:', error);
+        res.status(500).json({
+            success: false,
+            message: '店舗情報の更新に失敗しました'
         });
     }
 };

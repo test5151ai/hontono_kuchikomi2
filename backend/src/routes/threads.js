@@ -24,4 +24,7 @@ router.put('/:id', authenticateToken, isAdmin, threadController.updateThread);
 // 管理者用 - スレッドを削除
 router.delete('/:id', authenticateToken, isAdmin, threadController.deleteThread);
 
+// 管理者用 - スレッドの店舗情報を更新
+router.put('/:id/shop-details', authenticateToken, isAdmin, threadController.updateShopDetails);
+
 module.exports = router; 
