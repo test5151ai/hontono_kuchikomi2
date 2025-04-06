@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const threadController = require('../controllers/threadController');
-const { authenticateAdmin } = require('../middleware/auth');
+const { authenticateToken, isAdmin } = require('../middleware/auth');
 
 // スレッドを作成
 router.post('/', threadController.createThread);
@@ -16,9 +16,9 @@ router.get('/:id/posts', threadController.getThreadPosts);
 router.post('/:id/posts', threadController.createPost);
 
 // 管理者用 - スレッドを編集
-router.put('/:id', authenticateAdmin, threadController.updateThread);
+router.put('/:id', authenticateToken, isAdmin, threadController.updateThread);
 
 // 管理者用 - スレッドを削除
-router.delete('/:id', authenticateAdmin, threadController.deleteThread);
+router.delete('/:id', authenticateToken, isAdmin, threadController.deleteThread);
 
 module.exports = router; 
