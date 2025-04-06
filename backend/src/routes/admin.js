@@ -5,6 +5,7 @@ const adminController = require('../controllers/admin');
 const categoryController = require('../controllers/admin/categories');
 const userController = require('../controllers/admin/users');
 const documentController = require('../controllers/admin/document');
+const adminThreadsController = require('../controllers/admin/threads');
 
 // デバッグ用のログ出力
 console.log('admin.js ルートファイルの読み込み開始');
@@ -57,5 +58,9 @@ router.post('/categories', authenticateToken, isAdmin, categoryController.create
 router.put('/categories/:id', authenticateToken, isAdmin, categoryController.updateCategory);
 router.delete('/categories/:id', authenticateToken, isAdmin, categoryController.deleteCategory);
 router.post('/categories/:id/move-threads', authenticateToken, isAdmin, categoryController.moveThreadsToUncategorized);
+
+// スレッド管理ルート
+router.get('/threads', authenticateToken, isAdmin, adminThreadsController.getThreads);
+router.post('/threads/check-duplicate', authenticateToken, isAdmin, adminThreadsController.checkDuplicateTitle);
 
 module.exports = router; 
