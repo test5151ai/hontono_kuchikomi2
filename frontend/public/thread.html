@@ -504,7 +504,8 @@
                             <ul>
                                 <li>投稿番号（レス番）は、各投稿の左上に表示されています</li>
                                 <li>アンカーリンクをクリックすると、該当の投稿へジャンプします</li>
-                                <li>特定の投稿に返信したい場合は、その投稿番号を使ってアンカーを記述すると、文脈がわかりやすくなります</li>
+                                <li>特定の投稿に返信したい場合は、その投稿の<span class="badge bg-secondary">返信</span>ボタンをクリックすると、引用付きで返信できます</li>
+                                <li>引用されたテキストは編集可能です。必要な部分だけを残して引用することができます</li>
                                 <li>長文を書く場合は、適宜改行を入れると読みやすくなります</li>
                             </ul>
                         </div>
@@ -575,11 +576,16 @@
                                     ${formatContent(post.content)}
                                 </div>
                                 <div class="post-actions d-flex justify-content-between align-items-center">
-                                    <button class="helpful-button btn btn-xs btn-outline-info" data-post-id="${post.id}">
-                                        <i class="far fa-thumbs-up me-1"></i>
-                                        <span class="helpful-text">参考になった</span>
-                                        <span class="helpful-count">${post.helpfulCount || 0}</span>
-                                    </button>
+                                    <div>
+                                        <button class="helpful-button btn btn-xs btn-outline-info me-2" data-post-id="${post.id}">
+                                            <i class="far fa-thumbs-up me-1"></i>
+                                            <span class="helpful-text">参考になった</span>
+                                            <span class="helpful-count">${post.helpfulCount || 0}</span>
+                                        </button>
+                                        <button class="reply-button btn btn-xs btn-outline-secondary" data-post-number="${post.postNumber}">
+                                            <i class="fas fa-reply me-1"></i>返信
+                                        </button>
+                                    </div>
                                     <div id="admin-actions-${post.id}" class="admin-actions d-none">
                                         <button class="btn btn-sm btn-outline-danger delete-button" data-post-id="${post.id}">
                                             <i class="far fa-trash-alt"></i> 削除
@@ -604,6 +610,11 @@
                 // 削除ボタンのイベントリスナーを設定
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', deletePost);
+                });
+                
+                // 返信ボタンのイベントリスナーを設定
+                document.querySelectorAll('.reply-button').forEach(button => {
+                    button.addEventListener('click', addQuoteReply);
                 });
                 
                 // アンカーリンクのクリックイベントを設定
@@ -1251,6 +1262,54 @@
         function hidePostPreview() {
             const previewEl = document.querySelector('.anchor-preview');
             previewEl.classList.remove('show');
+        }
+        
+        // 引用返信機能
+        function addQuoteReply(event) {
+            const button = event.currentTarget;
+            const postNumber = button.getAttribute('data-post-number');
+            const postElement = document.querySelector(`.post[data-post-number="${postNumber}"]`);
+            
+            if (postElement) {
+                const contentElement = postElement.querySelector('.post-content');
+                const authorElement = postElement.querySelector('.post-author');
+                
+                let content = contentElement.textContent || '';
+                const author = authorElement.textContent || '名無しさん';
+                
+                // 内容が長すぎる場合は省略
+                if (content.length > 200) {
+                    content = content.substring(0, 200) + '...';
+                }
+                
+                // 引用形式にフォーマット（各行の先頭に > を追加）
+                const quotedText = content
+                    .split('\n')
+                    .map(line => `> ${line}`)
+                    .join('\n');
+                
+                // テキストエリアに引用を挿入
+                const textarea = document.getElementById('content');
+                let newContent = '';
+                
+                // すでに内容がある場合は、その後に追加
+                if (textarea.value) {
+                    newContent = `${textarea.value}\n\n>>${postNumber}\n${quotedText}\n\n`;
+                } else {
+                    newContent = `>>${postNumber}\n${quotedText}\n\n`;
+                }
+                
+                textarea.value = newContent;
+                
+                // テキストエリアにフォーカス
+                textarea.focus();
+                
+                // 新しい内容の最後にカーソルを移動
+                textarea.setSelectionRange(newContent.length, newContent.length);
+                
+                // 投稿フォームまでスクロール
+                document.querySelector('.post-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
         
         // ページ読み込み時に実行
