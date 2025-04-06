@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com http://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com http://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:;">
     <title>カテゴリー詳細 - 15ch.net</title>
     
     <!-- Bootstrap CSS -->
@@ -32,7 +33,14 @@
                     </button>
                 </div>
 
-                <div id="threads" class="threads">
+                <div id="threads-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">スレッド一覧を読み込み中...</p>
+                </div>
+
+                <div id="threads" class="threads d-none">
                     <!-- スレッド一覧がここに動的に追加されます -->
                 </div>
 
@@ -60,8 +68,14 @@
                 
                 const categoryHeader = document.getElementById('category-header');
                 categoryHeader.innerHTML = `
-                    <h1 class="text-center mb-3">${category.name}</h1>
-                    <p class="description text-center mb-4">${category.description}</p>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/categories.html">カテゴリー一覧</a></li>
+                            <li class="breadcrumb-item active">${category.name}</li>
+                        </ol>
+                    </nav>
+                    <h1 class="mb-3">${category.name}</h1>
+                    <p class="description mb-4">${category.description}</p>
                 `;
 
                 // タイトルを更新
@@ -76,6 +90,8 @@
         // スレッド一覧を取得して表示
         async function loadThreads(page = 1) {
             try {
+                showLoading(true);
+                
                 const response = await fetch(
                     `http://localhost:3000/api/categories/${categoryId}/threads?page=${page}&limit=20`
                 );
@@ -85,53 +101,111 @@
                 if (data.threads && data.threads.length > 0) {
                     threadsContainer.innerHTML = data.threads.map(thread => `
                         <div class="thread-card">
-                            <a href="/thread.html?id=${thread.id}" class="text-decoration-none">
-                                <h3 class="h5 mb-2">${thread.title}</h3>
-                                <p class="created-at text-muted mb-0">
-                                    <i class="far fa-clock me-1"></i>${formatDate(thread.createdAt)}
-                                </p>
-                            </a>
+                            <div class="thread-content">
+                                <div class="thread-main">
+                                    <a href="/thread.html?id=${thread.id}" class="thread-title">
+                                        ${thread.title}
+                                    </a>
+                                    <div class="thread-stats">
+                                        <span class="thread-stat">
+                                            <i class="far fa-comment me-1"></i>${thread.postCount} 件の投稿
+                                        </span>
+                                        <span class="thread-stat">
+                                            <i class="far fa-clock me-1"></i>作成: ${formatDate(thread.createdAt)}
+                                        </span>
+                                        ${thread.lastPostedAt && thread.lastPostedAt !== thread.createdAt ? 
+                                            `<span class="thread-stat">
+                                                <i class="fas fa-history me-1"></i>最新: ${formatDate(thread.lastPostedAt)}
+                                            </span>` : ''
+                                        }
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     `).join('');
                 } else {
                     threadsContainer.innerHTML = `
                         <div class="text-center py-5">
-                            <p class="text-muted mb-0">スレッドがありません</p>
+                            <div class="empty-state">
+                                <i class="fas fa-comments mb-3"></i>
+                                <p class="mb-3">このカテゴリーにはまだスレッドがありません</p>
+                                <button id="empty-create-thread-btn" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>最初のスレッドを作成する
+                                </button>
+                            </div>
                         </div>
                     `;
+                    
+                    // 空の状態での作成ボタンのイベントリスナー
+                    const emptyCreateBtn = document.getElementById('empty-create-thread-btn');
+                    if (emptyCreateBtn) {
+                        emptyCreateBtn.addEventListener('click', () => {
+                            window.location.href = `/create-thread.html?category=${categoryId}`;
+                        });
+                    }
                 }
 
                 // ページネーションの表示
                 const paginationContainer = document.getElementById('pagination');
                 if (data.pagination && data.pagination.totalPages > 1) {
-                    paginationContainer.innerHTML = `
-                        <nav>
-                            <ul class="pagination">
-                                <li class="page-item ${data.pagination.page === 1 ? 'disabled' : ''}">
-                                    <button class="page-link" onclick="loadThreads(${data.pagination.page - 1})">
-                                        前へ
-                                    </button>
-                                </li>
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        ${data.pagination.page} / ${data.pagination.totalPages}
-                                    </span>
-                                </li>
-                                <li class="page-item ${data.pagination.page === data.pagination.totalPages ? 'disabled' : ''}">
-                                    <button class="page-link" onclick="loadThreads(${data.pagination.page + 1})">
-                                        次へ
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
+                    let paginationHTML = '<nav><ul class="pagination">';
+                    
+                    // 前へ
+                    paginationHTML += `
+                        <li class="page-item ${data.pagination.page === 1 ? 'disabled' : ''}">
+                            <button class="page-link" onclick="loadThreads(${data.pagination.page - 1})">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                        </li>
                     `;
+                    
+                    // ページ番号
+                    const startPage = Math.max(1, data.pagination.page - 2);
+                    const endPage = Math.min(data.pagination.totalPages, startPage + 4);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                        paginationHTML += `
+                            <li class="page-item ${data.pagination.page === i ? 'active' : ''}">
+                                <button class="page-link" onclick="loadThreads(${i})">${i}</button>
+                            </li>
+                        `;
+                    }
+                    
+                    // 次へ
+                    paginationHTML += `
+                        <li class="page-item ${data.pagination.page === data.pagination.totalPages ? 'disabled' : ''}">
+                            <button class="page-link" onclick="loadThreads(${data.pagination.page + 1})">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </li>
+                    `;
+                    
+                    paginationHTML += '</ul></nav>';
+                    paginationContainer.innerHTML = paginationHTML;
                 } else {
                     paginationContainer.innerHTML = '';
                 }
+                
+                showLoading(false);
             } catch (error) {
                 console.error('スレッド一覧の取得に失敗しました:', error);
                 const threadsContainer = document.getElementById('threads');
                 threadsContainer.innerHTML = '<div class="alert alert-danger">スレッド一覧の取得に失敗しました。</div>';
+                showLoading(false);
+            }
+        }
+        
+        // ローディング表示を切り替え
+        function showLoading(isLoading) {
+            const loadingEl = document.getElementById('threads-loading');
+            const threadsEl = document.getElementById('threads');
+            
+            if (isLoading) {
+                loadingEl.classList.remove('d-none');
+                threadsEl.classList.add('d-none');
+            } else {
+                loadingEl.classList.add('d-none');
+                threadsEl.classList.remove('d-none');
             }
         }
 
@@ -139,7 +213,7 @@
         function formatDate(dateString) {
             return new Date(dateString).toLocaleDateString('ja-JP', {
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
@@ -148,7 +222,6 @@
 
         // 新規スレッド作成ボタンのイベントハンドラ
         document.getElementById('create-thread-btn').addEventListener('click', () => {
-            // TODO: スレッド作成ページへの遷移を実装
             window.location.href = `/create-thread.html?category=${categoryId}`;
         });
 
@@ -161,19 +234,29 @@
 
     <style>
         .category-detail {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
         .category-header {
             margin-bottom: 2rem;
         }
+        
+        .category-header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .category-header .description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
 
         .threads-section {
             background: #fff;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .threads-header {
@@ -181,30 +264,103 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .threads-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
         }
 
         .threads {
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 1rem;
         }
 
         .thread-card {
-            background: var(--bs-gray-100);
-            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
             padding: 1rem;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .thread-card:hover {
-            background: var(--bs-gray-200);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .thread-content {
+            width: 100%;
+        }
+        
+        .thread-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
-        .thread-card h3 {
+        .thread-title {
             color: var(--primary-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            line-height: 1.4;
+            display: block;
         }
-
-        .created-at {
-            font-size: 0.9rem;
+        
+        .thread-title:hover {
+            color: var(--accent-color);
+        }
+        
+        .thread-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+        }
+        
+        .thread-stat {
+            display: flex;
+            align-items: center;
+        }
+        
+        .thread-stat i {
+            color: var(--accent-color);
+            margin-right: 0.25rem;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            color: var(--dark-gray);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+        
+        @media (max-width: 768px) {
+            .thread-card {
+                padding: 0.75rem;
+            }
+            
+            .thread-stats {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
         }
     </style>
 </body>
