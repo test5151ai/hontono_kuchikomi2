@@ -21,8 +21,8 @@
 
     <main class="container py-4">
         <div class="row">
-            <div class="col-lg-8">
-                <div class="thread-detail bg-white rounded shadow-sm p-3 mb-4">
+            <div class="col-lg-9">
+                <div class="thread-detail bg-white rounded shadow-sm p-3 mb-3">
                     <div id="threadHeader" class="mb-4">
                         <!-- スレッドのヘッダー情報がここに動的に追加されます -->
                     </div>
@@ -32,8 +32,8 @@
                     </div>
                 </div>
 
-                <div class="post-form card mt-4 shadow-sm">
-                    <div class="card-header bg-white">
+                <div class="post-form card mt-3 shadow-sm">
+                    <div class="card-header bg-white py-2">
                         <h3 class="card-title h5 mb-0">新規投稿</h3>
                     </div>
                     <div class="card-body">
@@ -67,26 +67,13 @@
                 </div>
             </div>
             
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white">
-                        <h3 class="h5 mb-0">スレッド情報</h3>
+                    <div class="card-header bg-white py-2">
+                        <h3 class="h5 mb-0">人気スレッド</h3>
                     </div>
-                    <div class="card-body" id="threadInfoSidebar">
-                        <div class="skeleton-loading">
-                            <div class="skeleton-line"></div>
-                            <div class="skeleton-line w-75"></div>
-                            <div class="skeleton-line w-50"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white">
-                        <h3 class="h5 mb-0">関連カテゴリー</h3>
-                    </div>
-                    <div class="card-body" id="relatedCategories">
-                        <div class="skeleton-loading">
+                    <div class="card-body p-0" id="popular-threads-container">
+                        <div class="skeleton-loading p-3">
                             <div class="skeleton-line"></div>
                             <div class="skeleton-line w-75"></div>
                             <div class="skeleton-line w-50"></div>
@@ -218,14 +205,21 @@
                             <li class="breadcrumb-item active" aria-current="page">${thread.title}</li>
                         </ol>
                     </nav>
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h1 class="thread-title">${thread.title}</h1>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h1 class="thread-title h3">${thread.title}</h1>
                         ${adminEditButton}
+                    </div>
+                    <div class="thread-meta mb-3">
+                        <div class="d-flex flex-wrap gap-3 text-muted small">
+                            <span><i class="fas fa-folder me-1"></i>カテゴリー: <a href="/category.html?id=${thread.categoryId}">${thread.category.name}</a></span>
+                            <span><i class="fas fa-calendar-alt me-1"></i>作成日: ${formatDate(thread.createdAt)}</span>
+                            <span id="postCountBadge"><i class="fas fa-comment me-1"></i>投稿数: <span class="loading-text">読み込み中...</span></span>
+                        </div>
                     </div>
                 `;
                 
-                // スレッド情報サイドバーを更新
-                updateThreadInfoSidebar(thread);
+                // 人気スレッドを読み込む
+                loadPopularThreads();
                 
                 // スレッド編集モーダルの準備
                 if (isAdmin) {
@@ -251,59 +245,6 @@
             }
         }
 
-        // スレッド情報サイドバーを更新
-        function updateThreadInfoSidebar(thread) {
-            const sidebar = document.getElementById('threadInfoSidebar');
-            sidebar.innerHTML = `
-                <div class="thread-info">
-                    <div class="info-item mb-2">
-                        <i class="fas fa-folder me-2 text-primary"></i>
-                        カテゴリー: <a href="/category.html?id=${thread.categoryId}">${thread.category.name}</a>
-                    </div>
-                    <div class="info-item mb-2">
-                        <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                        作成日: ${formatDate(thread.createdAt)}
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-comment me-2 text-primary"></i>
-                        <span id="postCountBadge">投稿数: 読み込み中...</span>
-                    </div>
-                </div>
-            `;
-            
-            // 関連カテゴリー情報を表示
-            loadRelatedCategories(thread.categoryId);
-        }
-        
-        // 関連カテゴリー（現在のカテゴリー情報）を表示
-        async function loadRelatedCategories(categoryId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/categories/${categoryId}`);
-                if (!response.ok) throw new Error('カテゴリー情報の取得に失敗しました');
-                
-                const category = await response.json();
-                
-                const relatedCategoriesEl = document.getElementById('relatedCategories');
-                relatedCategoriesEl.innerHTML = `
-                    <div class="category-info">
-                        <h4 class="h6 mb-2">${category.name}</h4>
-                        <p class="small text-muted">${category.description}</p>
-                        <a href="/category.html?id=${category.id}" class="btn btn-sm btn-outline-primary mt-2">
-                            <i class="fas fa-list me-1"></i>全てのスレッドを見る
-                        </a>
-                    </div>
-                `;
-                
-                // 人気スレッドを読み込む
-                loadPopularThreads();
-            } catch (error) {
-                console.error('カテゴリー情報取得エラー:', error);
-                document.getElementById('relatedCategories').innerHTML = `
-                    <div class="alert alert-warning">カテゴリー情報の取得に失敗しました</div>
-                `;
-            }
-        }
-        
         // 人気スレッドを読み込む
         async function loadPopularThreads() {
             try {
@@ -338,70 +279,47 @@
                 console.log('人気スレッド取得成功:', popularThreads);
                 
                 // サイドバーに人気スレッドリスト要素を追加
-                const sidebarContainer = document.querySelector('.col-lg-4');
+                const sidebarContainer = document.querySelector('.col-lg-3');
                 
                 const popularThreadsHtml = `
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-white">
-                            <h3 class="h5 mb-0">人気スレッド</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <ul class="list-group list-group-flush">
-                                ${popularThreads && popularThreads.length > 0 ? 
-                                    popularThreads.map(thread => `
-                                        <li class="list-group-item p-3">
-                                            <a href="/thread.html?id=${thread.id}" class="d-block text-truncate fw-medium ${thread.id === threadId ? 'text-primary' : ''}">
-                                                ${thread.title}
-                                            </a>
-                                            <div class="d-flex justify-content-between align-items-center mt-1 small text-muted">
-                                                <span>${thread.category ? thread.category.name : '不明'}</span>
-                                                <span><i class="far fa-comment me-1"></i>${thread.postCount || 0}件</span>
-                                            </div>
-                                        </li>
-                                    `).join('') : 
-                                    '<li class="list-group-item p-3 text-center">人気スレッドがありません</li>'
-                                }
-                            </ul>
-                        </div>
-                    </div>
+                    <ul class="list-group list-group-flush">
+                        ${popularThreads && popularThreads.length > 0 ? 
+                            popularThreads.map(thread => `
+                                <li class="list-group-item py-2 border-bottom">
+                                    <a href="/thread.html?id=${thread.id}" class="d-block text-truncate mb-1 fw-medium ${thread.id === threadId ? 'text-primary' : ''}">
+                                        ${thread.title}
+                                    </a>
+                                    <div class="d-flex justify-content-between align-items-center small text-muted" style="font-size: 0.75rem;">
+                                        <span class="text-truncate me-2">${thread.category ? thread.category.name : '不明'}</span>
+                                        <span class="flex-shrink-0"><i class="far fa-comment me-1"></i>${thread.postCount || 0}件</span>
+                                    </div>
+                                </li>
+                            `).join('') : 
+                            '<li class="list-group-item py-2 text-center">人気スレッドがありません</li>'
+                        }
+                    </ul>
                 `;
                 
                 // 既存の人気スレッド要素があれば置換、なければ追加
-                const existingPopularThreads = document.getElementById('popular-threads-container');
-                if (existingPopularThreads) {
-                    existingPopularThreads.innerHTML = popularThreadsHtml;
-                } else {
-                    const popularThreadsContainer = document.createElement('div');
-                    popularThreadsContainer.id = 'popular-threads-container';
-                    popularThreadsContainer.innerHTML = popularThreadsHtml;
-                    sidebarContainer.appendChild(popularThreadsContainer);
-                }
+                const popularThreadsContainer = document.getElementById('popular-threads-container');
+                popularThreadsContainer.innerHTML = popularThreadsHtml;
             } catch (error) {
                 console.error('人気スレッド取得エラー:', error);
                 
                 // エラー画面表示
-                const sidebarContainer = document.querySelector('.col-lg-4');
+                const sidebarContainer = document.querySelector('.col-lg-3');
                 
                 const errorHtml = `
-                    <div class="card shadow-sm mb-4" id="popular-threads-container">
-                        <div class="card-header bg-white">
-                            <h3 class="h5 mb-0">人気スレッド</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-warning mb-0">
-                                <p>人気スレッドの取得に失敗しました</p>
-                                <small class="d-block text-muted">${error.message}</small>
-                            </div>
+                    <div class="p-3">
+                        <div class="alert alert-warning mb-0 py-2 px-3">
+                            <p class="mb-1 small">人気スレッドの取得に失敗しました</p>
+                            <small class="d-block text-muted" style="font-size: 0.75rem;">${error.message}</small>
                         </div>
                     </div>
                 `;
                 
-                const existingPopularThreads = document.getElementById('popular-threads-container');
-                if (existingPopularThreads) {
-                    existingPopularThreads.innerHTML = errorHtml;
-                } else {
-                    sidebarContainer.insertAdjacentHTML('beforeend', errorHtml);
-                }
+                const popularThreadsContainer = document.getElementById('popular-threads-container');
+                popularThreadsContainer.innerHTML = errorHtml;
             }
         }
 
@@ -717,7 +635,11 @@
     </script>
 
     <style>
-        .thread-detail {
+        body {
+            background-color: #f5f8fa;
+        }
+        
+        .thread-detail, .post-form.card {
             max-width: 900px;
             margin: 0 auto;
         }
@@ -760,6 +682,68 @@
         .admin-actions {
             border-top: 1px solid #f0f0f0;
             padding-top: 0.75rem;
+        }
+        
+        /* 投稿フォームカードのスタイル修正 */
+        .post-form.card {
+            height: auto;
+        }
+        
+        .post-form .card-body {
+            padding: 1rem;
+        }
+        
+        .post-form .form-label {
+            margin-bottom: 0.25rem;
+        }
+        
+        .post-form .mb-3 {
+            margin-bottom: 0.75rem;
+        }
+        
+        .post-form .form-text {
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .post-form textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* サイドバーカードのスタイル修正 */
+        .col-lg-3 .card {
+            height: auto;
+        }
+        
+        .col-lg-3 .card-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .col-lg-3 .list-group-item {
+            padding: 0.6rem 1rem;
+            border-left: none;
+            border-right: none;
+        }
+        
+        .col-lg-3 .list-group-item:first-child {
+            border-top: none;
+        }
+        
+        .col-lg-3 .list-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* スケルトンローディングのスタイル */
+        .skeleton-loading {
+            height: auto;
+        }
+        
+        .skeleton-line {
+            height: 12px;
+            margin-bottom: 8px;
+            background: #eee;
+            border-radius: 4px;
         }
     </style>
 </body>
