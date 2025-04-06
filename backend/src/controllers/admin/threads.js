@@ -2,6 +2,17 @@ const { Thread, Category, Post } = require('../../models');
 const { Op } = require('sequelize');
 
 /**
+ * タイトルに「の情報スレ」を追加（もし既に含まれていなければ）
+ */
+function appendInfoThreadSuffix(title) {
+    const suffix = 'の情報スレ';
+    if (!title.endsWith(suffix)) {
+        return `${title}${suffix}`;
+    }
+    return title;
+}
+
+/**
  * 管理者用スレッド一覧取得
  */
 exports.getThreads = async (req, res) => {
@@ -56,10 +67,13 @@ exports.checkDuplicateTitle = async (req, res) => {
   try {
     const { title, categoryId, threadId } = req.body;
     
+    // タイトルに「の情報スレ」を追加
+    const formattedTitle = appendInfoThreadSuffix(title);
+    
     // 検索条件
     const whereCondition = {
       title: {
-        [Op.eq]: title
+        [Op.eq]: formattedTitle
       },
       categoryId
     };

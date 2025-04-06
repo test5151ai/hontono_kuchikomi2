@@ -1,17 +1,31 @@
 const { Thread, Post, Category } = require('../models');
 const { Op } = require('sequelize');
 
+/**
+ * タイトルに「の情報スレ」を追加（もし既に含まれていなければ）
+ */
+function appendInfoThreadSuffix(title) {
+    const suffix = 'の情報スレ';
+    if (!title.endsWith(suffix)) {
+        return `${title}${suffix}`;
+    }
+    return title;
+}
+
 // スレッドを作成
 exports.createThread = async (req, res) => {
     try {
         const { categoryId, title, content, authorName } = req.body;
         console.log('受信したデータ:', { categoryId, title, content, authorName });
 
+        // タイトルに「の情報スレ」を追加
+        const formattedTitle = appendInfoThreadSuffix(title);
+
         // タイトルの重複チェック
         const existingThread = await Thread.findOne({
             where: {
                 title: {
-                    [Op.eq]: title
+                    [Op.eq]: formattedTitle
                 },
                 categoryId: categoryId
             }
@@ -27,7 +41,7 @@ exports.createThread = async (req, res) => {
         // スレッドを作成
         const thread = await Thread.create({
             categoryId,
-            title
+            title: formattedTitle
         });
         console.log('作成されたスレッド:', thread);
 
@@ -144,12 +158,15 @@ exports.updateThread = async (req, res) => {
             });
         }
         
+        // タイトルに「の情報スレ」を追加
+        const formattedTitle = title ? appendInfoThreadSuffix(title) : thread.title;
+        
         // タイトル変更時は重複チェック
-        if (title && title !== thread.title) {
+        if (formattedTitle && formattedTitle !== thread.title) {
             const existingThread = await Thread.findOne({
                 where: {
                     title: {
-                        [Op.eq]: title
+                        [Op.eq]: formattedTitle
                     },
                     categoryId: categoryId || thread.categoryId,
                     id: {
@@ -168,7 +185,7 @@ exports.updateThread = async (req, res) => {
         
         // スレッドを更新
         const updateData = {};
-        if (title) updateData.title = title;
+        if (title) updateData.title = formattedTitle;
         if (categoryId) updateData.categoryId = categoryId;
         
         await thread.update(updateData);
