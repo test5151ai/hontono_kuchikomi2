@@ -249,10 +249,36 @@ exports.deleteThread = async (req, res) => {
 exports.getPopularThreads = async (req, res) => {
     try {
         const { limit = 5 } = req.query;
-        debug('人気スレッド取得 パラメーター:', { limit });
+        console.log('人気スレッド取得開始 - パラメーター:', { limit });
         
-        // 直接SQL文を使用して、投稿数が多いスレッドを取得
-        const [results] = await sequelize.query(`
+        // テーブル存在確認（小文字のテーブル名を使用）
+        try {
+            await sequelize.query('SELECT 1 FROM "threads" LIMIT 1');
+            console.log('threadsテーブル確認OK');
+        } catch (tableErr) {
+            console.error('threadsテーブル確認エラー:', tableErr);
+            throw new Error('テーブル構造の確認に失敗しました');
+        }
+        
+        try {
+            await sequelize.query('SELECT 1 FROM "categories" LIMIT 1');
+            console.log('categoriesテーブル確認OK');
+        } catch (tableErr) {
+            console.error('categoriesテーブル確認エラー:', tableErr);
+            throw new Error('テーブル構造の確認に失敗しました');
+        }
+        
+        try {
+            await sequelize.query('SELECT 1 FROM "posts" LIMIT 1');
+            console.log('postsテーブル確認OK');
+        } catch (tableErr) {
+            console.error('postsテーブル確認エラー:', tableErr);
+            throw new Error('テーブル構造の確認に失敗しました');
+        }
+        
+        console.log('SQLクエリ実行開始');
+        // 直接SQL文を使用して、投稿数が多いスレッドを取得（小文字のテーブル名を使用）
+        const result = await sequelize.query(`
             SELECT 
                 t.id, 
                 t.title, 
@@ -263,11 +289,11 @@ exports.getPopularThreads = async (req, res) => {
                 c.name as "category.name",
                 COUNT(p.id) as "postCount"
             FROM 
-                "Threads" t
+                "threads" t
             JOIN 
-                "Categories" c ON t."categoryId" = c.id
+                "categories" c ON t."categoryId" = c.id
             LEFT JOIN 
-                "Posts" p ON t.id = p."threadId"
+                "posts" p ON t.id = p."threadId"
             GROUP BY 
                 t.id, t.title, t."categoryId", t."createdAt", t."updatedAt", c.id, c.name
             ORDER BY 
@@ -275,14 +301,19 @@ exports.getPopularThreads = async (req, res) => {
             LIMIT :limit
         `, {
             replacements: { limit: parseInt(limit) },
-            type: sequelize.QueryTypes.SELECT
+            type: sequelize.QueryTypes.SELECT,
+            logging: console.log // SQLクエリをログに出力
         });
         
-        debug('SQL結果:', results);
+        console.log('SQL結果取得完了（型）:', typeof result, Array.isArray(result));
+        console.log('SQL結果取得完了（内容）:', result);
         
-        // 結果を整形
-        const popularThreads = results.map(thread => {
-            return {
+        // 結果を配列として処理
+        let popularThreads = [];
+        
+        if (Array.isArray(result)) {
+            // 結果が配列の場合
+            popularThreads = result.map(thread => ({
                 id: thread.id,
                 title: thread.title,
                 categoryId: thread.categoryId,
@@ -292,16 +323,34 @@ exports.getPopularThreads = async (req, res) => {
                     id: thread["category.id"],
                     name: thread["category.name"]
                 },
-                postCount: parseInt(thread.postCount)
-            };
-        });
+                postCount: parseInt(thread.postCount || '0')
+            }));
+        } else if (result && typeof result === 'object') {
+            // 結果が単一オブジェクトの場合
+            popularThreads = [{
+                id: result.id,
+                title: result.title,
+                categoryId: result.categoryId,
+                createdAt: result.createdAt,
+                updatedAt: result.updatedAt,
+                category: {
+                    id: result["category.id"],
+                    name: result["category.name"]
+                },
+                postCount: parseInt(result.postCount || '0')
+            }];
+        }
         
-        debug('整形後の人気スレッド:', popularThreads);
+        console.log('整形後の人気スレッド:', popularThreads);
         
         res.json(popularThreads);
     } catch (error) {
-        console.error('人気スレッド取得エラー:', error);
-        res.status(500).json({ message: '人気スレッドの取得に失敗しました' });
+        console.error('人気スレッド取得詳細エラー:', error);
+        console.error('エラースタック:', error.stack);
+        res.status(500).json({ 
+            message: '人気スレッドの取得に失敗しました',
+            error: error.message 
+        });
     }
 };
 
