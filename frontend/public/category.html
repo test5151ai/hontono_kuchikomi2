@@ -257,106 +257,76 @@
             }
         }
 
-        // スレッド一覧を取得して表示
+        // スレッド一覧を表示
         async function loadThreads() {
             try {
                 showLoading(true);
                 
-                // フィルター条件を含むURLを構築
-                const url = new URL(`http://localhost:3000/api/categories/${categoryId}/threads`);
-                url.searchParams.append('page', currentFilters.page);
-                url.searchParams.append('limit', 20);
-                if (currentFilters.search) {
-                    url.searchParams.append('search', currentFilters.search);
-                }
-                url.searchParams.append('sort', currentFilters.sort);
-                url.searchParams.append('order', currentFilters.order);
+                // APIエンドポイントのURL構築
+                const apiUrl = new URL(`http://localhost:3000/api/categories/${categoryId}/threads`);
                 
-                const response = await fetch(url);
+                // クエリパラメータの追加
+                apiUrl.searchParams.append('page', currentFilters.page);
+                apiUrl.searchParams.append('limit', 20);
+                apiUrl.searchParams.append('search', currentFilters.search);
+                apiUrl.searchParams.append('sort', currentFilters.sort);
+                apiUrl.searchParams.append('order', currentFilters.order);
+                
+                const response = await fetch(apiUrl);
                 const data = await response.json();
                 
-                // アクティブなフィルターの表示を更新
-                updateActiveFilters(data.filters);
+                updateActiveFilters(currentFilters); // アクティブなフィルターの表示を更新
                 
+                // スレッド一覧の表示
                 const threadsContainer = document.getElementById('threads');
-                if (data.threads && data.threads.length > 0) {
-                    threadsContainer.innerHTML = data.threads.map(thread => {
-                        // 検索結果の強調表示
-                        let highlightedTitle = thread.title;
-                        if (currentFilters.search) {
-                            const regex = new RegExp(`(${escapeRegExp(currentFilters.search)})`, 'gi');
-                            highlightedTitle = thread.title.replace(regex, '<mark>$1</mark>');
-                        }
+                
+                if (!data.threads || data.threads.length === 0) {
+                    threadsContainer.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                                <h3 class="h5">スレッドはありません</h3>
+                                <p class="mb-4">このカテゴリーにはまだスレッドがありません。</p>
+                                <button id="empty-create-thread-btn" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>最初のスレッドを作成する
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    let threadsHTML = '';
+                    data.threads.forEach(thread => {
+                        const createdAt = formatDate(thread.createdAt);
+                        const lastPostedAt = thread.lastPostedAt ? formatDate(thread.lastPostedAt) : createdAt;
                         
-                        return `
+                        threadsHTML += `
                             <div class="thread-card">
                                 <div class="thread-content">
                                     <div class="thread-main">
                                         <a href="/thread.html?id=${thread.id}" class="thread-title">
-                                            ${highlightedTitle}
+                                            ${thread.title}
                                         </a>
                                         <div class="thread-stats">
-                                            <span class="thread-stat">
-                                                <i class="far fa-comment me-1"></i>${thread.postCount} 件の投稿
-                                            </span>
-                                            <span class="thread-stat">
-                                                <i class="far fa-clock me-1"></i>作成: ${formatDate(thread.createdAt)}
-                                            </span>
-                                            ${thread.lastPostedAt && thread.lastPostedAt !== thread.createdAt ? 
-                                                `<span class="thread-stat">
-                                                    <i class="fas fa-history me-1"></i>最新: ${formatDate(thread.lastPostedAt)}
-                                                </span>` : ''
-                                            }
+                                            <div class="thread-stat">
+                                                <i class="far fa-clock"></i>
+                                                <span>${createdAt} 作成</span>
+                                            </div>
+                                            <div class="thread-stat">
+                                                <i class="far fa-comment"></i>
+                                                <span>${thread.postCount || 0} 投稿</span>
+                                            </div>
+                                            <div class="thread-stat">
+                                                <i class="fas fa-history"></i>
+                                                <span>${lastPostedAt} 更新</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         `;
-                    }).join('');
-                } else {
-                    // 検索結果がない場合の表示
-                    if (currentFilters.search) {
-                        threadsContainer.innerHTML = `
-                            <div class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="fas fa-search mb-3"></i>
-                                    <p class="mb-3">「${currentFilters.search}」に一致するスレッドが見つかりませんでした</p>
-                                    <button id="clear-search-btn" class="btn btn-outline-primary">
-                                        <i class="fas fa-times me-2"></i>検索をクリア
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // 検索クリアボタンのイベントリスナー
-                        document.getElementById('clear-search-btn').addEventListener('click', () => {
-                            currentFilters.search = '';
-                            currentFilters.page = 1;
-                            document.getElementById('search-input').value = '';
-                            loadThreads();
-                        });
-                    } else {
-                        // 通常の空の状態
-                        threadsContainer.innerHTML = `
-                            <div class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="fas fa-comments mb-3"></i>
-                                    <p class="mb-3">このカテゴリーにはまだスレッドがありません</p>
-                                    <button id="empty-create-thread-btn" class="btn btn-primary">
-                                        <i class="fas fa-plus me-2"></i>最初のスレッドを作成する
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // 空の状態での作成ボタンのイベントリスナー
-                        const emptyCreateBtn = document.getElementById('empty-create-thread-btn');
-                        if (emptyCreateBtn) {
-                            emptyCreateBtn.addEventListener('click', () => {
-                                window.location.href = `/create-thread.html?category=${categoryId}`;
-                            });
-                        }
-                    }
+                    });
+                    
+                    threadsContainer.innerHTML = threadsHTML;
                 }
 
                 // ページネーションの表示
