@@ -31,7 +31,7 @@ class SiteHeader extends HTMLElement {
                                 </div>
                                 <div class="user-menu" style="display: none;">
                                     <a href="/profile.html" class="btn btn-outline-light">
-                                        <i class="fas fa-user me-2"></i>マイページ
+                                        <i class="fas fa-user me-2"></i>プロフィール
                                     </a>
                                 </div>
                             </div>

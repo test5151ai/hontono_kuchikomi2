@@ -5,13 +5,14 @@ const { authenticateToken } = require('../middleware/auth');
 // コントローラーがまだ存在しないためコメントアウト
 // const userController = require('../controllers/user');
 const documentController = require('../controllers/user/document');
+const profileController = require('../controllers/user/profile');
 const documentUpload = require('../middleware/upload/document');
 
 // ユーザー情報を取得
 router.get('/me', authenticateToken, async (req, res) => {
     try {
         const user = await User.findByPk(req.user.id, {
-            attributes: ['id', 'username', 'email', 'createdAt', 'updatedAt']
+            attributes: ['id', 'username', 'email', 'icon', 'createdAt', 'updatedAt']
         });
 
         if (!user) {
@@ -24,6 +25,9 @@ router.get('/me', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
     }
 });
+
+// プロフィール更新
+router.put('/profile', authenticateToken, profileController.updateProfile);
 
 // 書類管理ルート
 router.post('/document/upload', authenticateToken, documentUpload, documentController.uploadDocument);

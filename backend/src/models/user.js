@@ -78,6 +78,11 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: true
       }
     },
+    icon: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'fas fa-user'
+    },
     approvedAt: DataTypes.DATE,
     approvedBy: DataTypes.UUID,
     lastLoginAt: DataTypes.DATE,

@@ -43,7 +43,10 @@
             border-radius: 50%;
             border: 3px solid #3498db;
             margin: 0 auto 20px;
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
         }
         
         .user-info {
@@ -208,6 +211,32 @@
         .d-none {
             display: none !important;
         }
+        
+        /* アイコン選択のスタイル */
+        .avatar-option {
+            cursor: pointer;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .avatar-option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .avatar-option.selected {
+            border-color: #3498db;
+            background-color: #ebf5fd;
+        }
+        
+        .avatar-option i {
+            color: #2c3e50;
+        }
     </style>
 </head>
 <body>
@@ -223,7 +252,9 @@
                 <div class="col-lg-4">
                     <!-- ユーザープロフィールカード -->
                     <div class="profile-card">
-                        <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="User Avatar" class="user-avatar">
+                        <div class="user-avatar">
+                            <i class="fas fa-user fa-3x" style="color: #3498db;"></i>
+                        </div>
                         <div class="user-info">
                             <h2 id="userNickname">ユーザー名</h2>
                             <p id="userEmail">メールアドレス</p>
@@ -235,14 +266,11 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button class="btn btn-outline-primary action-button" id="editProfileBtn">
+                            <button class="btn btn-outline-primary action-button" id="editProfileBtn" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                                 <i class="fas fa-user-edit me-2"></i>プロフィールを編集
                             </button>
                             <button class="btn btn-outline-warning action-button" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt me-2"></i>ログアウト
-                            </button>
-                            <button class="btn btn-outline-danger action-button" id="deleteAccountBtn">
-                                <i class="fas fa-user-times me-2"></i>アカウントを削除
                             </button>
                         </div>
                     </div>
@@ -355,6 +383,59 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/components/header.js"></script>
-    <script src="/js/auth/mypage.js"></script>
+    <script src="/js/auth/profile.js"></script>
+
+    <!-- プロフィール編集モーダル -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">プロフィール編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="profileEditForm">
+                        <div class="mb-3">
+                            <label for="editNickname" class="form-label">ニックネーム</label>
+                            <input type="text" class="form-control" id="editNickname" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">アイコン</label>
+                            <div class="d-flex flex-wrap gap-2 mb-2" id="iconSelector">
+                                <div class="avatar-option selected" data-icon="fas fa-user">
+                                    <i class="fas fa-user fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-user-tie">
+                                    <i class="fas fa-user-tie fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-user-graduate">
+                                    <i class="fas fa-user-graduate fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-user-astronaut">
+                                    <i class="fas fa-user-astronaut fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-user-ninja">
+                                    <i class="fas fa-user-ninja fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-user-secret">
+                                    <i class="fas fa-user-secret fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-cat">
+                                    <i class="fas fa-cat fa-2x"></i>
+                                </div>
+                                <div class="avatar-option" data-icon="fas fa-dog">
+                                    <i class="fas fa-dog fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="saveProfileBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 
