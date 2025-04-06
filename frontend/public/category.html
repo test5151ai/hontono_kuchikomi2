@@ -33,6 +33,47 @@
                     </button>
                 </div>
 
+                <!-- 検索・ソートエリア -->
+                <div class="filter-area mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="search-input" class="form-control" placeholder="スレッドを検索..." aria-label="検索">
+                                <button class="btn btn-primary" type="button" id="search-btn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <select id="sort-select" class="form-select">
+                                    <option value="createdAt">作成日時</option>
+                                    <option value="lastPosted">最終投稿日時</option>
+                                    <option value="postCount">投稿数</option>
+                                    <option value="title">タイトル</option>
+                                </select>
+                                <button id="order-toggle" class="btn btn-outline-secondary" data-order="desc">
+                                    <i class="fas fa-sort-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="active-filters" class="mt-2 d-none">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">
+                                <i class="fas fa-filter text-primary"></i> 
+                                フィルター:
+                            </span>
+                            <div id="filter-tags" class="d-flex flex-wrap gap-2">
+                                <!-- フィルタータグがここに動的に追加されます -->
+                            </div>
+                            <button id="clear-filters" class="btn btn-sm btn-link text-danger ms-auto">
+                                クリア
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="threads-loading" class="text-center py-4">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -59,6 +100,14 @@
         // URLパラメータからカテゴリーIDを取得
         const urlParams = new URLSearchParams(window.location.search);
         const categoryId = urlParams.get('id');
+        
+        // 現在のフィルター状態を保持
+        const currentFilters = {
+            search: '',
+            sort: 'createdAt',
+            order: 'desc',
+            page: 1
+        };
 
         // カテゴリー情報を取得して表示
         async function loadCategory() {
@@ -88,60 +137,104 @@
         }
 
         // スレッド一覧を取得して表示
-        async function loadThreads(page = 1) {
+        async function loadThreads() {
             try {
                 showLoading(true);
                 
-                const response = await fetch(
-                    `http://localhost:3000/api/categories/${categoryId}/threads?page=${page}&limit=20`
-                );
+                // フィルター条件を含むURLを構築
+                const url = new URL(`http://localhost:3000/api/categories/${categoryId}/threads`);
+                url.searchParams.append('page', currentFilters.page);
+                url.searchParams.append('limit', 20);
+                if (currentFilters.search) {
+                    url.searchParams.append('search', currentFilters.search);
+                }
+                url.searchParams.append('sort', currentFilters.sort);
+                url.searchParams.append('order', currentFilters.order);
+                
+                const response = await fetch(url);
                 const data = await response.json();
+                
+                // アクティブなフィルターの表示を更新
+                updateActiveFilters(data.filters);
                 
                 const threadsContainer = document.getElementById('threads');
                 if (data.threads && data.threads.length > 0) {
-                    threadsContainer.innerHTML = data.threads.map(thread => `
-                        <div class="thread-card">
-                            <div class="thread-content">
-                                <div class="thread-main">
-                                    <a href="/thread.html?id=${thread.id}" class="thread-title">
-                                        ${thread.title}
-                                    </a>
-                                    <div class="thread-stats">
-                                        <span class="thread-stat">
-                                            <i class="far fa-comment me-1"></i>${thread.postCount} 件の投稿
-                                        </span>
-                                        <span class="thread-stat">
-                                            <i class="far fa-clock me-1"></i>作成: ${formatDate(thread.createdAt)}
-                                        </span>
-                                        ${thread.lastPostedAt && thread.lastPostedAt !== thread.createdAt ? 
-                                            `<span class="thread-stat">
-                                                <i class="fas fa-history me-1"></i>最新: ${formatDate(thread.lastPostedAt)}
-                                            </span>` : ''
-                                        }
+                    threadsContainer.innerHTML = data.threads.map(thread => {
+                        // 検索結果の強調表示
+                        let highlightedTitle = thread.title;
+                        if (currentFilters.search) {
+                            const regex = new RegExp(`(${escapeRegExp(currentFilters.search)})`, 'gi');
+                            highlightedTitle = thread.title.replace(regex, '<mark>$1</mark>');
+                        }
+                        
+                        return `
+                            <div class="thread-card">
+                                <div class="thread-content">
+                                    <div class="thread-main">
+                                        <a href="/thread.html?id=${thread.id}" class="thread-title">
+                                            ${highlightedTitle}
+                                        </a>
+                                        <div class="thread-stats">
+                                            <span class="thread-stat">
+                                                <i class="far fa-comment me-1"></i>${thread.postCount} 件の投稿
+                                            </span>
+                                            <span class="thread-stat">
+                                                <i class="far fa-clock me-1"></i>作成: ${formatDate(thread.createdAt)}
+                                            </span>
+                                            ${thread.lastPostedAt && thread.lastPostedAt !== thread.createdAt ? 
+                                                `<span class="thread-stat">
+                                                    <i class="fas fa-history me-1"></i>最新: ${formatDate(thread.lastPostedAt)}
+                                                </span>` : ''
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
-                    threadsContainer.innerHTML = `
-                        <div class="text-center py-5">
-                            <div class="empty-state">
-                                <i class="fas fa-comments mb-3"></i>
-                                <p class="mb-3">このカテゴリーにはまだスレッドがありません</p>
-                                <button id="empty-create-thread-btn" class="btn btn-primary">
-                                    <i class="fas fa-plus me-2"></i>最初のスレッドを作成する
-                                </button>
+                    // 検索結果がない場合の表示
+                    if (currentFilters.search) {
+                        threadsContainer.innerHTML = `
+                            <div class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-search mb-3"></i>
+                                    <p class="mb-3">「${currentFilters.search}」に一致するスレッドが見つかりませんでした</p>
+                                    <button id="clear-search-btn" class="btn btn-outline-primary">
+                                        <i class="fas fa-times me-2"></i>検索をクリア
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    
-                    // 空の状態での作成ボタンのイベントリスナー
-                    const emptyCreateBtn = document.getElementById('empty-create-thread-btn');
-                    if (emptyCreateBtn) {
-                        emptyCreateBtn.addEventListener('click', () => {
-                            window.location.href = `/create-thread.html?category=${categoryId}`;
+                        `;
+                        
+                        // 検索クリアボタンのイベントリスナー
+                        document.getElementById('clear-search-btn').addEventListener('click', () => {
+                            currentFilters.search = '';
+                            currentFilters.page = 1;
+                            document.getElementById('search-input').value = '';
+                            loadThreads();
                         });
+                    } else {
+                        // 通常の空の状態
+                        threadsContainer.innerHTML = `
+                            <div class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-comments mb-3"></i>
+                                    <p class="mb-3">このカテゴリーにはまだスレッドがありません</p>
+                                    <button id="empty-create-thread-btn" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>最初のスレッドを作成する
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 空の状態での作成ボタンのイベントリスナー
+                        const emptyCreateBtn = document.getElementById('empty-create-thread-btn');
+                        if (emptyCreateBtn) {
+                            emptyCreateBtn.addEventListener('click', () => {
+                                window.location.href = `/create-thread.html?category=${categoryId}`;
+                            });
+                        }
                     }
                 }
 
@@ -153,7 +246,7 @@
                     // 前へ
                     paginationHTML += `
                         <li class="page-item ${data.pagination.page === 1 ? 'disabled' : ''}">
-                            <button class="page-link" onclick="loadThreads(${data.pagination.page - 1})">
+                            <button class="page-link" onclick="changePage(${data.pagination.page - 1})">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                         </li>
@@ -166,7 +259,7 @@
                     for (let i = startPage; i <= endPage; i++) {
                         paginationHTML += `
                             <li class="page-item ${data.pagination.page === i ? 'active' : ''}">
-                                <button class="page-link" onclick="loadThreads(${i})">${i}</button>
+                                <button class="page-link" onclick="changePage(${i})">${i}</button>
                             </li>
                         `;
                     }
@@ -174,7 +267,7 @@
                     // 次へ
                     paginationHTML += `
                         <li class="page-item ${data.pagination.page === data.pagination.totalPages ? 'disabled' : ''}">
-                            <button class="page-link" onclick="loadThreads(${data.pagination.page + 1})">
+                            <button class="page-link" onclick="changePage(${data.pagination.page + 1})">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </li>
@@ -193,6 +286,73 @@
                 threadsContainer.innerHTML = '<div class="alert alert-danger">スレッド一覧の取得に失敗しました。</div>';
                 showLoading(false);
             }
+        }
+        
+        // アクティブなフィルターの表示を更新
+        function updateActiveFilters(filters) {
+            const activeFiltersEl = document.getElementById('active-filters');
+            const filterTagsEl = document.getElementById('filter-tags');
+            
+            // フィルターがない場合は非表示
+            if (!filters.search && filters.sort === 'createdAt' && filters.order === 'desc') {
+                activeFiltersEl.classList.add('d-none');
+                return;
+            }
+            
+            // フィルターがある場合は表示
+            activeFiltersEl.classList.remove('d-none');
+            
+            // フィルタータグの生成
+            let filterTagsHTML = '';
+            
+            // 検索フィルター
+            if (filters.search) {
+                filterTagsHTML += `
+                    <span class="badge bg-primary">
+                        検索: ${filters.search}
+                    </span>
+                `;
+            }
+            
+            // ソートフィルター
+            let sortText = '';
+            switch (filters.sort) {
+                case 'createdAt':
+                    sortText = '作成日時';
+                    break;
+                case 'lastPosted':
+                    sortText = '最終投稿日時';
+                    break;
+                case 'postCount':
+                    sortText = '投稿数';
+                    break;
+                case 'title':
+                    sortText = 'タイトル';
+                    break;
+            }
+            
+            if (filters.sort !== 'createdAt' || filters.order !== 'desc') {
+                filterTagsHTML += `
+                    <span class="badge bg-secondary">
+                        並び順: ${sortText} (${filters.order === 'desc' ? '降順' : '昇順'})
+                    </span>
+                `;
+            }
+            
+            filterTagsEl.innerHTML = filterTagsHTML;
+        }
+        
+        // ページを変更
+        function changePage(page) {
+            currentFilters.page = page;
+            loadThreads();
+            // ページトップへスクロール
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // 正規表現のエスケープ
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
         
         // ローディング表示を切り替え
@@ -223,6 +383,74 @@
         // 新規スレッド作成ボタンのイベントハンドラ
         document.getElementById('create-thread-btn').addEventListener('click', () => {
             window.location.href = `/create-thread.html?category=${categoryId}`;
+        });
+        
+        // 検索ボタンのイベントハンドラ
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const searchInput = document.getElementById('search-input');
+            currentFilters.search = searchInput.value.trim();
+            currentFilters.page = 1;
+            loadThreads();
+        });
+        
+        // 検索入力欄のEnterキーイベントハンドラ
+        document.getElementById('search-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const searchInput = document.getElementById('search-input');
+                currentFilters.search = searchInput.value.trim();
+                currentFilters.page = 1;
+                loadThreads();
+            }
+        });
+        
+        // ソート選択のイベントハンドラ
+        document.getElementById('sort-select').addEventListener('change', (e) => {
+            currentFilters.sort = e.target.value;
+            currentFilters.page = 1;
+            loadThreads();
+        });
+        
+        // ソート順切り替えボタンのイベントハンドラ
+        document.getElementById('order-toggle').addEventListener('click', (e) => {
+            const button = e.currentTarget;
+            const currentOrder = button.getAttribute('data-order');
+            
+            // 昇順・降順を切り替え
+            const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
+            button.setAttribute('data-order', newOrder);
+            
+            // アイコンを更新
+            const icon = button.querySelector('i');
+            if (newOrder === 'desc') {
+                icon.className = 'fas fa-sort-down';
+            } else {
+                icon.className = 'fas fa-sort-up';
+            }
+            
+            currentFilters.order = newOrder;
+            currentFilters.page = 1;
+            loadThreads();
+        });
+        
+        // フィルタークリアボタンのイベントハンドラ
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            // フィルターをリセット
+            currentFilters.search = '';
+            currentFilters.sort = 'createdAt';
+            currentFilters.order = 'desc';
+            currentFilters.page = 1;
+            
+            // 入力欄もリセット
+            document.getElementById('search-input').value = '';
+            document.getElementById('sort-select').value = 'createdAt';
+            
+            // ソート順ボタンをリセット
+            const orderToggle = document.getElementById('order-toggle');
+            orderToggle.setAttribute('data-order', 'desc');
+            orderToggle.querySelector('i').className = 'fas fa-sort-down';
+            
+            // スレッド一覧を再読み込み
+            loadThreads();
         });
 
         // ページ読み込み時にデータを表示
@@ -273,6 +501,31 @@
             font-weight: 600;
             margin: 0;
             color: var(--primary-color);
+        }
+        
+        .filter-area {
+            background-color: var(--bs-gray-100);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        #active-filters {
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        #filter-tags {
+            flex-grow: 1;
+        }
+        
+        #order-toggle {
+            width: 40px;
+        }
+        
+        #order-toggle i {
+            font-size: 1.1rem;
         }
 
         .threads {
@@ -350,6 +603,12 @@
         .empty-state i {
             font-size: 3rem;
             opacity: 0.3;
+        }
+        
+        mark {
+            background-color: rgba(255, 230, 0, 0.4);
+            padding: 0 2px;
+            border-radius: 2px;
         }
         
         @media (max-width: 768px) {

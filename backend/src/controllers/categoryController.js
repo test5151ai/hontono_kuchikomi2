@@ -54,7 +54,13 @@ exports.getCategoryById = async (req, res) => {
 exports.getCategoryThreads = async (req, res) => {
     try {
         const { id } = req.params;
-        const { page = 1, limit = 20 } = req.query;
+        const { 
+            page = 1, 
+            limit = 20, 
+            search = '',
+            sort = 'createdAt',
+            order = 'desc'
+        } = req.query;
         
         // カテゴリーの存在確認
         const category = await Category.findByPk(id, {
@@ -68,18 +74,61 @@ exports.getCategoryThreads = async (req, res) => {
         // ページネーション用のオフセット計算
         const offset = (parseInt(page) - 1) * parseInt(limit);
         
+        // 検索条件の設定
+        const whereCondition = { categoryId: id };
+        if (search && search.trim() !== '') {
+            whereCondition.title = {
+                [Op.like]: `%${search.trim()}%`
+            };
+        }
+        
+        // ソート順の設定
+        let orderOption;
+        switch (sort) {
+            case 'title':
+                orderOption = [['title', order.toUpperCase()]];
+                break;
+            case 'lastPosted':
+                // 最終投稿日時でのソートは後で処理
+                orderOption = [['createdAt', order.toUpperCase()]];
+                break;
+            case 'postCount':
+                // 投稿数でのソートは後で処理
+                orderOption = [['createdAt', order.toUpperCase()]];
+                break;
+            case 'createdAt':
+            default:
+                orderOption = [['createdAt', order.toUpperCase()]];
+                break;
+        }
+        
         // スレッド数のカウントとスレッド取得
         const { count, rows: threadsData } = await Thread.findAndCountAll({
-            where: { categoryId: id },
+            where: whereCondition,
             attributes: [
                 'id', 
                 'title', 
                 'createdAt'
             ],
-            order: [['createdAt', 'DESC']],
+            order: orderOption,
             limit: parseInt(limit),
             offset: offset
         });
+        
+        // スレッドがない場合は早期リターン
+        if (count === 0) {
+            return res.json({
+                category,
+                threads: [],
+                pagination: {
+                    total: 0,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    totalPages: 0
+                },
+                filters: { search, sort, order }
+            });
+        }
         
         // スレッドのIDを抽出
         const threadIds = threadsData.map(thread => thread.id);
@@ -125,7 +174,7 @@ exports.getCategoryThreads = async (req, res) => {
         });
         
         // スレッドデータに投稿数と最新投稿日時を追加
-        const threads = threadsData.map(thread => {
+        let threads = threadsData.map(thread => {
             const threadJson = thread.toJSON();
             return {
                 ...threadJson,
@@ -133,6 +182,23 @@ exports.getCategoryThreads = async (req, res) => {
                 lastPostedAt: lastPostTimeMap[thread.id] || thread.createdAt
             };
         });
+        
+        // 投稿数または最終投稿日時でソートが必要な場合
+        if (sort === 'postCount') {
+            threads = threads.sort((a, b) => {
+                return order.toLowerCase() === 'desc' 
+                    ? b.postCount - a.postCount 
+                    : a.postCount - b.postCount;
+            });
+        } else if (sort === 'lastPosted') {
+            threads = threads.sort((a, b) => {
+                const dateA = new Date(a.lastPostedAt);
+                const dateB = new Date(b.lastPostedAt);
+                return order.toLowerCase() === 'desc' 
+                    ? dateB - dateA 
+                    : dateA - dateB;
+            });
+        }
         
         // レスポンスの整形
         res.json({
@@ -143,7 +209,8 @@ exports.getCategoryThreads = async (req, res) => {
                 page: parseInt(page),
                 limit: parseInt(limit),
                 totalPages: Math.ceil(count / parseInt(limit))
-            }
+            },
+            filters: { search, sort, order }
         });
     } catch (error) {
         console.error('カテゴリー別スレッド一覧の取得に失敗:', error);
