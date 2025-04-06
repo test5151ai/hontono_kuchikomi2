@@ -1,5 +1,6 @@
 const { Thread, Post, Category, sequelize } = require('../models');
 const { Op, fn, col, literal } = require('sequelize');
+const { v4: uuidv4 } = require('uuid');
 
 // デバッグログ用関数
 const debug = (message, data) => {
@@ -52,13 +53,23 @@ exports.createThread = async (req, res) => {
         });
         debug('作成されたスレッド:', thread);
 
-        // 最初の投稿を作成
-        const post = await Post.create({
-            threadId: thread.id,
-            content,
-            authorName: authorName || '名無しさん',
-            ipAddress: req.ip
+        // トランザクションを開始して最初の投稿を作成
+        const post = await sequelize.transaction(async (t) => {
+            const newPost = await Post.create({
+                threadId: thread.id,
+                content,
+                authorName: authorName || '名無しさん',
+                postNumber: 1, // 最初の投稿なので1を割り当て
+                helpfulCount: 0
+            }, { transaction: t });
+            
+            return newPost;
         });
+        
+        // 明示的にpostNumber値を設定
+        post.postNumber = 1;
+        
+        // 投稿が正しく作成されたか確認
         debug('作成された投稿:', post);
 
         res.status(201).json({
@@ -114,11 +125,34 @@ exports.getThreadPosts = async (req, res) => {
             return res.status(404).json({ message: 'スレッドが見つかりません' });
         }
         
+        console.log('スレッドID:', id);
+        
+        // まず原始的なSQLクエリで投稿番号を確認
+        const rawPosts = await sequelize.query(
+            `SELECT id, "postNumber" FROM posts WHERE "threadId" = :threadId ORDER BY "postNumber" ASC`,
+            {
+                replacements: { threadId: id },
+                type: sequelize.QueryTypes.SELECT,
+                raw: true
+            }
+        );
+        console.log('生SQL結果:', rawPosts);
+        
         // 投稿を取得
         const posts = await Post.findAll({
             where: { threadId: id },
-            order: [['createdAt', 'ASC']]
+            attributes: ['id', 'content', 'threadId', 'authorId', 'authorName', 'helpfulCount', 'postNumber', 'createdAt', 'updatedAt'],
+            order: [['postNumber', 'ASC']], // 投稿番号で並べ替え
+            raw: true // 生のデータを取得
         });
+        
+        // 結果をログ出力（デバッグ用）
+        console.log('投稿データ（詳細）:', posts.map(post => ({
+            id: post.id,
+            postNumber: post.postNumber,
+            authorName: post.authorName,
+            content: post.content?.substring(0, 20) + '...'
+        })));
         
         res.json(posts);
     } catch (error) {
@@ -139,18 +173,52 @@ exports.createPost = async (req, res) => {
             return res.status(404).json({ message: 'スレッドが見つかりません' });
         }
         
-        // 投稿を作成
-        const post = await Post.create({
-            threadId: id,
-            content,
-            authorName: authorName || '名無しさん',
-            ipAddress: req.ip
+        // 直接SQLクエリで最大投稿番号を取得
+        const [maxResult] = await sequelize.query(
+            `SELECT COALESCE(MAX("postNumber"), 0) as max_post_number FROM posts WHERE "threadId" = :threadId`,
+            {
+                replacements: { threadId: id },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+        
+        // 最大投稿番号を取得
+        const maxPostNumber = parseInt(maxResult.max_post_number || 0, 10);
+        console.log('最大投稿番号 (SQL):', maxPostNumber);
+        
+        // 新しい投稿番号を設定
+        const newPostNumber = maxPostNumber + 1;
+        console.log('新しい投稿番号:', newPostNumber);
+        
+        // トランザクションを開始
+        const post = await sequelize.transaction(async (t) => {
+            // 投稿を作成
+            const newPost = await Post.create({
+                threadId: id,
+                content,
+                authorName: authorName || '名無しさん',
+                postNumber: newPostNumber,
+                helpfulCount: 0
+            }, { transaction: t });
+            
+            return newPost;
+        });
+        
+        // トランザクション完了後、明示的にpostNumber値を設定
+        post.postNumber = newPostNumber;
+        
+        // トランザクションが成功し、投稿が作成された
+        console.log('作成された投稿:', {
+            id: post.id,
+            threadId: post.threadId,
+            postNumber: post.postNumber,
+            content: post.content.substring(0, 20) + '...'
         });
         
         res.status(201).json(post);
     } catch (error) {
         console.error('投稿作成エラー:', error);
-        res.status(500).json({ message: '投稿の作成に失敗しました' });
+        res.status(500).json({ message: '投稿の作成に失敗しました', error: error.message });
     }
 };
 

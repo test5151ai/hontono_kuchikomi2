@@ -46,6 +46,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0
+    },
+    postNumber: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1 // デフォルト値を設定
     }
   }, {
     sequelize,
