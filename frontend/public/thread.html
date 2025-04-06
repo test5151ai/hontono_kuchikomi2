@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:;">
     <title>スレッド詳細 - 15ch.net</title>
     
     <!-- Bootstrap CSS -->
@@ -62,11 +63,97 @@
         </div>
     </main>
 
+    <!-- スレッド編集モーダル (管理者用) -->
+    <div class="modal fade" id="editThreadModal" tabindex="-1" aria-labelledby="editThreadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editThreadModalLabel">スレッド編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="threadModalAlerts"></div>
+                    <form id="editThreadForm">
+                        <div class="mb-3">
+                            <label for="editThreadTitle" class="form-label">タイトル</label>
+                            <input type="text" class="form-control" id="editThreadTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editThreadCategory" class="form-label">カテゴリー</label>
+                            <select class="form-select" id="editThreadCategory" required>
+                                <!-- カテゴリー一覧がここに動的に追加されます -->
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" id="saveThreadBtn" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 投稿編集モーダル (管理者用) -->
+    <div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPostModalLabel">投稿編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="postModalAlerts"></div>
+                    <form id="editPostForm">
+                        <input type="hidden" id="editPostId">
+                        <div class="mb-3">
+                            <label for="editPostContent" class="form-label">投稿内容</label>
+                            <textarea class="form-control" id="editPostContent" required rows="5"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPostAuthor" class="form-label">投稿者名</label>
+                            <input type="text" class="form-control" id="editPostAuthor">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" id="savePostBtn" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ヘッダーコンポーネント -->
     <script src="/js/components/header.js"></script>
     <script>
+        // 管理者権限チェック
+        let isAdmin = false;
+        
+        // 認証情報チェック
+        async function checkAdminAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) return false;
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/check', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) return false;
+                
+                const data = await response.json();
+                return data.isAdmin || data.isSuperuser;
+            } catch (error) {
+                console.error('認証チェックエラー:', error);
+                return false;
+            }
+        }
+        
         // URLからスレッドIDを取得
         const urlParams = new URLSearchParams(window.location.search);
         const threadId = urlParams.get('id');
@@ -82,6 +169,12 @@
                 
                 document.title = `${thread.title} - 15ch.net`;
                 
+                // 管理者用の編集ボタンを表示
+                const adminEditButton = isAdmin ? 
+                    `<button id="adminEditThreadBtn" class="btn btn-sm btn-outline-primary ms-2">
+                        <i class="fas fa-edit"></i> 編集
+                    </button>` : '';
+                
                 const threadHeader = document.getElementById('threadHeader');
                 threadHeader.innerHTML = `
                     <nav aria-label="breadcrumb">
@@ -91,12 +184,47 @@
                             <li class="breadcrumb-item active" aria-current="page">${thread.title}</li>
                         </ol>
                     </nav>
-                    <h1 class="thread-title">${thread.title}</h1>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h1 class="thread-title">${thread.title}</h1>
+                        ${adminEditButton}
+                    </div>
                 `;
+                
+                // スレッド編集モーダルの準備
+                if (isAdmin) {
+                    document.getElementById('editThreadTitle').value = thread.title;
+                    window.currentThreadCategoryId = thread.categoryId;
+                    
+                    // カテゴリー一覧を取得して編集モーダルに設定
+                    loadCategories();
+                    
+                    // 編集ボタンのイベントリスナー
+                    document.getElementById('adminEditThreadBtn').addEventListener('click', () => {
+                        const modal = new bootstrap.Modal(document.getElementById('editThreadModal'));
+                        modal.show();
+                    });
+                }
             } catch (error) {
                 console.error('スレッド情報の取得に失敗:', error);
                 const threadHeader = document.getElementById('threadHeader');
                 threadHeader.innerHTML = '<div class="alert alert-danger">スレッド情報の取得に失敗しました。</div>';
+            }
+        }
+
+        // カテゴリー一覧を取得（スレッド編集用）
+        async function loadCategories() {
+            try {
+                const response = await fetch('http://localhost:3000/api/categories');
+                const categories = await response.json();
+                
+                const categorySelect = document.getElementById('editThreadCategory');
+                categorySelect.innerHTML = categories.map(category => `
+                    <option value="${category.id}" ${category.id === window.currentThreadCategoryId ? 'selected' : ''}>
+                        ${category.name}
+                    </option>
+                `).join('');
+            } catch (error) {
+                console.error('カテゴリー一覧の取得に失敗:', error);
             }
         }
 
@@ -110,29 +238,44 @@
                 const posts = await response.json();
                 
                 const postsContainer = document.getElementById('posts');
-                postsContainer.innerHTML = posts.map((post, index) => `
-                    <div class="post card mb-3">
-                        <div class="card-body">
-                            <div class="post-header d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="post-number">${index + 1}</span>
-                                    <span class="post-author">${post.authorName}</span>
+                postsContainer.innerHTML = posts.map((post, index) => {
+                    // 管理者用のアクションボタン
+                    const adminActions = isAdmin ? `
+                        <div class="admin-actions mt-2">
+                            <button class="btn btn-sm btn-outline-primary edit-post-btn" data-post-id="${post.id}">
+                                <i class="fas fa-edit"></i> 編集
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-post-btn" data-post-id="${post.id}">
+                                <i class="fas fa-trash"></i> 削除
+                            </button>
+                        </div>
+                    ` : '';
+                    
+                    return `
+                        <div class="post card mb-3" data-post-id="${post.id}">
+                            <div class="card-body">
+                                <div class="post-header d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="post-number">${index + 1}</span>
+                                        <span class="post-author">${post.authorName}</span>
+                                    </div>
+                                    <div class="post-meta text-muted">
+                                        <small>${new Date(post.createdAt).toLocaleString()}</small>
+                                    </div>
                                 </div>
-                                <div class="post-meta text-muted">
-                                    <small>${new Date(post.createdAt).toLocaleString()}</small>
+                                <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
+                                <div class="post-actions mt-3">
+                                    <button class="btn btn-sm btn-outline-primary helpful-button" data-post-id="${post.id}">
+                                        <i class="fas fa-thumbs-up me-1"></i>
+                                        参考になった
+                                        <span class="helpful-count">${post.helpfulCount || 0}</span>
+                                    </button>
+                                    ${adminActions}
                                 </div>
-                            </div>
-                            <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
-                            <div class="post-actions mt-3">
-                                <button class="btn btn-sm btn-outline-primary helpful-button" data-post-id="${post.id}">
-                                    <i class="fas fa-thumbs-up me-1"></i>
-                                    参考になった
-                                    <span class="helpful-count">${post.helpfulCount || 0}</span>
-                                </button>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 // 参考になったボタンのイベントリスナーを設定
                 document.querySelectorAll('.helpful-button').forEach(button => {
@@ -154,10 +297,154 @@
                         }
                     });
                 });
+                
+                // 管理者向け - 投稿編集ボタンのイベントリスナー
+                if (isAdmin) {
+                    document.querySelectorAll('.edit-post-btn').forEach(button => {
+                        button.addEventListener('click', event => {
+                            const postId = button.dataset.postId;
+                            editPost(postId);
+                        });
+                    });
+                    
+                    // 管理者向け - 投稿削除ボタンのイベントリスナー
+                    document.querySelectorAll('.delete-post-btn').forEach(button => {
+                        button.addEventListener('click', event => {
+                            const postId = button.dataset.postId;
+                            if (confirm('この投稿を削除してもよろしいですか？')) {
+                                deletePost(postId);
+                            }
+                        });
+                    });
+                }
+                
             } catch (error) {
                 console.error('投稿一覧の取得に失敗:', error);
                 const postsContainer = document.getElementById('posts');
                 postsContainer.innerHTML = '<div class="alert alert-danger">投稿一覧の取得に失敗しました。</div>';
+            }
+        }
+        
+        // 管理者向け - 投稿編集モーダルを表示
+        async function editPost(postId) {
+            try {
+                // 投稿データを取得
+                const postElement = document.querySelector(`.post[data-post-id="${postId}"]`);
+                const contentHtml = postElement.querySelector('.post-content').innerHTML;
+                const content = contentHtml.replace(/<br>/g, '\n');
+                const author = postElement.querySelector('.post-author').textContent;
+                
+                // モーダルに値を設定
+                document.getElementById('editPostId').value = postId;
+                document.getElementById('editPostContent').value = content;
+                document.getElementById('editPostAuthor').value = author;
+                
+                // モーダルを表示
+                const modal = new bootstrap.Modal(document.getElementById('editPostModal'));
+                modal.show();
+            } catch (error) {
+                console.error('投稿編集の準備に失敗:', error);
+                alert('投稿編集の準備に失敗しました');
+            }
+        }
+        
+        // 管理者向け - 投稿を更新
+        async function updatePost() {
+            try {
+                const postId = document.getElementById('editPostId').value;
+                const content = document.getElementById('editPostContent').value;
+                const authorName = document.getElementById('editPostAuthor').value;
+                
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3000/api/posts/${postId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content, authorName })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('投稿の更新に失敗しました');
+                }
+                
+                // モーダルを閉じる
+                bootstrap.Modal.getInstance(document.getElementById('editPostModal')).hide();
+                
+                // 投稿一覧を再読み込み
+                loadPosts();
+                
+            } catch (error) {
+                console.error('投稿更新エラー:', error);
+                const alertDiv = document.getElementById('postModalAlerts');
+                alertDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        ${error.message || '投稿の更新に失敗しました'}
+                    </div>
+                `;
+            }
+        }
+        
+        // 管理者向け - 投稿を削除
+        async function deletePost(postId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3000/api/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('投稿の削除に失敗しました');
+                }
+                
+                // 投稿一覧を再読み込み
+                loadPosts();
+                
+            } catch (error) {
+                console.error('投稿削除エラー:', error);
+                alert(error.message || '投稿の削除に失敗しました');
+            }
+        }
+        
+        // 管理者向け - スレッドを更新
+        async function updateThread() {
+            try {
+                const title = document.getElementById('editThreadTitle').value;
+                const categoryId = document.getElementById('editThreadCategory').value;
+                
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3000/api/threads/${threadId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, categoryId })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'スレッドの更新に失敗しました');
+                }
+                
+                // モーダルを閉じる
+                bootstrap.Modal.getInstance(document.getElementById('editThreadModal')).hide();
+                
+                // スレッド情報を再読み込み
+                loadThread();
+                
+            } catch (error) {
+                console.error('スレッド更新エラー:', error);
+                const alertDiv = document.getElementById('threadModalAlerts');
+                alertDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        ${error.message || 'スレッドの更新に失敗しました'}
+                    </div>
+                `;
             }
         }
 
@@ -203,13 +490,23 @@
         }
 
         // ページ読み込み時の処理
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 管理者権限をチェック
+            isAdmin = await checkAdminAuth();
+            
+            // スレッド情報と投稿一覧を読み込み
             loadThread();
             loadPosts();
             
             // 投稿フォームのイベントリスナーを設定
             const postForm = document.getElementById('postForm');
             postForm.addEventListener('submit', submitPost);
+            
+            // 管理者向け - スレッド更新ボタンのイベントリスナーを設定
+            if (isAdmin) {
+                document.getElementById('saveThreadBtn').addEventListener('click', updateThread);
+                document.getElementById('savePostBtn').addEventListener('click', updatePost);
+            }
         });
     </script>
 
@@ -247,13 +544,11 @@
 
         .helpful-count {
             margin-left: 0.5rem;
-            font-weight: bold;
         }
-
-        .post-form {
-            background: #fff;
-            border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        
+        .admin-actions {
+            border-top: 1px solid #f0f0f0;
+            padding-top: 0.75rem;
         }
     </style>
 </body>

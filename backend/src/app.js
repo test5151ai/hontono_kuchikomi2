@@ -8,6 +8,7 @@ const uploadRoutes = require('./routes/upload');
 const userRoutes = require('./routes/users');
 const categoryRoutes = require('./routes/categories');
 const threadRoutes = require('./routes/threads');
+const apiRoutes = require('./routes/api');
 
 // カテゴリーのシードデータ
 const categorySeeds = [
@@ -140,6 +141,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/threads', threadRoutes);
+app.use('/api', apiRoutes);
 
 // ルートのデバッグログ
 app.use((req, res, next) => {
