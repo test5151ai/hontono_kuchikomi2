@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:;">
     <title>カテゴリー一覧 - 15ch.net</title>
     
     <!-- Bootstrap CSS -->
@@ -21,9 +21,18 @@
 
     <main class="container py-4">
         <div class="category-list">
-            <h1 class="text-center mb-4">カテゴリー一覧</h1>
+            <div class="section-header mb-4">
+                <h1 class="text-center">カテゴリー一覧</h1>
+                <div class="section-divider"></div>
+            </div>
             <div id="categories" class="categories">
                 <!-- カテゴリー一覧がここに動的に追加されます -->
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">読み込み中...</span>
+                    </div>
+                    <p class="mt-2">カテゴリーを読み込み中...</p>
+                </div>
             </div>
         </div>
     </main>
@@ -39,16 +48,32 @@
                 console.log('カテゴリー一覧を取得中...');
                 const response = await fetch('http://localhost:3000/api/categories');
                 console.log('APIレスポンス:', response.status);
-                const categories = await response.json();
-                console.log('取得したカテゴリー:', categories);
+                const data = await response.json();
+                console.log('取得したデータ:', data);
+                
+                // データがオブジェクトかチェックし、配列として扱う
+                const categories = Array.isArray(data) ? data : 
+                                   (data.categories || data.data || []);
+                
+                console.log('処理対象カテゴリー:', categories);
                 
                 const categoriesContainer = document.getElementById('categories');
+                
+                if (!categories || categories.length === 0) {
+                    categoriesContainer.innerHTML = '<div class="no-categories">カテゴリーが見つかりません</div>';
+                    return;
+                }
+                
                 categoriesContainer.innerHTML = categories.map(category => `
                     <div class="category-card">
                         <a href="/category.html?id=${category.id}" class="text-decoration-none">
                             <h2>${category.name}</h2>
-                            <p class="description">${category.description}</p>
-                            <p class="thread-count">スレッド数: ${category.threadCount || 0}</p>
+                            <p class="description">${category.description || '説明なし'}</p>
+                            <div class="category-info">
+                                <span class="thread-count">
+                                    <i class="fas fa-comments me-2"></i>${category.threadCount || 0} スレッド
+                                </span>
+                            </div>
                         </a>
                     </div>
                 `).join('');
@@ -79,11 +104,12 @@
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.3s;
         }
 
         .category-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .category-card a {
@@ -96,18 +122,53 @@
             margin: 0 0 10px;
             color: var(--primary-color);
             font-size: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 8px;
         }
 
         .description {
             color: #666;
             margin-bottom: 15px;
             font-size: 0.9em;
+            min-height: 40px;
+        }
+
+        .category-info {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
         }
 
         .thread-count {
             color: var(--accent-color);
             font-weight: bold;
             margin: 0;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 40px 0;
+            grid-column: 1 / -1;
+        }
+        
+        .no-categories {
+            text-align: center;
+            padding: 40px 0;
+            grid-column: 1 / -1;
+            color: #666;
+        }
+        
+        .section-header {
+            position: relative;
+            text-align: center;
+        }
+        
+        .section-divider {
+            height: 3px;
+            width: 80px;
+            background-color: var(--accent-color);
+            margin: 10px auto 0;
         }
     </style>
 </body>
