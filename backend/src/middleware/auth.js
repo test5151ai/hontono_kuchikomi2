@@ -1,9 +1,16 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
+// デバッグログ用関数
+const debug = (message, data) => {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(message, data);
+    }
+};
+
 const authenticateToken = async (req, res, next) => {
   try {
-    console.log('authenticateToken ミドルウェア実行:', {
+    debug('authenticateToken ミドルウェア実行:', {
       headers: req.headers,
       authorization: req.header('Authorization')
     });
@@ -11,23 +18,23 @@ const authenticateToken = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      console.log('トークンが存在しません');
+      debug('トークンが存在しません');
       throw new Error();
     }
 
-    console.log('トークンを検証:', token);
+    debug('トークンを検証:', token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    console.log('トークン検証結果:', decoded);
+    debug('トークン検証結果:', decoded);
 
     const user = await User.findOne({ where: { id: decoded.id } });
-    console.log('ユーザー検索結果:', user ? {
+    debug('ユーザー検索結果:', user ? {
       id: user.id,
       role: user.role,
       isApproved: user.isApproved
     } : null);
 
     if (!user) {
-      console.log('ユーザーが見つかりません');
+      debug('ユーザーが見つかりません');
       throw new Error();
     }
 
@@ -42,7 +49,7 @@ const authenticateToken = async (req, res, next) => {
 
 const isAdmin = async (req, res, next) => {
   try {
-    console.log('isAdmin ミドルウェア実行:', {
+    debug('isAdmin ミドルウェア実行:', {
       user: req.user ? {
         id: req.user.id,
         role: req.user.role,

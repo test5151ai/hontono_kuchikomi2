@@ -5,6 +5,9 @@ const app = require('./app');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 
+// 環境変数の設定
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+
 // データベース接続とサーバー起動
 const PORT = process.env.PORT || 3000;
 
@@ -25,6 +28,7 @@ async function startServer() {
         // サーバーを起動
         app.listen(PORT, () => {
             console.log(`サーバーが起動しました: http://localhost:${PORT}`);
+            console.log(`実行環境: ${process.env.NODE_ENV}`);
         });
     } catch (error) {
         console.error('サーバー起動エラー:', error);

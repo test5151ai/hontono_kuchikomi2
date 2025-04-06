@@ -1,5 +1,12 @@
-const { Thread, Post, Category } = require('../models');
-const { Op } = require('sequelize');
+const { Thread, Post, Category, sequelize } = require('../models');
+const { Op, fn, col, literal } = require('sequelize');
+
+// デバッグログ用関数
+const debug = (message, data) => {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(message, data);
+    }
+};
 
 /**
  * タイトルに「の情報スレ」を追加（もし既に含まれていなければ）
@@ -16,7 +23,7 @@ function appendInfoThreadSuffix(title) {
 exports.createThread = async (req, res) => {
     try {
         const { categoryId, title, content, authorName } = req.body;
-        console.log('受信したデータ:', { categoryId, title, content, authorName });
+        debug('受信したデータ:', { categoryId, title, content, authorName });
 
         // タイトルに「の情報スレ」を追加
         const formattedTitle = appendInfoThreadSuffix(title);
@@ -43,7 +50,7 @@ exports.createThread = async (req, res) => {
             categoryId,
             title: formattedTitle
         });
-        console.log('作成されたスレッド:', thread);
+        debug('作成されたスレッド:', thread);
 
         // 最初の投稿を作成
         const post = await Post.create({
@@ -52,7 +59,7 @@ exports.createThread = async (req, res) => {
             authorName: authorName || '名無しさん',
             ipAddress: req.ip
         });
-        console.log('作成された投稿:', post);
+        debug('作成された投稿:', post);
 
         res.status(201).json({
             success: true,
@@ -236,4 +243,66 @@ exports.deleteThread = async (req, res) => {
             message: 'スレッドの削除に失敗しました'
         });
     }
-}; 
+};
+
+// 人気スレッドを取得（投稿数が多い順）
+exports.getPopularThreads = async (req, res) => {
+    try {
+        const { limit = 5 } = req.query;
+        debug('人気スレッド取得 パラメーター:', { limit });
+        
+        // 直接SQL文を使用して、投稿数が多いスレッドを取得
+        const [results] = await sequelize.query(`
+            SELECT 
+                t.id, 
+                t.title, 
+                t."categoryId", 
+                t."createdAt", 
+                t."updatedAt",
+                c.id as "category.id", 
+                c.name as "category.name",
+                COUNT(p.id) as "postCount"
+            FROM 
+                "Threads" t
+            JOIN 
+                "Categories" c ON t."categoryId" = c.id
+            LEFT JOIN 
+                "Posts" p ON t.id = p."threadId"
+            GROUP BY 
+                t.id, t.title, t."categoryId", t."createdAt", t."updatedAt", c.id, c.name
+            ORDER BY 
+                COUNT(p.id) DESC
+            LIMIT :limit
+        `, {
+            replacements: { limit: parseInt(limit) },
+            type: sequelize.QueryTypes.SELECT
+        });
+        
+        debug('SQL結果:', results);
+        
+        // 結果を整形
+        const popularThreads = results.map(thread => {
+            return {
+                id: thread.id,
+                title: thread.title,
+                categoryId: thread.categoryId,
+                createdAt: thread.createdAt,
+                updatedAt: thread.updatedAt,
+                category: {
+                    id: thread["category.id"],
+                    name: thread["category.name"]
+                },
+                postCount: parseInt(thread.postCount)
+            };
+        });
+        
+        debug('整形後の人気スレッド:', popularThreads);
+        
+        res.json(popularThreads);
+    } catch (error) {
+        console.error('人気スレッド取得エラー:', error);
+        res.status(500).json({ message: '人気スレッドの取得に失敗しました' });
+    }
+};
+
+module.exports = exports; 
