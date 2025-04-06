@@ -22,6 +22,45 @@ body {
     line-height: 1.6;
 }
 
+/* レスポンシブコンテナ */
+.container {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+}
+
 /* ヘッダースタイル */
 .site-header {
     background-color: var(--primary-color);
@@ -678,10 +717,6 @@ body {
     content: "";
     display: table;
     clear: both;
-}
-
-.container {
-    overflow: hidden; /* コンテナ内のフロートをクリア */
 }
 
 /* 書類リスト表示用スタイル */

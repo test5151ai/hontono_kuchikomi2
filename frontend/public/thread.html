@@ -20,44 +20,78 @@
     <site-header></site-header>
 
     <main class="container py-4">
-        <div class="thread-detail">
-            <div id="threadHeader" class="mb-4">
-                <!-- スレッドのヘッダー情報がここに動的に追加されます -->
-            </div>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="thread-detail bg-white rounded shadow-sm p-3 mb-4">
+                    <div id="threadHeader" class="mb-4">
+                        <!-- スレッドのヘッダー情報がここに動的に追加されます -->
+                    </div>
 
-            <div id="posts" class="posts">
-                <!-- 投稿一覧がここに動的に追加されます -->
-            </div>
+                    <div id="posts" class="posts">
+                        <!-- 投稿一覧がここに動的に追加されます -->
+                    </div>
+                </div>
 
-            <div class="post-form card mt-4">
-                <div class="card-body">
-                    <h3 class="card-title h5 mb-3">新規投稿</h3>
-                    <form id="postForm" class="needs-validation" novalidate>
-                        <div class="mb-3">
-                            <label for="content" class="form-label">投稿内容</label>
-                            <textarea class="form-control" id="content" name="content" 
-                                    required minlength="1" maxlength="2000" rows="3"
-                                    placeholder="投稿内容を入力してください"></textarea>
-                            <div class="invalid-feedback">
-                                投稿内容を入力してください。
+                <div class="post-form card mt-4 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h3 class="card-title h5 mb-0">新規投稿</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="postForm" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="content" class="form-label">投稿内容</label>
+                                <textarea class="form-control" id="content" name="content" 
+                                        required minlength="1" maxlength="2000" rows="3"
+                                        placeholder="投稿内容を入力してください"></textarea>
+                                <div class="invalid-feedback">
+                                    投稿内容を入力してください。
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label for="authorName" class="form-label">投稿者名（任意）</label>
-                            <input type="text" class="form-control" id="authorName" name="authorName"
-                                   maxlength="30" placeholder="匿名の場合は空欄にしてください">
-                            <div class="form-text">
-                                空欄の場合は「名無しさん」として投稿されます。
+                            <div class="mb-3">
+                                <label for="authorName" class="form-label">投稿者名（任意）</label>
+                                <input type="text" class="form-control" id="authorName" name="authorName"
+                                       maxlength="30" placeholder="匿名の場合は空欄にしてください">
+                                <div class="form-text">
+                                    空欄の場合は「名無しさん」として投稿されます。
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>投稿する
-                            </button>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>投稿する
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">スレッド情報</h3>
+                    </div>
+                    <div class="card-body" id="threadInfoSidebar">
+                        <div class="skeleton-loading">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line w-75"></div>
+                            <div class="skeleton-line w-50"></div>
                         </div>
-                    </form>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">関連カテゴリー</h3>
+                    </div>
+                    <div class="card-body" id="relatedCategories">
+                        <div class="skeleton-loading">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line w-75"></div>
+                            <div class="skeleton-line w-50"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -511,6 +545,11 @@
     </script>
 
     <style>
+        .thread-detail {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
         .thread-title {
             font-size: 1.5rem;
             color: var(--primary-color);

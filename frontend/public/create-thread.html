@@ -19,11 +19,11 @@
     <site-header></site-header>
 
     <main class="container py-4">
-        <div class="create-thread-form">
-            <h1 class="text-center mb-4">新規スレッド作成</h1>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="create-thread-form bg-white rounded shadow-sm p-4">
+                    <h1 class="h3 text-center mb-4">新規スレッド作成</h1>
 
-            <div class="card">
-                <div class="card-body">
                     <form id="threadForm" class="needs-validation" novalidate>
                         <div class="mb-3">
                             <label for="category" class="form-label">カテゴリー</label>
@@ -74,6 +74,32 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">スレッド作成ガイド</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="guide-item mb-3">
+                            <h4 class="h6 text-primary"><i class="fas fa-info-circle me-2"></i>良いスレッドのポイント</h4>
+                            <ul class="ps-3 mb-0">
+                                <li>具体的なタイトルで内容がわかりやすい</li>
+                                <li>最初の投稿で話題の概要を明確に</li>
+                                <li>適切なカテゴリーを選択する</li>
+                            </ul>
+                        </div>
+                        <div class="guide-item">
+                            <h4 class="h6 text-warning"><i class="fas fa-exclamation-triangle me-2"></i>注意事項</h4>
+                            <ul class="ps-3 mb-0">
+                                <li>個人情報の投稿は避けてください</li>
+                                <li>著作権を侵害する内容は投稿できません</li>
+                                <li>他のユーザーを尊重した投稿を心がけましょう</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -166,7 +192,6 @@
 
     <style>
         .create-thread-form {
-            max-width: 800px;
             margin: 0 auto;
         }
 

@@ -20,73 +20,114 @@
     <site-header></site-header>
 
     <main class="container py-4">
-        <div class="category-detail">
-            <div id="category-header" class="category-header">
-                <!-- カテゴリー情報がここに動的に追加されます -->
-            </div>
-
-            <div class="threads-section">
-                <div class="threads-header">
-                    <h2>スレッド一覧</h2>
-                    <button id="create-thread-btn" class="btn btn-success">
-                        <i class="fas fa-plus me-2"></i>新規スレッド作成
-                    </button>
-                </div>
-
-                <!-- 検索・ソートエリア -->
-                <div class="filter-area mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <input type="text" id="search-input" class="form-control" placeholder="スレッドを検索..." aria-label="検索">
-                                <button class="btn btn-primary" type="button" id="search-btn">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex gap-2">
-                                <select id="sort-select" class="form-select">
-                                    <option value="createdAt">作成日時</option>
-                                    <option value="lastPosted">最終投稿日時</option>
-                                    <option value="postCount">投稿数</option>
-                                    <option value="title">タイトル</option>
-                                </select>
-                                <button id="order-toggle" class="btn btn-outline-secondary" data-order="desc">
-                                    <i class="fas fa-sort-down"></i>
-                                </button>
-                            </div>
-                        </div>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="category-detail bg-white rounded shadow-sm p-4 mb-4">
+                    <div id="category-header" class="category-header">
+                        <!-- カテゴリー情報がここに動的に追加されます -->
                     </div>
-                    <div id="active-filters" class="mt-2 d-none">
-                        <div class="d-flex align-items-center">
-                            <span class="me-2">
-                                <i class="fas fa-filter text-primary"></i> 
-                                フィルター:
-                            </span>
-                            <div id="filter-tags" class="d-flex flex-wrap gap-2">
-                                <!-- フィルタータグがここに動的に追加されます -->
-                            </div>
-                            <button id="clear-filters" class="btn btn-sm btn-link text-danger ms-auto">
-                                クリア
+
+                    <div class="threads-section">
+                        <div class="threads-header d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="h4 mb-0">スレッド一覧</h2>
+                            <button id="create-thread-btn" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>新規スレッド作成
                             </button>
                         </div>
+
+                        <!-- 検索・ソートエリア -->
+                        <div class="filter-area mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" id="search-input" class="form-control" placeholder="スレッドを検索..." aria-label="検索">
+                                        <button class="btn btn-primary" type="button" id="search-btn">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex gap-2">
+                                        <select id="sort-select" class="form-select">
+                                            <option value="createdAt">作成日時</option>
+                                            <option value="lastPosted">最終投稿日時</option>
+                                            <option value="postCount">投稿数</option>
+                                            <option value="title">タイトル</option>
+                                        </select>
+                                        <button id="order-toggle" class="btn btn-outline-secondary" data-order="desc">
+                                            <i class="fas fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="active-filters" class="mt-2 d-none">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">
+                                        <i class="fas fa-filter text-primary"></i> 
+                                        フィルター:
+                                    </span>
+                                    <div id="filter-tags" class="d-flex flex-wrap gap-2">
+                                        <!-- フィルタータグがここに動的に追加されます -->
+                                    </div>
+                                    <button id="clear-filters" class="btn btn-sm btn-link text-danger ms-auto">
+                                        クリア
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="threads-loading" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">スレッド一覧を読み込み中...</p>
+                        </div>
+
+                        <div id="threads" class="threads d-none">
+                            <!-- スレッド一覧がここに動的に追加されます -->
+                        </div>
+
+                        <div id="pagination" class="pagination justify-content-center mt-4">
+                            <!-- ページネーションがここに動的に追加されます -->
+                        </div>
                     </div>
                 </div>
-
-                <div id="threads-loading" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">カテゴリー情報</h3>
                     </div>
-                    <p class="mt-2">スレッド一覧を読み込み中...</p>
+                    <div class="card-body" id="category-info-sidebar">
+                        <div class="skeleton-loading">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line w-75"></div>
+                            <div class="skeleton-line w-50"></div>
+                        </div>
+                    </div>
                 </div>
-
-                <div id="threads" class="threads d-none">
-                    <!-- スレッド一覧がここに動的に追加されます -->
-                </div>
-
-                <div id="pagination" class="pagination justify-content-center mt-4">
-                    <!-- ページネーションがここに動的に追加されます -->
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">人気スレッド</h3>
+                    </div>
+                    <div class="card-body p-0" id="popular-threads">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item p-3 skeleton-loading">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line w-75"></div>
+                            </li>
+                            <li class="list-group-item p-3 skeleton-loading">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line w-75"></div>
+                            </li>
+                            <li class="list-group-item p-3 skeleton-loading">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line w-75"></div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
