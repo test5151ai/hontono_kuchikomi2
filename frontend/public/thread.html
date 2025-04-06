@@ -977,6 +977,19 @@
                 });
                 
                 if (response.ok) {
+                    const data = await response.json();
+                    
+                    // スレッド上限に達して新しいスレッドが作成された場合のリダイレクト処理
+                    if (data.redirectTo) {
+                        // 新しいスレッドが作成されたことを通知
+                        alert(data.message || '投稿数上限に達したため、新しいスレッドを作成しました。新しいスレッドに移動します。');
+                        
+                        // 新しいスレッドにリダイレクト
+                        window.location.href = data.redirectTo;
+                        return;
+                    }
+                    
+                    // 通常の投稿成功処理
                     // フォームをリセット
                     form.reset();
                     form.classList.remove('was-validated');
