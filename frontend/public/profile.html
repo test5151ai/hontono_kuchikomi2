@@ -300,6 +300,24 @@
                                         accept=".jpg,.jpeg,.png,.gif,.pdf" required>
                                     <div class="form-text">JPG, PNG, GIF, PDF形式のみ（最大5MB）</div>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="documentName" class="form-label">
+                                        書類名称
+                                        <i class="fas fa-question-circle text-primary ms-1" 
+                                           data-bs-toggle="tooltip" 
+                                           data-bs-placement="top" 
+                                           data-bs-html="true"
+                                           title="<strong>例:</strong><br>
+                                           ・借入金が入金された銀行振込の控え（個人情報を削除したもの）<br>
+                                           ・返済時の振込控えやATMの控え<br>
+                                           ・契約書のコピー（個人情報を削除したもの）<br>
+                                           ・契約時のメールやLINEの履歴のスクリーンショット<br>
+                                           など、利用履歴が確認できる資料"></i>
+                                    </label>
+                                    <input type="text" class="form-control" id="documentName" name="documentName" 
+                                        placeholder="例：銀行振込控え、契約書コピー、LINEのスクリーンショット等" required>
+                                    <div class="form-text">どのような書類かわかる名称を入力してください</div>
+                                </div>
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-primary action-button" id="uploadButton">
                                         <i class="fas fa-upload me-2"></i>アップロード
@@ -308,7 +326,18 @@
                             </form>
                         </div>
                         
-                        <!-- 書類プレビュー -->
+                        <!-- 書類一覧 -->
+                        <div id="documentsList" class="document-preview mt-4">
+                            <h5>アップロード済み書類一覧</h5>
+                            <div id="documentsContainer" class="mt-3">
+                                <!-- 書類リストがここに表示されます -->
+                                <div class="text-center text-muted" id="noDocumentsMessage">
+                                    <p>アップロードされた書類はありません</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 書類プレビュー（レガシー互換用） -->
                         <div id="documentPreview" class="document-preview d-none">
                             <h5>アップロード済み書類</h5>
                             <div class="document-image-container mb-3">

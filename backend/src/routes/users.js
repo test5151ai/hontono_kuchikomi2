@@ -29,10 +29,12 @@ router.get('/me', authenticateToken, async (req, res) => {
 // プロフィール更新
 router.put('/profile', authenticateToken, profileController.updateProfile);
 
-// 書類管理ルート
+// 書類管理ルート - 複数書類アップロード対応
 router.post('/document/upload', authenticateToken, documentUpload, documentController.uploadDocument);
 router.get('/document/status', authenticateToken, documentController.getDocumentStatus);
-router.delete('/document', authenticateToken, documentController.deleteDocument);
+router.get('/document', authenticateToken, documentController.getDocuments);
+router.delete('/document/:documentId', authenticateToken, documentController.deleteDocument);
+router.delete('/document', authenticateToken, documentController.deleteAllDocuments);
 
 // 投稿履歴取得は一時的に無効化
 // router.get('/me/posts', authenticateToken, async (req, res) => {

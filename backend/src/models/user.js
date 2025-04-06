@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      // VerificationDocumentとの関連付け
+      User.hasMany(models.VerificationDocument, { foreignKey: 'userId' });
     }
   }
   User.init({

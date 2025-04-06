@@ -130,7 +130,8 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // 静的ファイルの提供
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // ルートの設定
 app.use('/api/auth', authRoutes);

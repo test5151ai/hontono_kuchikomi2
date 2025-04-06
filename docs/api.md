@@ -341,4 +341,201 @@ GET /api/categories/:id/threads
       ]
     }
   }
-  ``` 
+  ```
+
+## 書類管理API
+
+### 書類アップロード
+新しい書類をアップロードします。
+
+- **エンドポイント**: `POST /api/users/me/documents`
+- **認証**: 必須（ユーザートークン）
+- **コンテンツタイプ**: `multipart/form-data`
+
+#### リクエストパラメータ
+| パラメータ | タイプ | 必須 | 説明 |
+|----------|------|------|------|
+| documentFile | File | Yes | アップロードする書類ファイル |
+| documentType | String | Yes | 書類の種類（'identity', 'address', 'other'） |
+| documentName | String | No | 書類の名前（指定がない場合は元のファイル名） |
+
+#### 成功レスポンス
+- **コード**: 201 Created
+```json
+{
+  "success": true,
+  "document": {
+    "id": "uuid-string",
+    "userId": "user-uuid-string",
+    "documentPath": "uploads/documents/uuid-filename.ext",
+    "documentType": "identity",
+    "documentName": "身分証明書",
+    "isVerified": false,
+    "uploadedAt": "2025-04-06T12:34:56.789Z",
+    "createdAt": "2025-04-06T12:34:56.789Z",
+    "updatedAt": "2025-04-06T12:34:56.789Z"
+  }
+}
+```
+
+#### エラーレスポンス
+- **コード**: 400 Bad Request
+```json
+{
+  "success": false,
+  "message": "Invalid document type"
+}
+```
+
+- **コード**: 401 Unauthorized
+```json
+{
+  "success": false,
+  "message": "Authentication required"
+}
+```
+
+### 書類一覧取得
+ユーザーの書類一覧を取得します。
+
+- **エンドポイント**: `GET /api/users/me/documents`
+- **認証**: 必須（ユーザートークン）
+
+#### 成功レスポンス
+- **コード**: 200 OK
+```json
+{
+  "success": true,
+  "documents": [
+    {
+      "id": "uuid-string-1",
+      "userId": "user-uuid-string",
+      "documentPath": "uploads/documents/uuid-filename1.ext",
+      "documentType": "identity",
+      "documentName": "身分証明書",
+      "isVerified": true,
+      "verifiedAt": "2025-04-07T10:11:12.789Z",
+      "verifiedBy": "admin-uuid-string",
+      "uploadedAt": "2025-04-06T12:34:56.789Z",
+      "createdAt": "2025-04-06T12:34:56.789Z",
+      "updatedAt": "2025-04-07T10:11:12.789Z"
+    },
+    {
+      "id": "uuid-string-2",
+      "userId": "user-uuid-string",
+      "documentPath": "uploads/documents/uuid-filename2.ext",
+      "documentType": "address",
+      "documentName": "住所証明書",
+      "isVerified": false,
+      "uploadedAt": "2025-04-06T13:45:67.890Z",
+      "createdAt": "2025-04-06T13:45:67.890Z",
+      "updatedAt": "2025-04-06T13:45:67.890Z"
+    }
+  ]
+}
+```
+
+### 書類削除
+指定した書類を削除します。
+
+- **エンドポイント**: `DELETE /api/users/me/documents/:documentId`
+- **認証**: 必須（ユーザートークン）
+
+#### URL パラメータ
+| パラメータ | 説明 |
+|----------|------|
+| documentId | 削除する書類のID |
+
+#### 成功レスポンス
+- **コード**: 200 OK
+```json
+{
+  "success": true,
+  "message": "Document deleted successfully"
+}
+```
+
+#### エラーレスポンス
+- **コード**: 404 Not Found
+```json
+{
+  "success": false,
+  "message": "Document not found"
+}
+```
+
+### 管理者向け - ユーザー書類一覧取得
+管理者が特定ユーザーの書類一覧を取得します。
+
+- **エンドポイント**: `GET /api/admin/users/:userId/documents`
+- **認証**: 必須（管理者トークン）
+
+#### URL パラメータ
+| パラメータ | 説明 |
+|----------|------|
+| userId | ユーザーID |
+
+#### 成功レスポンス
+- **コード**: 200 OK
+```json
+{
+  "success": true,
+  "documents": [
+    {
+      "id": "uuid-string-1",
+      "userId": "user-uuid-string",
+      "documentPath": "uploads/documents/uuid-filename1.ext",
+      "documentType": "identity",
+      "documentName": "身分証明書",
+      "isVerified": true,
+      "verifiedAt": "2025-04-07T10:11:12.789Z",
+      "verifiedBy": "admin-uuid-string",
+      "uploadedAt": "2025-04-06T12:34:56.789Z",
+      "createdAt": "2025-04-06T12:34:56.789Z",
+      "updatedAt": "2025-04-07T10:11:12.789Z"
+    },
+    // 他の書類...
+  ]
+}
+```
+
+### 管理者向け - 書類承認/拒否
+管理者がユーザーの書類を承認または拒否します。
+
+- **エンドポイント**: `PATCH /api/admin/documents/:documentId/verify`
+- **認証**: 必須（管理者トークン）
+- **コンテンツタイプ**: `application/json`
+
+#### URL パラメータ
+| パラメータ | 説明 |
+|----------|------|
+| documentId | 書類ID |
+
+#### リクエストボディ
+```json
+{
+  "isVerified": true,  // true: 承認, false: 拒否
+  "rejectReason": "string"  // 拒否の場合のみ必要
+}
+```
+
+#### 成功レスポンス
+- **コード**: 200 OK
+```json
+{
+  "success": true,
+  "document": {
+    "id": "uuid-string-1",
+    "userId": "user-uuid-string",
+    "documentPath": "uploads/documents/uuid-filename1.ext",
+    "documentType": "identity",
+    "documentName": "身分証明書",
+    "isVerified": true,
+    "verifiedAt": "2025-04-07T10:11:12.789Z",
+    "verifiedBy": "admin-uuid-string",
+    "uploadedAt": "2025-04-06T12:34:56.789Z",
+    "createdAt": "2025-04-06T12:34:56.789Z",
+    "updatedAt": "2025-04-07T10:11:12.789Z"
+  }
+}
+``` 
