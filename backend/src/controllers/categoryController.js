@@ -50,170 +50,92 @@ exports.getCategoryById = async (req, res) => {
     }
 };
 
-// カテゴリー別スレッド一覧を取得
+// カテゴリー別のスレッド一覧を取得
 exports.getCategoryThreads = async (req, res) => {
     try {
         const { id } = req.params;
-        const { 
-            page = 1, 
-            limit = 20, 
-            search = '',
-            sort = 'createdAt',
-            order = 'desc'
-        } = req.query;
+        const { page = 1, limit = 20, search = '', sort = 'createdAt', order = 'desc' } = req.query;
         
         // カテゴリーの存在確認
-        const category = await Category.findByPk(id, {
-            attributes: ['id', 'name', 'description']
-        });
-        
+        const category = await Category.findByPk(id);
         if (!category) {
             return res.status(404).json({ message: 'カテゴリーが見つかりません' });
         }
         
-        // ページネーション用のオフセット計算
-        const offset = (parseInt(page) - 1) * parseInt(limit);
-        
-        // 検索条件の設定
-        const whereCondition = { categoryId: id };
-        if (search && search.trim() !== '') {
-            whereCondition.title = {
-                [Op.like]: `%${search.trim()}%`
-            };
+        // 検索条件の構築
+        const whereClause = { categoryId: id };
+        if (search) {
+            whereClause.title = { [Op.iLike]: `%${search}%` };
         }
         
-        // ソート順の設定
-        let orderOption;
-        switch (sort) {
-            case 'title':
-                orderOption = [['title', order.toUpperCase()]];
-                break;
-            case 'lastPosted':
-                // 最終投稿日時でのソートは後で処理
-                orderOption = [['createdAt', order.toUpperCase()]];
-                break;
-            case 'postCount':
-                // 投稿数でのソートは後で処理
-                orderOption = [['createdAt', order.toUpperCase()]];
-                break;
-            case 'createdAt':
-            default:
-                orderOption = [['createdAt', order.toUpperCase()]];
-                break;
-        }
+        // ソート条件の検証
+        const validSortFields = ['createdAt', 'title', 'updatedAt'];
+        const validOrders = ['asc', 'desc'];
         
-        // スレッド数のカウントとスレッド取得
-        const { count, rows: threadsData } = await Thread.findAndCountAll({
-            where: whereCondition,
+        const sortField = validSortFields.includes(sort) ? sort : 'createdAt';
+        const sortOrder = validOrders.includes(order.toLowerCase()) ? order.toLowerCase() : 'desc';
+        
+        // ページネーション設定
+        const offset = (page - 1) * limit;
+        
+        // スレッド総数の取得
+        const totalThreads = await Thread.count({ where: whereClause });
+        
+        // スレッド一覧の取得
+        const threads = await Thread.findAll({
             attributes: [
-                'id', 
-                'title', 
-                'createdAt'
+                'id', 'title', 'categoryId', 'createdAt', 'updatedAt'
             ],
-            order: orderOption,
+            where: whereClause,
+            order: [[sortField, sortOrder]],
             limit: parseInt(limit),
             offset: offset
         });
         
-        // スレッドがない場合は早期リターン
-        if (count === 0) {
-            return res.json({
-                category,
-                threads: [],
-                pagination: {
-                    total: 0,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    totalPages: 0
-                },
-                filters: { search, sort, order }
+        // 投稿数と最終投稿日時の取得
+        const threadsWithStats = await Promise.all(threads.map(async (thread) => {
+            const threadObj = thread.toJSON();
+            
+            // 投稿数を取得
+            const postCount = await Post.count({ where: { threadId: thread.id } });
+            threadObj.postCount = postCount;
+            
+            // 最新投稿の日時を取得
+            const latestPost = await Post.findOne({
+                where: { threadId: thread.id },
+                order: [['createdAt', 'DESC']],
+                attributes: ['createdAt']
             });
-        }
+            
+            if (latestPost) {
+                threadObj.lastPostedAt = latestPost.createdAt;
+            }
+            
+            return threadObj;
+        }));
         
-        // スレッドのIDを抽出
-        const threadIds = threadsData.map(thread => thread.id);
+        // ページネーション情報の構築
+        const totalPages = Math.ceil(totalThreads / limit);
         
-        // 各スレッドの投稿数を取得
-        const postCounts = await Post.findAll({
-            attributes: [
-                'threadId',
-                [sequelize.fn('COUNT', sequelize.col('id')), 'postCount']
-            ],
-            where: {
-                threadId: {
-                    [Op.in]: threadIds
-                }
-            },
-            group: ['threadId']
-        });
-        
-        // 投稿数をMap形式で整理
-        const postCountMap = {};
-        postCounts.forEach(post => {
-            postCountMap[post.threadId] = parseInt(post.getDataValue('postCount'));
-        });
-        
-        // 各スレッドの最新投稿日時を取得
-        const lastPostTimes = await Post.findAll({
-            attributes: [
-                'threadId',
-                [sequelize.fn('MAX', sequelize.col('createdAt')), 'lastPostedAt']
-            ],
-            where: {
-                threadId: {
-                    [Op.in]: threadIds
-                }
-            },
-            group: ['threadId']
-        });
-        
-        // 最新投稿日時をMap形式で整理
-        const lastPostTimeMap = {};
-        lastPostTimes.forEach(post => {
-            lastPostTimeMap[post.threadId] = post.getDataValue('lastPostedAt');
-        });
-        
-        // スレッドデータに投稿数と最新投稿日時を追加
-        let threads = threadsData.map(thread => {
-            const threadJson = thread.toJSON();
-            return {
-                ...threadJson,
-                postCount: postCountMap[thread.id] || 0,
-                lastPostedAt: lastPostTimeMap[thread.id] || thread.createdAt
-            };
-        });
-        
-        // 投稿数または最終投稿日時でソートが必要な場合
-        if (sort === 'postCount') {
-            threads = threads.sort((a, b) => {
-                return order.toLowerCase() === 'desc' 
-                    ? b.postCount - a.postCount 
-                    : a.postCount - b.postCount;
-            });
-        } else if (sort === 'lastPosted') {
-            threads = threads.sort((a, b) => {
-                const dateA = new Date(a.lastPostedAt);
-                const dateB = new Date(b.lastPostedAt);
-                return order.toLowerCase() === 'desc' 
-                    ? dateB - dateA 
-                    : dateA - dateB;
-            });
-        }
-        
-        // レスポンスの整形
-        res.json({
-            category,
-            threads,
+        // 応答データの構築
+        const responseData = {
+            threads: threadsWithStats,
             pagination: {
-                total: count,
                 page: parseInt(page),
                 limit: parseInt(limit),
-                totalPages: Math.ceil(count / parseInt(limit))
+                totalThreads,
+                totalPages
             },
-            filters: { search, sort, order }
-        });
+            filters: {
+                search,
+                sort: sortField,
+                order: sortOrder
+            }
+        };
+        
+        res.json(responseData);
     } catch (error) {
-        console.error('カテゴリー別スレッド一覧の取得に失敗:', error);
-        res.status(500).json({ message: 'カテゴリー別スレッド一覧の取得に失敗しました' });
+        console.error('カテゴリースレッド一覧取得エラー:', error);
+        res.status(500).json({ message: 'カテゴリーのスレッド一覧の取得に失敗しました' });
     }
 }; 

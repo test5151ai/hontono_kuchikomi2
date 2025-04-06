@@ -1,11 +1,12 @@
 const { Thread, Post, Category, sequelize } = require('../models');
 const { Op, fn, col, literal } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
+const threadConfig = require('../config/thread');
 
 // デバッグログ用関数
 const debug = (message, data) => {
     if (process.env.NODE_ENV === 'development') {
-        console.log(message, data);
+        console.log(`[DEBUG] ${message}`, data || '');
     }
 };
 
@@ -13,7 +14,7 @@ const debug = (message, data) => {
  * タイトルに「の情報スレ」を追加（もし既に含まれていなければ）
  */
 function appendInfoThreadSuffix(title) {
-    const suffix = 'の情報スレ';
+    const suffix = threadConfig.defaultTitleSuffix;
     if (!title.endsWith(suffix)) {
         return `${title}${suffix}`;
     }
@@ -168,11 +169,117 @@ exports.createPost = async (req, res) => {
         const { content, authorName } = req.body;
         
         // スレッドの存在確認
-        const thread = await Thread.findByPk(id);
+        const thread = await Thread.findByPk(id, {
+            include: [
+                {
+                    model: Category,
+                    as: 'category',
+                    attributes: ['id', 'name']
+                }
+            ]
+        });
+        
         if (!thread) {
             return res.status(404).json({ message: 'スレッドが見つかりません' });
         }
         
+        // 投稿数を取得
+        const postCount = await Post.count({ where: { threadId: id } });
+        
+        // 投稿数上限チェック
+        if (postCount >= threadConfig.maxPostsPerThread) {
+            // 上限に達している場合は新しいスレッドを作成
+            console.log(`スレッド ${thread.title} の投稿数が上限(${threadConfig.maxPostsPerThread})に達しました。新しいスレッドを作成します。`);
+            
+            // 新しいスレッドのタイトルを作成（数字のみのバージョンを設定）
+            let newTitle = thread.title;
+            let threadNumber = 2; // デフォルトは2
+            
+            // 既存のタイトルに数字が含まれているかチェック
+            const numberMatch = newTitle.match(/^(.+)\s+(\d+)$/);
+            
+            if (numberMatch) {
+                // 既に数字がある場合はインクリメント
+                const baseName = numberMatch[1];
+                threadNumber = parseInt(numberMatch[2], 10) + 1;
+                newTitle = `${baseName} ${threadNumber}`;
+            } else {
+                // 数字表記がない場合は " 2" を追加
+                newTitle = `${thread.title} 2`;
+            }
+            
+            // 過去スレのURL作成（現在のホスト名から動的に構築）
+            const baseUrl = req.protocol + '://' + req.get('host');
+            const currentThreadUrl = `${baseUrl}/thread.html?id=${id}`;
+            
+            // 過去スレの情報を収集
+            let previousThreads = [];
+            
+            // 直近の親スレッドを取得
+            previousThreads.push({
+                title: thread.title,
+                url: currentThreadUrl
+            });
+            
+            // スレッドタイトルから前のバージョンがあるか確認
+            if (numberMatch && parseInt(numberMatch[2], 10) > 1) {
+                // 前のバージョンのスレッドを探す（最大4つまで、合計5つになるように）
+                const baseName = numberMatch[1];
+                const currentNum = parseInt(numberMatch[2], 10);
+                
+                // 前のバージョンのスレッドをタイトルで検索
+                for (let i = currentNum - 1; i >= Math.max(1, currentNum - 4); i--) {
+                    const prevThreadTitle = i === 1 ? baseName : `${baseName} ${i}`;
+                    const prevThread = await Thread.findOne({
+                        where: { title: prevThreadTitle }
+                    });
+                    
+                    if (prevThread) {
+                        previousThreads.push({
+                            title: prevThread.title,
+                            url: `${baseUrl}/thread.html?id=${prevThread.id}`
+                        });
+                    }
+                }
+            }
+            
+            // 過去スレの情報をフォーマット（新しい順）
+            const pastThreadsText = previousThreads
+                .slice(0, 5) // 最大5つまで
+                .map((t, idx) => `【過去スレ${idx + 1}】${t.title}\n${t.url}`)
+                .join('\n\n');
+            
+            // トランザクションを開始
+            const result = await sequelize.transaction(async (t) => {
+                // 新しいスレッドを作成
+                const newThread = await Thread.create({
+                    title: newTitle,
+                    categoryId: thread.categoryId,
+                    shopDetails: pastThreadsText // 店舗情報欄に過去スレURLを追加
+                }, { transaction: t });
+                
+                // 最初の投稿を作成
+                const newPost = await Post.create({
+                    threadId: newThread.id,
+                    content: `※前スレ（${thread.title}）が${threadConfig.maxPostsPerThread}に到達したため、新しいスレッドを作成しました。\n\n${content}`,
+                    authorName: authorName || '名無しさん',
+                    postNumber: 1,
+                    helpfulCount: 0
+                }, { transaction: t });
+                
+                return { thread: newThread, post: newPost };
+            });
+            
+            // 成功レスポンスを返す
+            return res.status(201).json({
+                message: `投稿数上限に達したため、新しいスレッド「${result.thread.title}」を作成しました。`,
+                thread: result.thread,
+                post: result.post,
+                redirectTo: `/thread.html?id=${result.thread.id}`
+            });
+        }
+        
+        // 通常の投稿処理（上限に達していない場合）
         // 直接SQLクエリで最大投稿番号を取得
         const [maxResult] = await sequelize.query(
             `SELECT COALESCE(MAX("postNumber"), 0) as max_post_number FROM posts WHERE "threadId" = :threadId`,
