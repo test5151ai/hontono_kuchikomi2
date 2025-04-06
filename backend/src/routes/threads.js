@@ -3,6 +3,9 @@ const router = express.Router();
 const threadController = require('../controllers/threadController');
 const { authenticateToken, isAdmin } = require('../middleware/auth');
 
+// スレッド一覧を取得
+router.get('/', threadController.getThreads);
+
 // 人気スレッド一覧を取得
 router.get('/popular', threadController.getPopularThreads);
 

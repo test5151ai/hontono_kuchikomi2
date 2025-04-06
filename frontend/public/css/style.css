@@ -20,6 +20,15 @@ body {
     background-color: var(--white);
     color: var(--primary-color);
     line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* メインコンテンツ */
+main {
+    flex: 1 0 auto;
+    min-height: 70vh;
 }
 
 /* レスポンシブコンテナ */
@@ -157,7 +166,6 @@ body {
     border: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
-    height: 100%;
     background: var(--white);
 }
 
@@ -494,7 +502,8 @@ body {
     background-color: var(--primary-color);
     color: var(--white);
     padding: 3rem 0;
-    clear: both;
+    flex-shrink: 0;
+    width: 100%;
     position: relative;
     z-index: 1;
 }
@@ -791,4 +800,76 @@ body {
     padding: 10px;
     max-height: 60vh;
     overflow: auto;
+}
+
+/* スレッドカード（スレッド一覧ページ用） */
+.thread-card {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.thread-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.thread-content {
+    height: 100%;
+}
+
+.thread-main {
+    height: 100%;
+}
+
+.thread-stats {
+    margin-top: 0.5rem;
+}
+
+.thread-stat {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--dark-gray);
+}
+
+/* スケルトンローディング */
+.skeleton-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-line {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.skeleton-line::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* サイドバーのカード */
+.sidebar-card {
+    margin-bottom: 1.5rem;
 } 

@@ -572,4 +572,106 @@ exports.updateShopDetails = async (req, res) => {
     }
 };
 
+// スレッド一覧を取得（検索とソートに対応）
+exports.getThreads = async (req, res) => {
+    try {
+        const { 
+            page = 1, 
+            limit = 20, 
+            search = '', 
+            sort = 'createdAt', 
+            order = 'desc'
+        } = req.query;
+        
+        console.log('スレッド一覧取得開始 - パラメーター:', { page, limit, search, sort, order });
+        
+        // 検索条件
+        const whereCondition = {};
+        if (search) {
+            whereCondition.title = {
+                [Op.like]: `%${search}%`
+            };
+        }
+        
+        // ソート条件
+        let orderArray = [];
+        
+        switch (sort) {
+            case 'postCount':
+                // 投稿数でソートする場合は特別な処理
+                // サブクエリで投稿数を計算してソート
+                orderArray = [
+                    [literal(`(SELECT COUNT(*) FROM posts WHERE posts."threadId" = "Thread"."id")`), order]
+                ];
+                break;
+            case 'lastPosted':
+                // 最終投稿日時でソート
+                orderArray = [
+                    [literal(`(SELECT MAX("createdAt") FROM posts WHERE posts."threadId" = "Thread"."id")`), order]
+                ];
+                break;
+            case 'title':
+                // タイトルでソート
+                orderArray = [['title', order]];
+                break;
+            default:
+                // デフォルトは作成日時
+                orderArray = [['createdAt', order]];
+        }
+        
+        // スレッド一覧を取得
+        const { count, rows: threads } = await Thread.findAndCountAll({
+            where: whereCondition,
+            include: [{
+                model: Category,
+                as: 'category',
+                attributes: ['id', 'name']
+            }],
+            order: orderArray,
+            limit: parseInt(limit),
+            offset: (parseInt(page) - 1) * parseInt(limit),
+            distinct: true
+        });
+        
+        // 各スレッドの投稿数を取得
+        const threadsWithPostCount = await Promise.all(threads.map(async (thread) => {
+            const postCount = await Post.count({
+                where: { threadId: thread.id }
+            });
+            
+            const threadJson = thread.toJSON();
+            threadJson.postCount = postCount;
+            
+            // 最後の投稿日時を取得
+            const lastPost = await Post.findOne({
+                where: { threadId: thread.id },
+                order: [['createdAt', 'DESC']],
+                attributes: ['createdAt']
+            });
+            
+            if (lastPost) {
+                threadJson.lastPostedAt = lastPost.createdAt;
+            }
+            
+            return threadJson;
+        }));
+        
+        res.json({
+            threads: threadsWithPostCount,
+            pagination: {
+                total: count,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(count / parseInt(limit))
+            }
+        });
+    } catch (error) {
+        console.error('スレッド一覧取得エラー:', error);
+        res.status(500).json({ 
+            message: 'スレッド一覧の取得に失敗しました',
+            error: error.message 
+        });
+    }
+};
+
 module.exports = exports; 

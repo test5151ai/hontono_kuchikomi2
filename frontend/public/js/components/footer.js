@@ -4,19 +4,7 @@ class Footer extends HTMLElement {
     }
 
     connectedCallback() {
-        // フッターの前にクリア要素を挿入（フロート対策）
-        if (!document.getElementById('footer-float-clear')) {
-            const clearDiv = document.createElement('div');
-            clearDiv.id = 'footer-float-clear';
-            clearDiv.style.clear = 'both';
-            clearDiv.style.display = 'block';
-            clearDiv.style.width = '100%';
-            clearDiv.style.height = '0';
-            this.parentNode.insertBefore(clearDiv, this);
-            
-            console.log('フッタークリア要素を挿入しました');
-        }
-        
+        // フロート対策は削除（フレックスレイアウトを使用するため）
         this.render();
     }
 
@@ -33,13 +21,11 @@ class Footer extends HTMLElement {
                     position: relative;
                     z-index: 1;
                     display: block;
-                    clear: both;
                 }
                 
                 :host {
                     display: block;
                     width: 100%;
-                    clear: both;
                     margin-top: auto;
                 }
                 
