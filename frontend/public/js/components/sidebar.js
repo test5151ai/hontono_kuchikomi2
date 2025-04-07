@@ -28,7 +28,11 @@ class PopularThreadsSidebar extends HTMLElement {
 
     async loadPopularThreads() {
         try {
-            const response = await fetch('http://localhost:3000/api/threads/popular');
+            const apiUrlString = getApiUrl('threads/popular');
+            const apiUrl = new URL(apiUrlString, window.location.origin);
+            console.log('人気スレッド取得URL:', apiUrl.toString());
+            
+            const response = await fetch(apiUrl);
             const popularThreads = await response.json();
             
             // 現在のスレッドIDを取得
@@ -156,7 +160,11 @@ class SiteSidebar extends HTMLElement {
     // カテゴリー一覧を読み込む
     async loadCategories() {
         try {
-            const response = await fetch('http://localhost:3000/api/categories');
+            const apiUrlString = getApiUrl('categories');
+            const apiUrl = new URL(apiUrlString, window.location.origin);
+            console.log('カテゴリー一覧取得URL:', apiUrl.toString());
+            
+            const response = await fetch(apiUrl);
             const categories = await response.json();
             
             const categoriesContainer = document.getElementById('categories-container');
@@ -195,7 +203,17 @@ class SiteSidebar extends HTMLElement {
             const latestThreadsContainer = document.getElementById('latest-threads-container');
             if (!latestThreadsContainer) return;
             
-            const response = await fetch('http://localhost:3000/api/threads?sort=createdAt&order=desc&limit=5');
+            const apiUrlString = getApiUrl('threads');
+            const apiUrl = new URL(apiUrlString, window.location.origin);
+            
+            // クエリパラメータの追加
+            apiUrl.searchParams.append('sort', 'createdAt');
+            apiUrl.searchParams.append('order', 'desc');
+            apiUrl.searchParams.append('limit', 5);
+            
+            console.log('最新スレッド取得URL:', apiUrl.toString());
+            
+            const response = await fetch(apiUrl);
             const data = await response.json();
             const latestThreads = data.threads;
             
@@ -231,6 +249,42 @@ class SiteSidebar extends HTMLElement {
             const latestThreadsContainer = document.getElementById('latest-threads-container');
             latestThreadsContainer.innerHTML = '<div class="alert alert-danger p-3">最新スレッドの取得に失敗しました。</div>';
         }
+    }
+}
+
+// getApiUrl関数のバックアップ（config.jsが読み込めなかった場合用）
+if (typeof getApiUrl !== 'function') {
+    // APIベースURLの設定
+    function getBaseUrl() {
+        // 現在のホスト名とプロトコルを取得
+        const protocol = window.location.protocol;
+        const hostname = window.location.hostname;
+        
+        // ローカル開発環境の場合
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            // 開発環境のポートを使用
+            return `${protocol}//${hostname}:3000`;
+        }
+        
+        // 本番環境の場合はAPIドメインを使用
+        return `${protocol}//${hostname}`;
+    }
+
+    const API_BASE_URL = getBaseUrl();
+
+    // 環境に応じてAPIベースURLを設定
+    function getApiUrl(path) {
+        // パスが既に/で始まっていない場合は追加
+        if (!path.startsWith('/')) {
+            path = '/' + path;
+        }
+        
+        // パスが/apiで始まっていない場合は追加
+        if (!path.startsWith('/api')) {
+            path = '/api' + path;
+        }
+        
+        return API_BASE_URL + path;
     }
 }
 
