@@ -23,6 +23,9 @@
                     <div class="row mb-2">
                         <div class="col-sm-6">
                             <h1 class="m-0">カテゴリー管理</h1>
+                            <button class="btn btn-info btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#categoryHelpModal">
+                                <i class="bi bi-question-circle"></i> ヘルプ
+                            </button>
                         </div>
                         <div class="col-sm-6">
                             <button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#categoryModal">
@@ -92,6 +95,78 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">削除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- カテゴリー管理ヘルプモーダル -->
+    <div class="modal fade" id="categoryHelpModal" tabindex="-1" aria-labelledby="categoryHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="categoryHelpModalLabel">カテゴリー管理ガイド</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>カテゴリー管理の重要性</h4>
+                    <p>適切なカテゴリー分けは、ユーザーが関心のある話題を見つけやすくするために重要です。カテゴリーは掲示板の骨格となる部分です。</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> カテゴリーを追加・編集・削除することで、15chの構造を整理し、ユーザー体験を向上させることができます。
+                    </div>
+                    
+                    <h5>基本的な操作方法：</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> カテゴリーの追加</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ol>
+                                        <li>「新規カテゴリー」ボタンをクリック</li>
+                                        <li>カテゴリー名と説明を入力</li>
+                                        <li>「保存」ボタンをクリック</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-pencil"></i> カテゴリーの編集</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ol>
+                                        <li>編集したいカテゴリーの「編集」ボタンをクリック</li>
+                                        <li>情報を更新</li>
+                                        <li>「保存」ボタンをクリック</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>注意事項：</strong>
+                        <ul>
+                            <li>カテゴリーを削除すると、そのカテゴリーに属するすべてのスレッドも削除されます</li>
+                            <li>カテゴリー名は簡潔で分かりやすいものにしましょう</li>
+                            <li>同じような内容のカテゴリーは統合を検討しましょう</li>
+                        </ul>
+                    </div>
+                    
+                    <h5>カテゴリー名のベストプラクティス：</h5>
+                    <ul>
+                        <li>具体的で明確な名前を使用（例：「一般的な話題」より「日常の悩み相談」の方が良い）</li>
+                        <li>短く簡潔な名前を心がける（長すぎると表示が崩れる可能性があります）</li>
+                        <li>カテゴリー間で内容が重複しないようにする</li>
+                        <li>ユーザーが直感的に理解できる名前を選ぶ</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
                 </div>
             </div>
         </div>
