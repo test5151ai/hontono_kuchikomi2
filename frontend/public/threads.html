@@ -113,13 +113,7 @@
                 
                 <!-- スレッド一覧 -->
                 <div id="threads" class="mb-4">
-                    <!-- ローディング表示 -->
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">スレッドを読み込んでいます...</p>
-                    </div>
+                    <!-- 初期状態では空 -->
                 </div>
                 
                 <!-- ページネーション -->
@@ -307,12 +301,16 @@
                 const response = await fetch(apiUrl);
                 const data = await response.json();
                 
+                console.log('API応答データ:', data);
+                
                 updateActiveFilters(currentFilters); // アクティブなフィルターの表示を更新
                 
                 // スレッド一覧の表示
                 const threadsContainer = document.getElementById('threads');
+                threadsContainer.classList.remove('d-none'); // 確実に表示する
                 
                 if (!data.threads || data.threads.length === 0) {
+                    console.log('スレッドがありません');
                     threadsContainer.innerHTML = `
                         <div class="text-center py-5">
                             <div class="empty-state">
@@ -326,6 +324,7 @@
                         </div>
                     `;
                 } else {
+                    console.log('スレッド数:', data.threads.length);
                     let threadsHTML = '';
                     data.threads.forEach(thread => {
                         const createdAt = formatDate(thread.createdAt);
@@ -530,6 +529,7 @@
             const threadsContainer = document.getElementById('threads');
             
             if (isLoading) {
+                console.log('ローディング表示を開始');
                 threadsContainer.innerHTML = `
                     <div class="text-center py-4">
                         <div class="spinner-border text-primary" role="status">
@@ -538,6 +538,10 @@
                         <p class="mt-2 text-muted">スレッドを読み込んでいます...</p>
                     </div>
                 `;
+                threadsContainer.classList.remove('d-none');
+            } else {
+                console.log('ローディング表示を終了');
+                // 内容はloadThreads関数で設定されるため、ここでは何もしない
             }
         }
     </script>
