@@ -1,605 +1,230 @@
-# リアルタイム掲示板の仕様と技術仕様（管理機能追加版）
-
-## 1. 概要
-
-本プロジェクトは、フロントエンドにVanilla JS、バックエンドにExpressを使用したリアルタイムで更新される掲示板システムです。ユーザーの投稿が即座に他のユーザーの画面に反映される機能と、管理者によるユーザー承認システムを実装します。
-
-## 実装状況
-
-### 完了した機能 ✅
-- データベース設定（PostgreSQL）
-- Sequelizeの初期設定
-- ユーザーモデルの実装
-- 認証システムの実装
-  - 新規登録 (`/api/auth/register`)
-  - ログイン (`/api/auth/login`)
-  - ログアウト (`/api/auth/logout`)
-  - JWT認証
-  - パスワードのハッシュ化
-  - 基本的なバリデーション
-- スーパーユーザー機能
-  - 初回起動時のスーパーユーザー自動作成
-  - ロールベースの権限管理（user, admin, superuser）
-- 管理者機能
-  - 承認待ちユーザー一覧の取得
-  - ユーザーの承認/拒否
-  - 管理者ダッシュボード
-  - 管理者権限の付与
-  - メールによる承認/拒否通知
-  - 一括承認機能
-  - カテゴリー管理機能
-  - 共通ヘッダー・サイドバーの実装
-  - レスポンシブ対応
-- スクリーンショット提出方法の変更
-  - メールまたはLINEでの提出に変更
-  - 提出用連絡先情報の管理
-- プロフィール機能
-  - ユーザープロフィール表示
-  - プロフィール編集（ニックネーム、アイコン）
-  - アイコン選択機能（FontAwesomeアイコン）
-- 書類管理機能
-  - 複数書類のアップロード機能
-  - 書類一覧表示
-  - 書類プレビュー表示
-  - 書類削除機能
-
-### 実装中の機能 🚧
-- フロントエンド実装
-  - ユーザー登録/ログインフォーム
-  - 統計情報の可視化
-- 投稿機能実装
-  - スレッド作成機能
-  - 返信機能
-
-### 実装予定の機能 📝
-- WebSocket通信
-- リアクション機能
-
-## 2. 機能要件
-
-### 2.1 基本機能
-- 匿名またはニックネームでの投稿機能
-- 投稿の表示（最新順）
-- 投稿のリアルタイム更新（他ユーザーの投稿がリロードなしで表示）
-- 投稿内容のテキスト形式サポート
-
-### 2.2 ユーザー管理機能
-- ユーザー登録（メールまたはLINEでのスクリーンショット提出による承認制）
-- ログイン・ログアウト機能
-- 未承認ユーザーは閲覧のみ可能
-- 承認済みユーザーのみ投稿可能
-
-### 2.3 管理者機能
-- 専用管理画面へのアクセス
-- ユーザー承認/拒否機能
-- 投稿の管理（編集・削除）
-- スレッド作成・管理機能
-- サイト統計情報の閲覧
-- スーパーユーザーによる管理者の任命
-
-### 2.4 拡張機能
-- 投稿へのリアクション機能（参考になった等）
-- 投稿へのコメント機能
-- 投稿の検索機能
-- カテゴリ別表示機能
-
-## 3. 技術仕様
-
-### 3.1 全体アーキテクチャ
-- クライアント-サーバーモデル
-- RESTful API + WebSocketによるリアルタイム通信
-- PostgreSQLによるデータ永続化
-- マイクロサービスアーキテクチャの採用（将来的な拡張性を考慮）
-
-### 3.2 フロントエンド
-- **基本技術**: 
-  - HTML5
-  - CSS3 (Bootstrap v5.3.3)
-  - Vanilla JavaScript (ES2025)
-  - AdminLTE v3.2.0 (管理画面UI)
-- **通信方式**: 
-  - Fetch API (RESTful API通信)
-  - WebSocket (リアルタイム通信)
-- **主要ライブラリ**:
-  - Socket.io-client v4.7.4
-  - Bootstrap v5.3.3 (モバイルファースト対応)
-  - date-fns v3.3.1
-  - DOMPurify v3.0.9 (XSS対策)
-  - Chart.js v4.4.2 (統計情報の可視化)
-
-### 3.3 バックエンド
-- **サーバー環境**: Node.js v20.12.0 LTS
-- **Webフレームワーク**: Express.js v4.18.3
-- **データベース**: PostgreSQL v17.4
-- **リアルタイム通信**: Socket.io v4.7.4
-- **主要パッケージ**:
-  - express: v4.18.3
-  - pg: v8.11.3
-  - sequelize: v6.37.1
-  - socket.io: v4.7.4
-  - nodemailer: v6.9.12 (メール送信)
-  - jsonwebtoken: v9.0.2
-  - bcrypt: v5.1.1
-  - cors: v2.8.5
-  - dotenv: v16.4.5
-  - helmet: v7.1.0 (セキュリティヘッダー)
-  - rate-limiter-flexible: v2.4.1 (レート制限)
-  - winston: v3.11.0 (ロギング)
-  - joi: v17.12.2 (バリデーション)
-- **ファイルアップロード設定**:
-  - アップロードディレクトリ: `uploads/approval_screenshots`
-  - 最大ファイルサイズ: 5MB
-  - 許可される形式: jpg, jpeg, png
-  - ファイル名: UUID + 元の拡張子
-
-### 3.4 セキュリティ要件
-- HTTPS通信の必須化
-- JWTによる認証（アクセストークン + リフレッシュトークン）
-- パスワードのハッシュ化（bcrypt）
-- XSS対策（DOMPurify）
-- CSRF対策
-- レート制限の実装
-- セキュリティヘッダーの適切な設定
-- 入力値の厳密なバリデーション
-- ファイルアップロードの制限と検証
-- ログイン試行回数の制限
-
-### 3.5 パフォーマンス要件
-- ページロード時間: 2秒以内
-- APIレスポンス時間: 200ms以内
-- WebSocket接続の安定性確保
-- 画像の最適化（WebP形式の使用）
-- キャッシュ戦略の実装
-- データベースインデックスの最適化
-- コネクションプールの適切な設定
-
-### 3.6 エラーハンドリング
-- グローバルエラーハンドリングの実装
-- カスタムエラークラスの定義
-- エラーログの適切な記録
-- ユーザーフレンドリーなエラーメッセージ
-- エラー通知システムの実装
-
-### 3.4 データモデル
-
-#### ユーザーモデル
-```javascript
-{
-  id: UUID,
-  username: String,
-  email: String,
-  password: String (hashed),
-  role: String, // 'user', 'admin', 'superuser'
-  isApproved: Boolean, // 承認状態
-  isSuperAdmin: Boolean, // スーパーユーザー権限
-  submissionMethod: String, // 'email' または 'line'
-  submissionContact: String, // メールアドレスまたはLINE ID
-  approvedAt: Date, // 承認日時
-  approvedBy: UUID, // 承認した管理者のID
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-#### カテゴリモデル
-```javascript
-{
-  id: UUID,
-  name: String,
-  description: String,
-  slug: String,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-#### スレッドモデル
-```javascript
-{
-  id: UUID,
-  title: String,
-  categoryId: UUID,
-  authorId: UUID,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-#### 投稿モデル
-```javascript
-{
-  id: UUID,
-  threadId: UUID,
-  authorId: UUID,
-  content: String,
-  helpfulCount: Number, // 参考になった数
-  helpfulBy: [UUID], // 参考になったを押したユーザー
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### 3.5 API エンドポイント
-
-#### 認証関連
-- `POST /api/auth/register` - ユーザー登録
-- `POST /api/auth/login` - ログイン
-- `GET /api/auth/logout` - ログアウト
-- `POST /api/auth/upload-approval` - 承認用スクリーンショットのアップロード
-
-#### カテゴリ関連
-- `GET /api/categories` - カテゴリ一覧取得
-- `GET /api/categories/:slug` - カテゴリ詳細取得
-
-#### スレッド関連
-- `GET /api/threads` - スレッド一覧取得
-- `GET /api/threads/:id` - スレッド詳細取得
-- `GET /api/categories/:slug/threads` - カテゴリ別スレッド取得
-
-#### 投稿関連
-- `GET /api/threads/:id/posts` - スレッド内投稿一覧取得
-- `POST /api/threads/:id/posts` - 投稿作成
-- `PUT /api/posts/:id` - 投稿更新
-- `DELETE /api/posts/:id` - 投稿削除
-- `POST /api/posts/:id/helpful` - 参考になった追加
-
-#### 管理者API
-- `GET /api/admin/users/pending` - 承認待ちユーザー一覧取得
-- `PUT /api/admin/users/:id/approve` - ユーザー承認
-- `PUT /api/admin/users/:id/reject` - ユーザー拒否
-- `GET /api/admin/users` - 全ユーザー一覧取得
-- `PUT /api/admin/users/:id` - ユーザー情報更新
-- `DELETE /api/admin/users/:id` - ユーザー削除
-- `POST /api/admin/categories` - カテゴリ作成
-- `PUT /api/admin/categories/:id` - カテゴリ更新
-- `DELETE /api/admin/categories/:id` - カテゴリ削除
-- `POST /api/admin/threads` - スレッド作成
-- `PUT /api/admin/threads/:id` - スレッド更新
-- `DELETE /api/admin/threads/:id` - スレッド削除
-- `GET /api/admin/stats` - サイト統計情報取得
-
-### 3.6 WebSocket イベント
-
-#### サーバーからクライアントへ
-- `new-post` - 新規投稿通知
-- `update-post` - 投稿更新通知
-- `delete-post` - 投稿削除通知
-- `update-helpful` - 参考になった更新通知
-- `user-approved` - ユーザー承認通知
-
-#### クライアントからサーバーへ
-- `join-thread` - 特定のスレッドに参加
-- `leave-thread` - スレッドから退出
-
-## 4. 管理画面仕様
-
-### 4.1 管理画面の基本構成
-管理画面は以下のセクションで構成されます：
-
-- **ダッシュボード**: サイト全体の統計情報を表示
-- **ユーザー管理**: ユーザーの一覧、編集、承認管理
-- **コンテンツ管理**: カテゴリ、スレッド、投稿の管理
-- **設定**: サイト全体の設定
-
-### 4.2 ユーザー承認フロー
-1. 管理者が「承認待ちユーザー」セクションにアクセス
-2. 承認待ちユーザー一覧が表示される
-3. 各ユーザーの基本情報とアップロードされたスクリーンショットを確認
-4. 「承認」または「拒否」ボタンをクリック
-5. 承認/拒否理由を入力（オプション）
-6. 確認後、ユーザーステータスが更新される
-7. ユーザーにメール通知が送信される
-
-### 4.3 管理画面UI詳細
-
-#### ダッシュボード
-- 総ユーザー数（承認済み/未承認）
-- 総スレッド数、総投稿数
-- 直近30日間の投稿数グラフ
-- カテゴリ別アクティビティ
-- 最新の承認待ちユーザー（最大5件）
-
-#### ユーザー管理
-- **ユーザー一覧**:
-  - ユーザー名、メール、登録日、ステータス（承認済み/未承認）
-  - 検索・フィルタリング機能
-  - 一括操作（承認/拒否）
-
-- **承認待ちユーザー**:
-  - ユーザー基本情報
-  - スクリーンショットのプレビュー
-  - 「承認」「拒否」ボタン
-  - 拒否理由入力フィールド
-
-- **ユーザー詳細/編集**:
-  - プロフィール情報の編集
-  - ロール変更（一般ユーザー/管理者）
-  - アカウント停止/削除
-
-#### コンテンツ管理
-- **カテゴリ管理**:
-  - カテゴリの作成/編集/削除
-  - カテゴリ順序の変更
-
-- **スレッド管理**:
-  - スレッドの作成/編集/削除
-  - カテゴリ間の移動
-
-- **投稿管理**:
-  - 問題のある投稿の検索
-  - 投稿の編集/削除/非表示
-
-### 4.4 管理画面のセキュリティ
-- 管理画面へのアクセスは管理者ロールを持つユーザーのみ
-- 2段階認証（オプション）
-- 管理操作のログ記録
-- 一部の重要な操作（ユーザー削除など）は確認ダイアログを表示
-
-## 5. ディレクトリ構造
-
-```
-realtime-forum/
-├── frontend/                  # フロントエンドコード
-│   ├── public/                # 静的ファイル
-│   │   ├── index.html         # メインHTML（ユーザー向け）
-│   │   ├── admin/             # 管理画面HTML
-│   │   │   └── index.html
-│   │   ├── css/               # スタイルシート
-│   │   ├── js/                # JavaScriptファイル
-│   │   │   ├── app.js         # メインアプリケーションロジック
-│   │   │   ├── api.js         # APIリクエスト関連
-│   │   │   ├── socket.js      # Socket.io接続管理
-│   │   │   └── admin/         # 管理画面用JS
-│   │   └── assets/            # 画像など
-│   └── package.json
-│
-├── backend/                   # バックエンドコード
-│   ├── src/
-│   │   ├── server.js          # エントリーポイント
-│   │   ├── config/            # 設定ファイル
-│   │   ├── models/            # Sequelizeモデル
-│   │   │   ├── User.js
-│   │   │   ├── Category.js
-│   │   │   ├── Thread.js
-│   │   │   └── Post.js
-│   │   ├── routes/            # APIルート
-│   │   │   ├── auth.js
-│   │   │   ├── categories.js
-│   │   │   ├── threads.js
-│   │   │   ├── posts.js
-│   │   │   └── admin.js       # 管理者API
-│   │   ├── controllers/       # ルートハンドラー
-│   │   ├── middleware/        # ミドルウェア
-│   │   │   ├── auth.js        # 認証ミドルウェア
-│   │   │   ├── upload.js      # ファイルアップロード
-│   │   │   └── admin.js       # 管理者権限チェック
-│   │   └── socket/            # Socket.io関連
-│   ├── uploads/               # アップロードファイル保存先
-│   │   └── approval_screenshots/
-│   ├── .env                   # 環境変数
-│   └── package.json
-│
-└── README.md
-```
-
-## 6. 実装プラン
-
-### 6.1 開発フェーズ
-1. **基本機能の実装**
-   - バックエンドの基本設定とAPI実装
-   - フロントエンドの基本UI実装
-   - リアルタイム通信の実装
-
-2. **ユーザー認証・承認システムの実装**
-   - 登録・ログイン機能
-   - スクリーンショットアップロード機能
-   - 承認フロー
-
-3. **管理画面の実装**
-   - 基本レイアウト作成
-   - ユーザー管理機能
-   - コンテンツ管理機能
-
-4. **機能拡張と最適化**
-   - リアクション機能
-   - 検索・フィルタリング
-   - パフォーマンス最適化
-
-### 6.2 セキュリティとデータ保護
-- 個人情報の適切な保管と処理
-- スクリーンショットなどの証明書類の安全な管理
-- バックアップと復元手順の確立
-
-このドキュメントは、承認制ユーザー登録と管理画面機能を含むリアルタイム掲示板の仕様をまとめたものです。実装時には、具体的なビジネス要件やセキュリティ要件に応じて調整することをお勧めします。
-
-## 7. 開発環境とツール
-
-### 7.1 開発ツール
-- Git v2.44.0
-- VS Code (推奨エディタ)
-- pgAdmin (データベース管理)
-- Postman (APIテスト)
-- Chrome DevTools (フロントエンドデバッグ)
-
-### 7.2 品質管理
-- ESLint v8.57.0
-- Prettier v3.2.5
-- Jest v29.7.0 (テストフレームワーク)
-- Husky v9.0.11 (Git hooks)
-- lint-staged v15.2.2
-
-### 7.3 CI/CD
-- GitHub Actions
-- Docker v25.0.3
-- Docker Compose v2.24.7
-
-## 8. デプロイメント要件
-
-### 8.1 インフラストラクチャ
-- クラウドプラットフォーム: AWS
-- コンテナ化: Docker
-- オーケストレーション: Kubernetes
-- CDN: CloudFront
-- モニタリング: CloudWatch
-
-### 8.2 バックアップ戦略
-- データベースの日次バックアップ
-- ファイルストレージの定期的なバックアップ
-- 障害復旧手順の整備
-- バックアップの暗号化
-
-### 8.3 スケーリング戦略
-- 水平スケーリングの実装
-- ロードバランサーの使用
-- キャッシュレイヤーの実装
-- データベースレプリケーション
-
-## 9. モバイル対応仕様
-
-### 9.1 レスポンシブデザイン要件
-- モバイルファーストアプローチの採用
-- ブレークポイント設定:
-  - xs: < 576px (モバイル)
-  - sm: ≥ 576px (タブレット)
-  - md: ≥ 768px (タブレット横)
-  - lg: ≥ 992px (デスクトップ)
-  - xl: ≥ 1200px (大画面)
-  - xxl: ≥ 1400px (超大画面)
-
-### 9.2 モバイルUI/UX要件
-- **ナビゲーション**:
-  - ハンバーガーメニューによるモバイルナビゲーション
-  - スワイプ可能なタブメニュー
-  - 固定ヘッダー（スクロール時も表示）
-
-- **コンテンツ表示**:
-  - カード型レイアウトの採用
-  - 無限スクロール対応
-  - 画像の最適化（遅延読み込み）
-  - タッチ操作に最適化されたUI
-
-- **入力フォーム**:
-  - モバイルに最適化された入力フィールド
-  - キーボード表示時の自動スクロール
-  - 入力補助機能（オートコンプリート）
-
-- **パフォーマンス最適化**:
-  - 画像のWebP形式対応
-  - レイアウトシフトの最小化
-  - タッチイベントの最適化
-  - オフライン対応（PWA）
-
-### 9.3 モバイル固有機能
-- **プッシュ通知**:
-  - 新規投稿通知
-  - 承認完了通知
-  - メンション通知
-
-- **オフライン機能**:
-  - 投稿の一時保存
-  - オフライン時の投稿キュー
-  - 同期機能
-
-- **メディア対応**:
-  - カメラからの画像アップロード
-  - 音声入力対応
-  - 画像の圧縮処理
-
-### 9.4 モバイルテスト要件
-- **デバイステスト**:
-  - iOS Safari
-  - Android Chrome
-  - 主要なタブレットブラウザ
-  - 異なる画面サイズでの表示確認
-
-- **パフォーマンステスト**:
-  - 3G/4G/5G環境での動作確認
-  - バッテリー消費量の最適化
-  - メモリ使用量の監視
-
-### 9.5 モバイルセキュリティ
-- バイオメトリクス認証対応
-- セキュアなストレージの使用
-- 位置情報の適切な処理
-- プライバシー設定の管理
-
-## 管理者ダッシュボード機能
-
-### 実装済み機能
-- 承認待ちユーザー一覧表示
-  - ユーザー名
-  - メールアドレス
-  - 提出方法（メール/LINE）
-  - 連絡先
-  - 登録日時
-- ユーザー管理機能
-  - 個別承認
-  - 個別拒否
-  - 一括承認
-- 管理者権限チェック
-  - スーパーユーザー、管理者、またはisSuperAdmin: trueのユーザーのみアクセス可能
-
-### 今後の実装予定
-- 承認/拒否時のメール通知機能
-- 承認履歴の表示
-- ユーザー検索機能
-- ソート機能（登録日時順など）
-- ページネーション
-- フィルター機能（提出方法でフィルターなど）
-
-## CORS設定ガイド
-
-### 現在の設定
-```javascript
-const corsOptions = {
-    origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    maxAge: 86400
-};
-```
-
-### エラーが発生しやすい状況と対処方法
-
-1. 認証情報を含むリクエスト
-   - エラー: `Access-Control-Allow-Origin` ヘッダーが '*' の場合、認証情報はサポートされない
-   - 対処:
-     - バックエンド: `credentials: true` を設定
-     - フロントエンド: `credentials: 'include'` を設定
-     - `origin` を具体的なURLで指定（'*'は使用不可）
-
-2. プリフライトリクエスト
-   - エラー: OPTIONSリクエストが失敗する
-   - 対処:
-     - CORSミドルウェアを他のミドルウェアより前に配置
-     - `app.options('*', cors(corsOptions))` を設定
-     - 必要なヘッダーを `allowedHeaders` に追加
-
-3. ヘッダーの不一致
-   - エラー: リクエストヘッダーが許可されていない
-   - 対処:
-     - 使用するヘッダーを `allowedHeaders` に追加
-     - カスタムヘッダーを使用する場合は明示的に追加
-
-4. オリジンの不一致
-   - エラー: リクエスト元のオリジンが許可されていない
-   - 対処:
-     - 開発環境の全てのオリジンを `origin` に追加
-     - 本番環境では適切なオリジンのみを許可
-
-### ベストプラクティス
-1. CORSミドルウェアは最初に設定
-2. 開発環境と本番環境で異なる設定を使用
-3. 必要最小限のオリジンとヘッダーのみを許可
-4. プリフライトリクエストのキャッシュを設定（maxAge）
-5. エラーメッセージを明確に設定
-
-### トラブルシューティング
-1. ブラウザの開発者ツールでCORSエラーを確認
-2. プリフライトリクエスト（OPTIONS）が正しく処理されているか確認
-3. 認証ヘッダーが正しく送信されているか確認
-4. オリジンが許可リストに含まれているか確認
+# 15ch - リアルタイム掲示板システム
+
+## 概要
+
+15chは承認制のリアルタイム掲示板システムです。ユーザーはスクリーンショット提出による承認を受けた後に投稿が可能になります。管理者はユーザー承認、カテゴリー管理、コンテンツ管理などの機能を利用できます。
+
+## サーバー管理情報
+
+### 環境設定
+
+- **本番環境**: VPS（さくらのVPS）
+- **ドメイン**: https://15ch.net
+- **Webサーバー**: Nginx
+- **アプリケーションサーバー**: Node.js + PM2
+- **データベース**: PostgreSQL
+
+### デプロイ手順
+
+1. **初回デプロイ**:
+   ```bash
+   # サーバー上での作業
+   cd /var/www
+   git clone https://github.com/test5151ai/hontono_kuchikomi2.git 15ch
+   cd 15ch/backend
+   npm install
+   cd ../frontend
+   npm install
+   ```
+
+2. **環境変数の設定**:
+   ```bash
+   # バックエンド用の.env作成
+   cd /var/www/15ch/backend
+   cp .env.example .env
+   nano .env  # 必要な環境変数を設定
+   ```
+
+3. **データベースのセットアップ**:
+   ```bash
+   # PostgreSQLデータベース作成
+   sudo -u postgres createdb hontono_kuchikomi
+   
+   # マイグレーション実行
+   cd /var/www/15ch/backend
+   DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate --migrations-path=./src/database/migrations
+   ```
+
+4. **PM2でのアプリケーション起動**:
+   ```bash
+   # PM2のインストール（未インストールの場合）
+   npm install -g pm2
+   
+   # アプリケーション起動
+   cd /var/www/15ch
+   pm2 start ecosystem.config.js
+   
+   # 起動時に自動実行するように設定
+   pm2 save
+   pm2 startup
+   ```
+
+5. **Nginxの設定**:
+   ```bash
+   # Nginx設定ファイルの作成
+   sudo nano /etc/nginx/sites-available/15ch
+   
+   # 以下の内容を追加（ドメインを適切に設定）
+   server {
+       listen 80;
+       server_name 15ch.net www.15ch.net;
+       
+       location / {
+           proxy_pass http://localhost:8080;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+       
+       location /api {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   
+   # シンボリックリンクの作成
+   sudo ln -s /etc/nginx/sites-available/15ch /etc/nginx/sites-enabled/
+   
+   # Nginx設定テスト
+   sudo nginx -t
+   
+   # Nginx再起動
+   sudo systemctl restart nginx
+   ```
+
+6. **SSL証明書の設定（Let's Encrypt）**:
+   ```bash
+   # Certbotのインストール
+   sudo apt-get update
+   sudo apt-get install certbot python3-certbot-nginx
+   
+   # SSL証明書の取得と設定
+   sudo certbot --nginx -d 15ch.net -d www.15ch.net
+   ```
+
+### 日常の管理と運用
+
+#### コードの更新方法
+
+1. **リポジトリの更新（通常の更新）**:
+   ```bash
+   cd /var/www/15ch
+   git pull
+   ```
+
+2. **依存関係の更新（必要に応じて）**:
+   ```bash
+   cd /var/www/15ch/backend
+   npm install
+   
+   cd /var/www/15ch/frontend
+   npm install
+   ```
+
+3. **アプリケーションの再起動**:
+   ```bash
+   pm2 restart all
+   ```
+
+#### データベース操作
+
+1. **マイグレーションの実行**:
+   ```bash
+   cd /var/www/15ch/backend
+   DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate --migrations-path=./src/database/migrations
+   ```
+
+2. **特定のマイグレーションまで実行**:
+   ```bash
+   DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate:to --to ファイル名.js --migrations-path=./src/database/migrations
+   ```
+
+3. **マイグレーションの状態確認**:
+   ```bash
+   DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate:status --migrations-path=./src/database/migrations
+   ```
+
+#### バックアップ
+
+1. **データベースのバックアップ**:
+   ```bash
+   pg_dump -U postgres hontono_kuchikomi > /var/backups/hontono_kuchikomi_$(date +%Y%m%d).sql
+   ```
+
+2. **ファイルのバックアップ**:
+   ```bash
+   tar -czf /var/backups/15ch_files_$(date +%Y%m%d).tar.gz /var/www/15ch/backend/uploads
+   ```
+
+#### トラブルシューティング
+
+1. **ログの確認**:
+   ```bash
+   # PM2ログの確認
+   pm2 logs
+   
+   # 特定のアプリケーションのログ
+   pm2 logs 15ch-backend
+   pm2 logs 15ch-frontend
+   
+   # Nginxのエラーログ
+   sudo tail -f /var/log/nginx/error.log
+   ```
+
+2. **アプリケーションの再起動**:
+   ```bash
+   pm2 restart 15ch-backend
+   pm2 restart 15ch-frontend
+   # または
+   pm2 restart all
+   ```
+
+3. **Nginxの再起動**:
+   ```bash
+   sudo systemctl restart nginx
+   ```
+
+4. **アプリケーションステータスの確認**:
+   ```bash
+   pm2 status
+   ```
+
+## プロジェクト詳細
+
+### 機能概要
+
+- **ユーザー管理**: 登録、ログイン、プロフィール編集、管理者承認
+- **掲示板機能**: スレッド作成、投稿、リアルタイム更新
+- **カテゴリー管理**: 管理者によるカテゴリー追加・編集
+- **管理機能**: ユーザー承認、コンテンツ管理、統計情報
+
+### 関連ドキュメント
+
+- [技術仕様書](./docs/TECHNICAL_SPECS.md) - 技術スタックやアーキテクチャの詳細
+- [API仕様書](./docs/API_SPECS.md) - APIエンドポイントの詳細
+- [開発ガイド](./docs/DEVELOPMENT_GUIDE.md) - 開発環境構築と貢献方法
+- [機能仕様書](./docs/FUNCTIONAL_SPECS.md) - 詳細な機能要件と仕様
+
+## 拡張計画
+
+今後計画されている主な拡張・改善は以下の通りです：
+
+1. **リアルタイム通知機能**: WebSocketを利用した通知システム
+2. **高度な検索機能**: 投稿内容の全文検索
+3. **リアクション機能**: 「参考になった」などのリアクション
+4. **モバイルアプリ対応**: REST APIを活用したモバイルアプリの開発
+5. **統計・分析ダッシュボード**: 詳細な利用統計と分析機能
+
+## ライセンス
+
+このプロジェクトは非公開ソフトウェアです。無断での複製・配布・改変は禁止されています。
+
+---
+
+© 2024 15ch All Rights Reserved.
