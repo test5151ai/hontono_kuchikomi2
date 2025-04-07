@@ -10,8 +10,8 @@ function getBaseUrl() {
     return `${protocol}//${hostname}:3000`;
   }
   
-  // 本番環境の場合は相対パスを使用
-  return '';
+  // 本番環境の場合はAPIドメインを使用
+  return `${protocol}//${hostname}`;
 }
 
 const API_BASE_URL = getBaseUrl();
