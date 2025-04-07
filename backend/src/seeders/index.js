@@ -1,22 +1,35 @@
-const createSuperUser = require('./superuser');
 const createTestUsers = require('./testUsers');
+const createSuperUser = require('./superuser');
+const createDummyUsers = require('./dummyUsers');
 
-const runSeeds = async () => {
+const seedAll = async () => {
     try {
+        console.log('==== シード処理を開始します ====');
+        
         // スーパーユーザーの作成
         await createSuperUser();
-
-        // 開発環境の場合のみテストユーザーを作成
-        if (process.env.NODE_ENV === 'development') {
-            await createTestUsers();
+        console.log('スーパーユーザーの作成が完了しました');
+        
+        // テストユーザーの作成
+        await createTestUsers();
+        console.log('テストユーザーの作成が完了しました');
+        
+        // ダミーユーザーの作成（本番環境では無効）
+        if (process.env.NODE_ENV !== 'production') {
+            await createDummyUsers();
+            console.log('ダミーユーザーの作成が完了しました');
         }
-
-        console.log('シードの実行が完了しました');
-        process.exit(0);
+        
+        console.log('==== すべてのシード処理が完了しました ====');
     } catch (error) {
-        console.error('シードの実行に失敗しました:', error);
+        console.error('シード処理中にエラーが発生しました:', error);
         process.exit(1);
     }
 };
 
-runSeeds(); 
+// スクリプトとして実行された場合
+if (require.main === module) {
+    seedAll();
+}
+
+module.exports = seedAll; 

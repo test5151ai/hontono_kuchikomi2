@@ -3,46 +3,83 @@ const { User } = require('../models');
 
 const createTestUsers = async () => {
     try {
+        // パスワードをハッシュ化
+        const hashedPassword = await bcrypt.hash('udon1234', 10);
+        
         const testUsers = [
+            // 一般ユーザー
             {
-                username: 'test_user1',
-                email: 'test1@example.com',
+                username: 'udon1',
+                email: 'udon1@gmail.com',
+                password: hashedPassword,
+                role: 'user',
                 submissionMethod: 'email',
-                submissionContact: 'test1@example.com'
+                submissionContact: 'udon1@gmail.com',
+                isApproved: true,
+                documentStatus: 'approved',
+                documentVerifiedAt: new Date()
             },
             {
-                username: 'test_user2',
-                email: 'test2@example.com',
-                submissionMethod: 'line',
-                submissionContact: 'line_id_2'
-            },
-            {
-                username: 'test_user3',
-                email: 'test3@example.com',
+                username: 'udon2',
+                email: 'udon2@gmail.com',
+                password: hashedPassword,
+                role: 'user',
                 submissionMethod: 'email',
-                submissionContact: 'test3@example.com'
+                submissionContact: 'udon2@gmail.com',
+                isApproved: true,
+                documentStatus: 'approved',
+                documentVerifiedAt: new Date()
             },
             {
-                username: 'test_user4',
-                email: 'test4@example.com',
-                submissionMethod: 'line',
-                submissionContact: 'line_id_4'
+                username: 'udon3',
+                email: 'udon3@gmail.com',
+                password: hashedPassword,
+                role: 'user',
+                submissionMethod: 'email',
+                submissionContact: 'udon3@gmail.com',
+                isApproved: true,
+                documentStatus: 'approved',
+                documentVerifiedAt: new Date()
+            },
+            // 管理者
+            {
+                username: 'kanriudon',
+                email: 'kanriudon@gmail.com',
+                password: hashedPassword,
+                role: 'admin',
+                submissionMethod: 'email',
+                submissionContact: 'kanriudon@gmail.com',
+                isApproved: true,
+                documentStatus: 'approved',
+                documentVerifiedAt: new Date()
+            },
+            // スーパーユーザー
+            {
+                username: 'superudon',
+                email: 'superudon@gmail.com',
+                password: hashedPassword,
+                role: 'superuser',
+                submissionMethod: 'email',
+                submissionContact: 'superudon@gmail.com',
+                isApproved: true,
+                documentStatus: 'approved',
+                documentVerifiedAt: new Date(),
+                isSuperAdmin: true
             }
         ];
 
         for (const userData of testUsers) {
             const existingUser = await User.findOne({
-                where: { username: userData.username }
+                where: { email: userData.email }
             });
 
             if (!existingUser) {
-                await User.create({
-                    ...userData,
-                    password: await bcrypt.hash('password123', 10),
-                    role: 'user',
-                    isApproved: false
-                });
+                await User.create(userData);
                 console.log(`テストユーザー ${userData.username} を作成しました`);
+            } else {
+                // 既存ユーザーの情報を更新
+                await existingUser.update(userData);
+                console.log(`既存ユーザー ${userData.username} の情報を更新しました`);
             }
         }
 
