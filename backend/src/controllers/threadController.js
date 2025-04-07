@@ -627,6 +627,7 @@ exports.getThreads = async (req, res) => {
                 as: 'category',
                 attributes: ['id', 'name']
             }],
+            attributes: ['id', 'title', 'categoryId', 'authorId', 'createdAt', 'updatedAt'], // 基本的なカラムのみを取得
             order: orderArray,
             limit: parseInt(limit),
             offset: (parseInt(page) - 1) * parseInt(limit),
