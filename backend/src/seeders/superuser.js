@@ -8,16 +8,18 @@ const createSuperUser = async () => {
         });
 
         if (!existingSuperUser) {
-            const hashedPassword = await bcrypt.hash(process.env.SUPERUSER_PASSWORD, 10);
+            const hashedPassword = await bcrypt.hash('superadmin1234', 10);
             await User.create({
-                username: process.env.SUPERUSER_USERNAME,
-                email: process.env.SUPERUSER_EMAIL,
+                username: 'superadmin',
+                email: 'admin@15ch.net',
                 password: hashedPassword,
                 role: 'superuser',
                 isApproved: true,
                 isSuperAdmin: true,
                 submissionMethod: 'email',
-                submissionContact: process.env.SUPERUSER_EMAIL
+                submissionContact: 'admin@15ch.net',
+                documentStatus: 'approved',
+                documentVerifiedAt: new Date()
             });
             console.log('スーパーユーザーを作成しました');
         } else {
