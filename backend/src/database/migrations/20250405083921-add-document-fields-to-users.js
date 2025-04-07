@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.addColumn('Users', 'documentStatus', {
+    await queryInterface.addColumn('users', 'documentStatus', {
       type: Sequelize.STRING,
       allowNull: false,
       defaultValue: 'not_submitted',
@@ -12,38 +12,38 @@ module.exports = {
       }
     });
 
-    await queryInterface.addColumn('Users', 'documentSubmittedAt', {
+    await queryInterface.addColumn('users', 'documentSubmittedAt', {
       type: Sequelize.DATE,
       allowNull: true
     });
 
-    await queryInterface.addColumn('Users', 'documentVerifiedAt', {
+    await queryInterface.addColumn('users', 'documentVerifiedAt', {
       type: Sequelize.DATE,
       allowNull: true
     });
 
-    await queryInterface.addColumn('Users', 'documentVerifiedBy', {
+    await queryInterface.addColumn('users', 'documentVerifiedBy', {
       type: Sequelize.UUID,
       allowNull: true
     });
 
-    await queryInterface.addColumn('Users', 'documentRejectReason', {
+    await queryInterface.addColumn('users', 'documentRejectReason', {
       type: Sequelize.TEXT,
       allowNull: true
     });
 
-    await queryInterface.addColumn('Users', 'documentPath', {
+    await queryInterface.addColumn('users', 'documentPath', {
       type: Sequelize.STRING,
       allowNull: true
     });
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.removeColumn('Users', 'documentStatus');
-    await queryInterface.removeColumn('Users', 'documentSubmittedAt');
-    await queryInterface.removeColumn('Users', 'documentVerifiedAt');
-    await queryInterface.removeColumn('Users', 'documentVerifiedBy');
-    await queryInterface.removeColumn('Users', 'documentRejectReason');
-    await queryInterface.removeColumn('Users', 'documentPath');
+    await queryInterface.removeColumn('users', 'documentStatus');
+    await queryInterface.removeColumn('users', 'documentSubmittedAt');
+    await queryInterface.removeColumn('users', 'documentVerifiedAt');
+    await queryInterface.removeColumn('users', 'documentVerifiedBy');
+    await queryInterface.removeColumn('users', 'documentRejectReason');
+    await queryInterface.removeColumn('users', 'documentPath');
   }
 };

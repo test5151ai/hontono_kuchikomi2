@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('トークンにBearerが含まれているか:', token.includes('Bearer'));
         console.log('作成するAuthorizationヘッダー:', `Bearer ${token}`);
 
-        const response = await fetch(`${API_BASE_URL}/users/me`, {
+        const response = await fetch(getApiUrl('users/me'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 書類ステータスを取得して表示
     async function loadDocumentStatus() {
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/users/document/status`);
+            const response = await fetchWithAuth(getApiUrl('users/document/status'));
             if (!response) return;
             
             const data = await response.json();
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 書類一覧を取得して表示
     async function loadDocuments() {
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/users/document`);
+            const response = await fetchWithAuth(getApiUrl('users/document'));
             if (!response) return;
             
             const data = await response.json();
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const token = getToken();
             if (!token) return;
             
-            const response = await fetch(`${API_BASE_URL}/users/document/upload`, {
+            const response = await fetch(getApiUrl('users/document/upload'), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/users/document/${documentId}`, {
+            const response = await fetchWithAuth(getApiUrl(`users/document/${documentId}`), {
                 method: 'DELETE'
             });
             
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/users/document`, {
+            const response = await fetchWithAuth(getApiUrl('users/document'), {
                 method: 'DELETE'
             });
             
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('リクエストデータ:', requestData);
             
             // リクエスト送信
-            const response = await fetchWithAuth(`${API_BASE_URL}/users/profile`, {
+            const response = await fetchWithAuth(getApiUrl('users/profile'), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

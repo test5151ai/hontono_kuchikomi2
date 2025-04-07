@@ -146,6 +146,7 @@
     <script src="/js/components/footer.js"></script>
     <script src="/js/components/sidebar.js"></script>
     <!-- スレッド一覧スクリプト -->
+    <script src="/js/config.js"></script>
     <script>
         // グローバル変数
         let currentFilters = {
@@ -249,7 +250,7 @@
                 showLoading(true);
                 
                 // APIエンドポイントのURL構築
-                const apiUrl = new URL('http://localhost:3000/api/threads');
+                const apiUrl = new URL(getApiUrl('threads'));
                 
                 // クエリパラメータの追加
                 apiUrl.searchParams.append('page', currentFilters.page);

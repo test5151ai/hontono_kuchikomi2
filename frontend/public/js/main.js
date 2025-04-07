@@ -18,7 +18,7 @@ async function loadPopularThreads() {
 
     try {
         // APIから人気スレッドを取得
-        const response = await fetch('http://localhost:3000/api/threads/popular?limit=4');
+        const response = await fetch(getApiUrl('threads/popular?limit=4'));
         if (!response.ok) {
             throw new Error('APIからのレスポンスが正常ではありません');
         }
@@ -72,7 +72,7 @@ async function loadRecentThreads() {
 
     try {
         // APIから新着スレッドを取得（createdAtで降順ソート、最新4件）
-        const response = await fetch('http://localhost:3000/api/threads?limit=4&sort=createdAt&order=desc');
+        const response = await fetch(getApiUrl('threads?limit=4&sort=createdAt&order=desc'));
         if (!response.ok) {
             throw new Error('APIからのレスポンスが正常ではありません');
         }

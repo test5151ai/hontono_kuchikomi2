@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.classList.add('d-none');
             
             // 登録APIを呼び出す
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(getApiUrl('auth/register'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

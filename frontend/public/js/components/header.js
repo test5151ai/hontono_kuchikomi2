@@ -35,7 +35,7 @@ class SiteHeader extends HTMLElement {
                                     <a class="nav-link" href="/threads.html?popular=true">人気スレッド</a>
                                 </li>
                                 <li class="nav-item admin-nav-item" style="display: none;">
-                                    <a class="nav-link" href="http://localhost:8080/admin/" target="_blank">管理画面</a>
+                                    <a class="nav-link" href="/admin/" target="_blank">管理画面</a>
                                 </li>
                             </ul>
                             <div class="auth-menu">
@@ -98,7 +98,7 @@ class SiteHeader extends HTMLElement {
     // カテゴリー一覧の読み込み
     async loadCategories() {
         try {
-            const response = await fetch('http://localhost:3000/api/categories');
+            const response = await fetch(getApiUrl('categories'));
             const data = await response.json();
             
             const categories = Array.isArray(data) ? data : (data.categories || data.data || []);
