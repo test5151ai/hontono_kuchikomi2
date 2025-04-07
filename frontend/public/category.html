@@ -321,9 +321,15 @@
         // カテゴリー情報を取得して表示
         async function loadCategory() {
             try {
-                const apiUrl = getApiUrl(`categories/${categoryId}`);
-                const url = new URL(apiUrl, window.location.origin);
-                const response = await fetch(url);
+                // APIエンドポイントのURL構築
+                const apiUrlString = getApiUrl(`categories/${categoryId}`);
+                console.log('カテゴリー情報のAPI URL:', apiUrlString);
+                
+                // URLオブジェクトを作成（ベースURLを指定して相対パスを処理）
+                const apiUrl = new URL(apiUrlString, window.location.origin);
+                console.log('最終的なカテゴリー情報API URL:', apiUrl.toString());
+                
+                const response = await fetch(apiUrl);
                 const category = await response.json();
                 
                 const categoryHeader = document.getElementById('category-header');
@@ -353,17 +359,22 @@
                 showLoading(true);
                 
                 // APIエンドポイントのURL構築
-                const apiUrl = getApiUrl(`categories/${categoryId}/threads`);
-                const url = new URL(apiUrl, window.location.origin);
+                const apiUrlString = getApiUrl(`categories/${categoryId}/threads`);
+                console.log('スレッド一覧のAPI URL:', apiUrlString);
+                
+                // URLオブジェクトを作成（ベースURLを指定して相対パスを処理）
+                const apiUrl = new URL(apiUrlString, window.location.origin);
                 
                 // クエリパラメータの追加
-                url.searchParams.append('page', currentFilters.page);
-                url.searchParams.append('limit', 20);
-                url.searchParams.append('search', currentFilters.search);
-                url.searchParams.append('sort', currentFilters.sort);
-                url.searchParams.append('order', currentFilters.order);
+                apiUrl.searchParams.append('page', currentFilters.page);
+                apiUrl.searchParams.append('limit', 20);
+                apiUrl.searchParams.append('search', currentFilters.search);
+                apiUrl.searchParams.append('sort', currentFilters.sort);
+                apiUrl.searchParams.append('order', currentFilters.order);
                 
-                const response = await fetch(url);
+                console.log('最終的なスレッド一覧API URL:', apiUrl.toString());
+                
+                const response = await fetch(apiUrl);
                 const data = await response.json();
                 
                 updateActiveFilters(currentFilters); // アクティブなフィルターの表示を更新

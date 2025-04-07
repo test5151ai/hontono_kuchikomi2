@@ -92,7 +92,16 @@
         async function loadCategories() {
             try {
                 console.log('カテゴリー一覧を取得中...');
-                const response = await fetch(getApiUrl('categories'));
+                
+                // APIエンドポイントのURL構築
+                const apiUrlString = getApiUrl('categories');
+                console.log('生成されたAPI URL:', apiUrlString);
+                
+                // URLオブジェクトを作成（ベースURLを指定して相対パスを処理）
+                const apiUrl = new URL(apiUrlString, window.location.origin);
+                console.log('最終的なAPI URL:', apiUrl.toString());
+                
+                const response = await fetch(apiUrl);
                 console.log('APIレスポンス:', response.status);
                 const data = await response.json();
                 console.log('取得したデータ:', data);

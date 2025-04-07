@@ -289,7 +289,11 @@
                 showLoading(true);
                 
                 // APIエンドポイントのURL構築
-                const apiUrl = new URL(getApiUrl('threads'));
+                const apiUrlString = getApiUrl('threads');
+                console.log('生成されたAPI URL:', apiUrlString);
+                
+                // URLオブジェクトを作成（ベースURLを指定して相対パスを処理）
+                const apiUrl = new URL(apiUrlString, window.location.origin);
                 
                 // クエリパラメータの追加
                 apiUrl.searchParams.append('page', currentFilters.page);
@@ -297,6 +301,8 @@
                 apiUrl.searchParams.append('search', currentFilters.search);
                 apiUrl.searchParams.append('sort', currentFilters.sort);
                 apiUrl.searchParams.append('order', currentFilters.order);
+                
+                console.log('最終的なAPI URL:', apiUrl.toString());
                 
                 const response = await fetch(apiUrl);
                 const data = await response.json();
