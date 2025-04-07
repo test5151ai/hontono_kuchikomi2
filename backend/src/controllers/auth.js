@@ -38,7 +38,11 @@ const register = async (req, res) => {
 
     // JWTトークンの生成
     const token = jwt.sign(
-      { id: user.id },
+      { 
+        id: user.id,
+        role: user.role,
+        username: user.username
+      },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
@@ -92,7 +96,11 @@ const login = async (req, res) => {
 
     // JWTトークンの生成
     const token = jwt.sign(
-      { id: user.id },
+      { 
+        id: user.id,
+        role: user.role,
+        username: user.username
+      },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );

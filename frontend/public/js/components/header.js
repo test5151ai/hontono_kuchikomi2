@@ -85,10 +85,47 @@ class SiteHeader extends HTMLElement {
             if (tokenParts.length !== 3) return;
             
             const payload = JSON.parse(atob(tokenParts[1]));
+            console.log('トークンペイロード:', payload);
             
-            // roleがadmin, superadmin, superuserのいずれかであれば管理者リンクを表示
-            if (payload.role === 'admin' || payload.role === 'superadmin' || payload.role === 'superuser') {
-                this.querySelector('.admin-nav-item').style.display = 'block';
+            // 管理者権限の判定
+            // サーバーから取得したユーザー情報も確認
+            if (payload.id) {
+                try {
+                    // ユーザー情報をAPIから取得
+                    const userResponse = await fetch(getApiUrl('users/me'), {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        console.log('ユーザー情報:', userData);
+                        
+                        // ユーザーのロールに基づいて管理者リンクを表示
+                        if (userData.role === 'admin' || userData.role === 'superuser') {
+                            this.querySelector('.admin-nav-item').style.display = 'block';
+                            console.log('管理者リンクを表示しました');
+                        }
+                    } else {
+                        // APIからの取得に失敗した場合はトークンの情報のみで判断
+                        if (payload.role === 'admin' || payload.role === 'superadmin' || payload.role === 'superuser') {
+                            this.querySelector('.admin-nav-item').style.display = 'block';
+                            console.log('トークンから管理者リンクを表示しました');
+                        }
+                    }
+                } catch (error) {
+                    console.error('ユーザー情報の取得に失敗:', error);
+                    // エラー時はトークンの情報だけで判断
+                    if (payload.role === 'admin' || payload.role === 'superadmin' || payload.role === 'superuser') {
+                        this.querySelector('.admin-nav-item').style.display = 'block';
+                    }
+                }
+            } else {
+                // ID情報がない場合はロールだけで判断
+                if (payload.role === 'admin' || payload.role === 'superadmin' || payload.role === 'superuser') {
+                    this.querySelector('.admin-nav-item').style.display = 'block';
+                }
             }
         } catch (error) {
             console.error('管理者権限の確認に失敗しました:', error);

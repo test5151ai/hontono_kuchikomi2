@@ -12,7 +12,7 @@ const documentUpload = require('../middleware/upload/document');
 router.get('/me', authenticateToken, async (req, res) => {
     try {
         const user = await User.findByPk(req.user.id, {
-            attributes: ['id', 'username', 'email', 'icon', 'createdAt', 'updatedAt']
+            attributes: ['id', 'username', 'email', 'role', 'icon', 'isApproved', 'createdAt', 'updatedAt']
         });
 
         if (!user) {
