@@ -81,7 +81,7 @@ ensureCategories();
 
 // CORSの設定を最初に行う
 const corsOptions = {
-    origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+    origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://15ch.net', 'http://15ch.net'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -114,12 +114,12 @@ app.use(cors(corsOptions));
 app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self' http://localhost:3000 http://localhost:8080; " +
+        "default-src 'self' http://localhost:3000 http://localhost:8080 https://15ch.net; " +
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com http://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
         "font-src 'self' https://fonts.gstatic.com http://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; " +
         "img-src 'self' data: https:; " +
-        "connect-src 'self' http://localhost:3000 http://localhost:8080;"
+        "connect-src 'self' http://localhost:3000 http://localhost:8080 https://15ch.net;"
     );
     next();
 });
