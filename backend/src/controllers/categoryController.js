@@ -4,7 +4,18 @@ const { Op } = require('sequelize');
 // カテゴリー一覧を取得
 exports.getAllCategories = async (req, res) => {
     try {
-        console.log('カテゴリー一覧を取得開始');
+        console.log('カテゴリー一覧を取得開始 - 詳細デバッグモード');
+        
+        // まずカテゴリーとスレッドの数を直接SQLで確認
+        const rawResult = await sequelize.query(`
+            SELECT c.id, c.name, COUNT(t.id) as thread_count 
+            FROM categories c 
+            LEFT JOIN threads t ON c.id = t."categoryId" 
+            GROUP BY c.id, c.name
+        `, { type: sequelize.QueryTypes.SELECT });
+        
+        console.log('SQLによるカテゴリーとスレッド数:', JSON.stringify(rawResult, null, 2));
+        
         const categories = await Category.findAll({
             include: [{
                 model: Thread,
@@ -13,6 +24,9 @@ exports.getAllCategories = async (req, res) => {
             }],
             order: [['id', 'ASC']]
         });
+        
+        console.log('カテゴリー数:', categories.length);
+        console.log('カテゴリー一覧（生データ）:', JSON.stringify(categories.map(c => c.toJSON()), null, 2));
         
         // スレッド数を追加
         const categoriesWithCount = categories.map(category => {

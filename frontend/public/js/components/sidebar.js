@@ -35,6 +35,8 @@ class PopularThreadsSidebar extends HTMLElement {
             const response = await fetch(apiUrl);
             const popularThreads = await response.json();
             
+            console.log('人気スレッド取得結果:', popularThreads);
+            
             // 現在のスレッドIDを取得
             const urlParams = new URLSearchParams(window.location.search);
             const threadId = urlParams.get('id');
@@ -51,7 +53,7 @@ class PopularThreadsSidebar extends HTMLElement {
                     ${popularThreads && popularThreads.length > 0 ? 
                         popularThreads.map(thread => `
                             <li class="list-group-item py-2 border-bottom">
-                                <a href="/thread.html?id=${thread.id}" class="d-block text-truncate mb-1 fw-medium ${thread.id === parseInt(threadId) ? 'text-primary' : ''}">
+                                <a href="/thread.html?id=${thread.id}" class="d-block text-truncate mb-1 fw-medium ${thread.id === threadId ? 'text-primary' : ''}">
                                     ${thread.title}
                                 </a>
                                 <div class="d-flex justify-content-between align-items-center small text-muted" style="font-size: 0.75rem;">
