@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com http://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com http://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 http://localhost:8080 https://15ch.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com http://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com http://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:;">
     <title>カテゴリー - 15ch.net</title>
     
     <!-- Bootstrap CSS -->
@@ -283,7 +283,9 @@
         // カテゴリー情報を取得して表示
         async function loadCategory() {
             try {
-                const response = await fetch(getApiUrl(`categories/${categoryId}`));
+                const apiUrl = getApiUrl(`categories/${categoryId}`);
+                const url = new URL(apiUrl, window.location.origin);
+                const response = await fetch(url);
                 const category = await response.json();
                 
                 const categoryHeader = document.getElementById('category-header');
@@ -313,16 +315,17 @@
                 showLoading(true);
                 
                 // APIエンドポイントのURL構築
-                const apiUrl = new URL(getApiUrl(`categories/${categoryId}/threads`));
+                const apiUrl = getApiUrl(`categories/${categoryId}/threads`);
+                const url = new URL(apiUrl, window.location.origin);
                 
                 // クエリパラメータの追加
-                apiUrl.searchParams.append('page', currentFilters.page);
-                apiUrl.searchParams.append('limit', 20);
-                apiUrl.searchParams.append('search', currentFilters.search);
-                apiUrl.searchParams.append('sort', currentFilters.sort);
-                apiUrl.searchParams.append('order', currentFilters.order);
+                url.searchParams.append('page', currentFilters.page);
+                url.searchParams.append('limit', 20);
+                url.searchParams.append('search', currentFilters.search);
+                url.searchParams.append('sort', currentFilters.sort);
+                url.searchParams.append('order', currentFilters.order);
                 
-                const response = await fetch(apiUrl);
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 updateActiveFilters(currentFilters); // アクティブなフィルターの表示を更新
