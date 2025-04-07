@@ -18,6 +18,19 @@
             right: 20px;
             z-index: 1000;
         }
+        .help-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1.2rem;
+            color: #17a2b8;
+        }
+        .modal-body img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -34,7 +47,9 @@
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">ダッシュボード</h1>
+                            <h1 class="m-0">ダッシュボード
+                                <i class="bi bi-question-circle help-icon" data-bs-toggle="modal" data-bs-target="#dashboardHelpModal"></i>
+                            </h1>
                         </div>
                     </div>
                 </div>
@@ -154,6 +169,185 @@
     <!-- トースト通知 -->
     <div class="toast-container"></div>
 
+    <!-- ヘルプモーダル - ダッシュボード -->
+    <div class="modal fade" id="dashboardHelpModal" tabindex="-1" aria-labelledby="dashboardHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title" id="dashboardHelpModalLabel">管理者ダッシュボードの使い方</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>管理者ダッシュボードについて</h4>
+                    <p>管理者ダッシュボードでは、サイト全体の運営に必要な様々な機能にアクセスできます。主な機能は以下の通りです：</p>
+                    
+                    <div class="mb-4">
+                        <h5><i class="bi bi-people text-info"></i> ユーザー管理</h5>
+                        <p>ユーザーの承認、管理、統計情報の確認ができます。15chでは実際のユーザーだけが口コミを投稿できるよう、スクリーンショットによる承認制を採用しています。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5><i class="bi bi-tags text-warning"></i> カテゴリー管理</h5>
+                        <p>掲示板のカテゴリーを作成・編集・削除できます。適切なカテゴリー分けでユーザーの利便性が向上します。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5><i class="bi bi-chat-dots text-danger"></i> スレッド管理</h5>
+                        <p>投稿されたスレッドの管理、不適切なコンテンツの監視と対応ができます。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5><i class="bi bi-gear"></i> システム設定</h5>
+                        <p>サイト全体の設定や維持管理に関する機能を利用できます。</p>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="dontShowAgainCheck">
+                        <label class="form-check-label" for="dontShowAgainCheck">
+                            次回から表示しない
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="nextHelpBtn">次へ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ヘルプモーダル - ユーザー承認 -->
+    <div class="modal fade" id="userApprovalHelpModal" tabindex="-1" aria-labelledby="userApprovalHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title" id="userApprovalHelpModalLabel">ユーザー承認の手順</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>ユーザー承認の重要性</h4>
+                    <p>15chでは、実際のサービス利用者だけが投稿できるようにするため、ユーザー登録時にスクリーンショットによる承認プロセスを設けています。</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> ユーザーは自分のマイページから利用画面のスクリーンショットをアップロードします。管理者はこの証明を確認して承認を行います。
+                    </div>
+                    
+                    <h5>承認の手順：</h5>
+                    <ol>
+                        <li>「承認待ちユーザー」ページにアクセスする</li>
+                        <li>ユーザーが提出したスクリーンショットを確認する</li>
+                        <li>以下の基準に基づいて判断する：
+                            <ul>
+                                <li>スクリーンショットが明確に対象サービスの利用を示しているか</li>
+                                <li>個人情報が適切に処理されているか</li>
+                                <li>明らかな改ざんの痕跡がないか</li>
+                            </ul>
+                        </li>
+                        <li>基準を満たしていれば「承認」ボタンをクリック</li>
+                        <li>問題がある場合は「拒否」ボタンをクリックし、理由を入力</li>
+                    </ol>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 承認は慎重に行ってください。不適切なユーザーを承認すると、コミュニティの質が低下する可能性があります。
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="prevUserApprovalBtn">前へ</button>
+                    <button type="button" class="btn btn-primary" id="nextUserApprovalBtn">次へ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ヘルプモーダル - カテゴリー管理 -->
+    <div class="modal fade" id="categoryHelpModal" tabindex="-1" aria-labelledby="categoryHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="categoryHelpModalLabel">カテゴリー管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>カテゴリーの重要性</h4>
+                    <p>適切なカテゴリー分けは、ユーザーが関心のある話題を見つけやすくするために重要です。</p>
+                    
+                    <h5>カテゴリー管理の手順：</h5>
+                    <ol>
+                        <li>「カテゴリー管理」ページにアクセスする</li>
+                        <li>新規カテゴリーを追加する場合は「新規カテゴリー作成」ボタンをクリック</li>
+                        <li>既存カテゴリーを編集する場合は対象の「編集」ボタンをクリック</li>
+                        <li>カテゴリー名と説明を入力</li>
+                        <li>「保存」ボタンをクリックして変更を確定</li>
+                    </ol>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i> <strong>カテゴリー名のベストプラクティス：</strong>
+                        <ul>
+                            <li>短く、明確で理解しやすい名前を使用する</li>
+                            <li>一貫性のある命名規則を使用する</li>
+                            <li>カテゴリー間で内容が重複しないようにする</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> カテゴリーを削除すると、そのカテゴリーに属するすべてのスレッドも削除されます。慎重に行ってください。
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="prevCategoryBtn">前へ</button>
+                    <button type="button" class="btn btn-primary" id="nextCategoryBtn">次へ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ヘルプモーダル - スレッド管理 -->
+    <div class="modal fade" id="threadHelpModal" tabindex="-1" aria-labelledby="threadHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title" id="threadHelpModalLabel">スレッド管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>スレッド管理の重要性</h4>
+                    <p>健全なコミュニティを維持するためには、不適切なコンテンツの監視と対応が重要です。</p>
+                    
+                    <h5>スレッド管理の手順：</h5>
+                    <ol>
+                        <li>「スレッド管理」ページにアクセスする</li>
+                        <li>スレッドの一覧が表示される</li>
+                        <li>検索やフィルタリング機能を使って特定のスレッドを見つける</li>
+                        <li>対象のスレッドの「詳細」ボタンをクリックして内容を確認</li>
+                        <li>不適切なコンテンツがある場合は「非表示」または「削除」ボタンをクリック</li>
+                        <li>操作の理由を記録として残す</li>
+                    </ol>
+                    
+                    <div class="alert alert-danger">
+                        <i class="bi bi-shield-exclamation"></i> <strong>不適切なコンテンツの判断基準：</strong>
+                        <ul>
+                            <li>利用規約に違反するコンテンツ</li>
+                            <li>他のユーザーへの嫌がらせや攻撃的な内容</li>
+                            <li>虚偽の情報や誤解を招く内容</li>
+                            <li>個人情報の不適切な開示</li>
+                            <li>著作権侵害や違法な内容</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> スレッドを削除すると、そのスレッドに属するすべての投稿も削除されます。この操作は元に戻せないため、慎重に行ってください。
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="prevThreadBtn">前へ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- AdminLTE JS -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -173,6 +367,73 @@
             .then(html => {
                 document.getElementById('sidebar').innerHTML = html;
             });
+            
+        // ヘルプモーダルのナビゲーション
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初回ログイン時か確認してモーダルを表示
+            if (!localStorage.getItem('dashboardHelpShown')) {
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('dashboardHelpModal')).show();
+                }, 1000);
+            }
+            
+            // 「次回から表示しない」チェックボックス
+            document.getElementById('dontShowAgainCheck').addEventListener('change', function(e) {
+                if (e.target.checked) {
+                    localStorage.setItem('dashboardHelpShown', 'true');
+                } else {
+                    localStorage.removeItem('dashboardHelpShown');
+                }
+            });
+            
+            // ダッシュボードヘルプ → ユーザー承認ヘルプ
+            document.getElementById('nextHelpBtn').addEventListener('click', function() {
+                new bootstrap.Modal(document.getElementById('dashboardHelpModal')).hide();
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('userApprovalHelpModal')).show();
+                }, 500);
+            });
+            
+            // ユーザー承認ヘルプ → ダッシュボードヘルプ
+            document.getElementById('prevUserApprovalBtn').addEventListener('click', function() {
+                new bootstrap.Modal(document.getElementById('userApprovalHelpModal')).hide();
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('dashboardHelpModal')).show();
+                }, 500);
+            });
+            
+            // ユーザー承認ヘルプ → カテゴリーヘルプ
+            document.getElementById('nextUserApprovalBtn').addEventListener('click', function() {
+                new bootstrap.Modal(document.getElementById('userApprovalHelpModal')).hide();
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('categoryHelpModal')).show();
+                }, 500);
+            });
+            
+            // カテゴリーヘルプ → ユーザー承認ヘルプ
+            document.getElementById('prevCategoryBtn').addEventListener('click', function() {
+                new bootstrap.Modal(document.getElementById('categoryHelpModal')).hide();
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('userApprovalHelpModal')).show();
+                }, 500);
+            });
+            
+            // カテゴリーヘルプ → スレッドヘルプ
+            document.getElementById('nextCategoryBtn').addEventListener('click', function() {
+                new bootstrap.Modal(document.getElementById('categoryHelpModal')).hide();
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('threadHelpModal')).show();
+                }, 500);
+            });
+            
+            // スレッドヘルプ → カテゴリーヘルプ
+            document.getElementById('prevThreadBtn').addEventListener('click', function() {
+                new bootstrap.Modal(document.getElementById('threadHelpModal')).hide();
+                setTimeout(() => {
+                    new bootstrap.Modal(document.getElementById('categoryHelpModal')).show();
+                }, 500);
+            });
+        });
     </script>
 </body>
 </html> 

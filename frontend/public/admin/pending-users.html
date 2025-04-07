@@ -28,6 +28,9 @@
                             <button class="btn btn-primary float-right" id="bulkApproveBtn">
                                 <i class="bi bi-check-circle"></i> 選択したユーザーを承認
                             </button>
+                            <button class="btn btn-info float-right me-2" data-bs-toggle="modal" data-bs-target="#screenshotHelpModal">
+                                <i class="bi bi-question-circle"></i> スクリーンショット確認手順
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -66,6 +69,83 @@
             <strong>Copyright &copy; 2024 <a href="#">Hontono Kuchikomi</a>.</strong>
             All rights reserved.
         </footer>
+    </div>
+
+    <!-- スクリーンショット確認ヘルプモーダル -->
+    <div class="modal fade" id="screenshotHelpModal" tabindex="-1" aria-labelledby="screenshotHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title" id="screenshotHelpModalLabel">スクリーンショット確認手順</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4>スクリーンショット確認の重要性</h4>
+                    <p>15chでは、実際のサービス利用者だけが口コミを投稿できるよう、スクリーンショットによる承認制を採用しています。これにより、信頼性の高い口コミの収集と、質の高いコミュニティの維持を実現しています。</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>ユーザーの流れ：</strong><br>
+                        1. ユーザーは登録後、マイページからスクリーンショットをアップロード<br>
+                        2. 管理者がスクリーンショットを確認し、承認または拒否<br>
+                        3. 承認されたユーザーのみが投稿可能に
+                    </div>
+                    
+                    <h5>スクリーンショット確認のポイント：</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> 承認すべきスクリーンショット</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li>対象サービスの利用画面が明確に確認できる</li>
+                                        <li>ユーザー名やアカウント情報が確認できる</li>
+                                        <li>最近の日付が確認できる（可能な場合）</li>
+                                        <li>画像が鮮明で改ざんの痕跡がない</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0"><i class="bi bi-x-circle"></i> 拒否すべきスクリーンショット</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li>対象サービスとは無関係な画像</li>
+                                        <li>明らかに編集・改ざんされている</li>
+                                        <li>極端に古い日付の画面キャプチャ</li>
+                                        <li>極端に不鮮明で内容確認ができない</li>
+                                        <li>他人の個人情報が過剰に含まれている</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>確認手順：</h5>
+                    <ol>
+                        <li>ユーザーリストから確認したいユーザーの「詳細」ボタンをクリック</li>
+                        <li>アップロードされたスクリーンショットを確認</li>
+                        <li>スクリーンショットの内容が基準を満たしているか確認</li>
+                        <li>問題がなければ「承認」ボタンをクリック</li>
+                        <li>問題がある場合は「拒否」をクリックし、理由を入力</li>
+                    </ol>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>注意事項：</strong><br>
+                        ・拒否したユーザーには自動的に理由が通知されます<br>
+                        ・ユーザーは再度スクリーンショットを提出することができます<br>
+                        ・判断に迷う場合は、他の管理者に相談してください
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- AdminLTE JS -->
