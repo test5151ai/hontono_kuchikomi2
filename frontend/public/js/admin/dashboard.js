@@ -1,7 +1,7 @@
 // 管理者ダッシュボードのメインJavaScriptファイル
 
 // APIエンドポイントの設定
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
 const ADMIN_API = {
     PENDING_USERS: `${API_BASE_URL}/admin/users/pending`,
     USERS: `${API_BASE_URL}/admin/users`,
