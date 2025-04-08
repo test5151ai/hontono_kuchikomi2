@@ -161,79 +161,6 @@
                         </div>
                     </div>
                     
-                    <!-- 詳細フィルター -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
-                                    詳細検索 <i class="bi bi-chevron-down"></i>
-                                </button>
-                            </h5>
-                        </div>
-                        <div class="collapse" id="filterCollapse">
-                            <div class="card-body">
-                                <form id="advancedFilterForm">
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>登録日（から）</label>
-                                                <input type="date" class="form-control" id="dateFrom">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>登録日（まで）</label>
-                                                <input type="date" class="form-control" id="dateTo">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>ステータス</label>
-                                                <select class="form-select" id="advancedStatusFilter">
-                                                    <option value="">すべて</option>
-                                                    <option value="approved">認証済</option>
-                                                    <option value="pending">未認証</option>
-                                                    <option value="rejected">拒否</option>
-                                                    <option value="not_submitted">書類待ち</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3 d-flex align-items-end">
-                                            <button type="submit" class="btn btn-primary w-100" id="applyFilter">検索</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- データビジュアライゼーション -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#chartsCollapse">
-                                    ユーザー統計 <i class="bi bi-chevron-down"></i>
-                                </button>
-                            </h5>
-                        </div>
-                        <div class="collapse" id="chartsCollapse">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="chart-container">
-                                            <canvas id="statusChart" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="chart-container">
-                                            <canvas id="registrationChart" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="card">
                         <div class="card-header p-0">
                             <ul class="nav nav-tabs" id="userStatusTabs" role="tablist">
@@ -275,6 +202,53 @@
                                             </button>
                                         </div>
                                     </div>
+                                    
+                                    <!-- 詳細フィルター（全ユーザータブ） -->
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapseAll">
+                                                    詳細検索 <i class="bi bi-chevron-down"></i>
+                                                </button>
+                                            </h5>
+                                        </div>
+                                        <div class="collapse" id="filterCollapseAll">
+                                            <div class="card-body">
+                                                <form id="advancedFilterFormAll">
+                                                    <div class="row">
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label>登録日（から）</label>
+                                                                <input type="date" class="form-control" id="dateFromAll">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label>登録日（まで）</label>
+                                                                <input type="date" class="form-control" id="dateToAll">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label>ステータス</label>
+                                                                <select class="form-select" id="advancedStatusFilterAll">
+                                                                    <option value="">すべて</option>
+                                                                    <option value="approved">認証済</option>
+                                                                    <option value="pending">未認証</option>
+                                                                    <option value="rejected">拒否</option>
+                                                                    <option value="not_submitted">書類待ち</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 d-flex align-items-end">
+                                                            <button type="submit" class="btn btn-primary w-100" id="applyFilterAll">検索</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -321,6 +295,41 @@
                                             </button>
                                         </div>
                                     </div>
+                                    
+                                    <!-- 詳細フィルター（承認待ちタブ） -->
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapsePending">
+                                                    詳細検索 <i class="bi bi-chevron-down"></i>
+                                                </button>
+                                            </h5>
+                                        </div>
+                                        <div class="collapse" id="filterCollapsePending">
+                                            <div class="card-body">
+                                                <form id="advancedFilterFormPending">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（から）</label>
+                                                                <input type="date" class="form-control" id="dateFromPending">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（まで）</label>
+                                                                <input type="date" class="form-control" id="dateToPending">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 d-flex align-items-end">
+                                                            <button type="submit" class="btn btn-primary w-100" id="applyFilterPending">検索</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -367,6 +376,41 @@
                                             </button>
                                         </div>
                                     </div>
+                                    
+                                    <!-- 詳細フィルター（承認済みタブ） -->
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapseApproved">
+                                                    詳細検索 <i class="bi bi-chevron-down"></i>
+                                                </button>
+                                            </h5>
+                                        </div>
+                                        <div class="collapse" id="filterCollapseApproved">
+                                            <div class="card-body">
+                                                <form id="advancedFilterFormApproved">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（から）</label>
+                                                                <input type="date" class="form-control" id="dateFromApproved">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（まで）</label>
+                                                                <input type="date" class="form-control" id="dateToApproved">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 d-flex align-items-end">
+                                                            <button type="submit" class="btn btn-primary w-100" id="applyFilterApproved">検索</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -413,6 +457,41 @@
                                             </button>
                                         </div>
                                     </div>
+                                    
+                                    <!-- 詳細フィルター（拒否済みタブ） -->
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapseRejected">
+                                                    詳細検索 <i class="bi bi-chevron-down"></i>
+                                                </button>
+                                            </h5>
+                                        </div>
+                                        <div class="collapse" id="filterCollapseRejected">
+                                            <div class="card-body">
+                                                <form id="advancedFilterFormRejected">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（から）</label>
+                                                                <input type="date" class="form-control" id="dateFromRejected">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（まで）</label>
+                                                                <input type="date" class="form-control" id="dateToRejected">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 d-flex align-items-end">
+                                                            <button type="submit" class="btn btn-primary w-100" id="applyFilterRejected">検索</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -459,6 +538,41 @@
                                             </button>
                                         </div>
                                     </div>
+                                    
+                                    <!-- 詳細フィルター（未提出タブ） -->
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapseNotSubmitted">
+                                                    詳細検索 <i class="bi bi-chevron-down"></i>
+                                                </button>
+                                            </h5>
+                                        </div>
+                                        <div class="collapse" id="filterCollapseNotSubmitted">
+                                            <div class="card-body">
+                                                <form id="advancedFilterFormNotSubmitted">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（から）</label>
+                                                                <input type="date" class="form-control" id="dateFromNotSubmitted">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label>登録日（まで）</label>
+                                                                <input type="date" class="form-control" id="dateToNotSubmitted">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 d-flex align-items-end">
+                                                            <button type="submit" class="btn btn-primary w-100" id="applyFilterNotSubmitted">検索</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>

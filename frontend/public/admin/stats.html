@@ -7,6 +7,17 @@
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* 統計パネルのスタイル */
+        .stats-card {
+            transition: all 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -49,6 +60,54 @@
                                 </div>
                                 <div class="card-body">
                                     <canvas id="categoryStatsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ユーザーステータス統計カード -->
+                    <div class="row mb-4" id="statsRow">
+                        <div class="col-md-3">
+                            <div class="small-box bg-info stats-card">
+                                <div class="inner">
+                                    <h3 id="totalUsersCount">0</h3>
+                                    <p>総ユーザー数</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-success stats-card">
+                                <div class="inner">
+                                    <h3 id="approvedUsersCount">0</h3>
+                                    <p>認証済みユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-warning stats-card">
+                                <div class="inner">
+                                    <h3 id="pendingUsersCount">0</h3>
+                                    <p>未認証ユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-danger stats-card">
+                                <div class="inner">
+                                    <h3 id="rejectedUsersCount">0</h3>
+                                    <p>拒否ユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-x-circle"></i>
                                 </div>
                             </div>
                         </div>

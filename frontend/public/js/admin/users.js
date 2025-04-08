@@ -125,77 +125,111 @@ class PendingUsers {
         document.getElementById('exportCsv').addEventListener('click', () => this.exportData('csv'));
         document.getElementById('exportExcel').addEventListener('click', () => this.exportData('excel'));
         
-        // 詳細フィルターフォーム
-        document.getElementById('advancedFilterForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.applyAdvancedFilter();
+        // 詳細フィルターフォーム（各タブ）
+        const filterForms = [
+            { id: 'advancedFilterFormAll', tab: 'all' },
+            { id: 'advancedFilterFormPending', tab: 'pending' },
+            { id: 'advancedFilterFormApproved', tab: 'approved' },
+            { id: 'advancedFilterFormRejected', tab: 'rejected' },
+            { id: 'advancedFilterFormNotSubmitted', tab: 'notSubmitted' }
+        ];
+        
+        filterForms.forEach(form => {
+            const formElement = document.getElementById(form.id);
+            if (formElement) {
+                formElement.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.applyAdvancedFilter(form.tab);
+                });
+            }
         });
         
         // 全選択チェックボックス
-        document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('#pendingUsersTable .user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                this.handleUserSelection(checkbox);
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTable .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
             });
-        });
+        }
         
         // 承認待ちタブの全選択チェックボックス
-        document.getElementById('selectAllPendingCheckbox').addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('#pendingUsersTableSubmitted .user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                this.handleUserSelection(checkbox);
+        const selectAllPendingCheckbox = document.getElementById('selectAllPendingCheckbox');
+        if (selectAllPendingCheckbox) {
+            selectAllPendingCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableSubmitted .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
             });
-        });
+        }
         
         // 拒否済みタブの全選択チェックボックス
-        document.getElementById('selectAllRejectedCheckbox').addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('#pendingUsersTableRejected .user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                this.handleUserSelection(checkbox);
+        const selectAllRejectedCheckbox = document.getElementById('selectAllRejectedCheckbox');
+        if (selectAllRejectedCheckbox) {
+            selectAllRejectedCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableRejected .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
             });
-        });
+        }
         
         // 未提出タブの全選択チェックボックス
-        document.getElementById('selectAllNotSubmittedCheckbox').addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('#pendingUsersTableNotSubmitted .user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                this.handleUserSelection(checkbox);
+        const selectAllNotSubmittedCheckbox = document.getElementById('selectAllNotSubmittedCheckbox');
+        if (selectAllNotSubmittedCheckbox) {
+            selectAllNotSubmittedCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableNotSubmitted .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
             });
-        });
+        }
         
         // 承認済みタブの全選択チェックボックス
-        document.getElementById('selectAllApprovedCheckbox').addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('#pendingUsersTableApproved .user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                this.handleUserSelection(checkbox);
+        const selectAllApprovedCheckbox = document.getElementById('selectAllApprovedCheckbox');
+        if (selectAllApprovedCheckbox) {
+            selectAllApprovedCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableApproved .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
             });
-        });
+        }
         
         // ページネーションイベントリスナー
         const tabIds = ['all', 'pending', 'approved', 'rejected', 'notSubmitted'];
         tabIds.forEach(tabId => {
             // 前へボタン
-            document.getElementById(`${tabId}-prev`).addEventListener('click', (e) => {
-                e.preventDefault();
-                if (this.pagination[tabId].page > 1) {
-                    this.pagination[tabId].page--;
-                    this.renderFilteredTable(tabId);
-                }
-            });
+            const prevButton = document.getElementById(`${tabId}-prev`);
+            if (prevButton) {
+                prevButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (this.pagination[tabId].page > 1) {
+                        this.pagination[tabId].page--;
+                        this.renderFilteredTable(tabId);
+                    }
+                });
+            }
             
             // 次へボタン
-            document.getElementById(`${tabId}-next`).addEventListener('click', (e) => {
-                e.preventDefault();
-                if (this.pagination[tabId].page < this.pagination[tabId].totalPages) {
-                    this.pagination[tabId].page++;
-                    this.renderFilteredTable(tabId);
-                }
-            });
+            const nextButton = document.getElementById(`${tabId}-next`);
+            if (nextButton) {
+                nextButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (this.pagination[tabId].page < this.pagination[tabId].totalPages) {
+                        this.pagination[tabId].page++;
+                        this.renderFilteredTable(tabId);
+                    }
+                });
+            }
         });
         
         // 検索フィールドの処理
@@ -209,15 +243,24 @@ class PendingUsers {
         
         searchFields.forEach(field => {
             // 検索入力イベント
-            document.getElementById(field.id).addEventListener('input', (e) => {
-                this.handleSearch(e.target.value, field.tab);
-            });
+            const searchField = document.getElementById(field.id);
+            if (searchField) {
+                searchField.addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value, field.tab);
+                });
+            }
             
             // クリアボタン
-            document.getElementById(`clearSearch${field.tab.charAt(0).toUpperCase() + field.tab.slice(1)}`).addEventListener('click', () => {
-                document.getElementById(field.id).value = '';
-                this.handleSearch('', field.tab);
-            });
+            const clearButton = document.getElementById(`clearSearch${field.tab.charAt(0).toUpperCase() + field.tab.slice(1)}`);
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    const searchInput = document.getElementById(field.id);
+                    if (searchInput) {
+                        searchInput.value = '';
+                        this.handleSearch('', field.tab);
+                    }
+                });
+            }
         });
         
         // ソート機能のイベントリスナー
@@ -230,9 +273,12 @@ class PendingUsers {
         });
         
         // 一括拒否確定ボタン
-        document.getElementById('confirmBulkReject').addEventListener('click', () => {
-            this.confirmBulkReject();
-        });
+        const confirmBulkRejectBtn = document.getElementById('confirmBulkReject');
+        if (confirmBulkRejectBtn) {
+            confirmBulkRejectBtn.addEventListener('click', () => {
+                this.confirmBulkReject();
+            });
+        }
         
         // タブの切り替えイベント
         document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
@@ -984,23 +1030,26 @@ class PendingUsers {
     }
 
     // 高度なフィルター適用
-    applyAdvancedFilter() {
+    applyAdvancedFilter(tabId = 'all') {
         // フォームから値を取得
-        const dateFrom = document.getElementById('dateFrom').value;
-        const dateTo = document.getElementById('dateTo').value;
-        const status = document.getElementById('advancedStatusFilter').value;
-        
+        const dateFrom = document.getElementById(`dateFrom${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).value;
+        const dateTo = document.getElementById(`dateTo${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).value;
+        const status = tabId === 'all' ? 
+            document.getElementById(`advancedStatusFilter${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).value : 
+            '';
+
         // フィルター設定を更新
         this.advancedFilter = {
-            dateFrom: dateFrom ? new Date(dateFrom) : null,
-            dateTo: dateTo ? new Date(dateTo) : null,
-            status
+            dateFrom: dateFrom || null,
+            dateTo: dateTo || null,
+            status: status || ''
         };
-        
-        console.log('高度なフィルター適用:', this.advancedFilter);
-        
-        // すべてのタブを再フィルタリング
+
+        // ユーザーをフィルタリングして再描画
         this.filterAllTabs();
+        
+        // 特定のタブに対して表示を更新
+        this.renderFilteredTable(tabId);
     }
     
     // フィルタリングロジック（高度なフィルターを含む）
