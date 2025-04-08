@@ -9,6 +9,7 @@ const userRoutes = require('./routes/users');
 const categoryRoutes = require('./routes/categories');
 const threadRoutes = require('./routes/threads');
 const apiRoutes = require('./routes/api');
+const accessLogger = require('./middleware/accessLogger');
 
 // カテゴリーのシードデータ
 const categorySeeds = [
@@ -109,6 +110,9 @@ app.use((req, res, next) => {
 
 // CORSミドルウェアを最初に適用
 app.use(cors(corsOptions));
+
+// アクセスログミドルウェアを追加（認証後のリクエストを記録）
+app.use('/api', accessLogger);
 
 // Content Security Policyの設定
 app.use((req, res, next) => {

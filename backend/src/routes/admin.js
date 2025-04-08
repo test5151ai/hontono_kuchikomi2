@@ -6,6 +6,7 @@ const categoryController = require('../controllers/admin/categories');
 const userController = require('../controllers/admin/users');
 const documentController = require('../controllers/admin/document');
 const adminThreadsController = require('../controllers/admin/threads');
+const analyticsController = require('../controllers/admin/analytics');
 
 // デバッグ用のログ出力
 console.log('admin.js ルートファイルの読み込み開始');
@@ -52,6 +53,10 @@ router.post('/users/:id/document/reject', authenticateToken, isAdmin, documentCo
 
 // ダッシュボード
 router.get('/dashboard', authenticateToken, isAdmin, adminController.getDashboardStats);
+
+// アクセス統計
+router.get('/analytics/monthly', authenticateToken, isAdmin, analyticsController.getMonthlyAccessStats);
+router.get('/analytics/popular-threads', authenticateToken, isAdmin, analyticsController.getPopularThreads);
 
 // カテゴリー管理
 router.get('/categories', authenticateToken, isAdmin, categoryController.getCategories);

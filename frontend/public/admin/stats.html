@@ -17,6 +17,28 @@
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+        
+        /* グラフコンテナのスタイル */
+        .chart-container {
+            height: 300px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .chart-container-large {
+            height: 350px;
+        }
+        
+        /* モバイル画面でのグラフサイズ調整 */
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+            
+            .chart-container-large {
+                height: 300px;
+            }
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -49,7 +71,9 @@
                                     <h3 class="card-title">ユーザー統計</h3>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="userStatsChart"></canvas>
+                                    <div class="chart-container">
+                                        <canvas id="userStatsChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -59,7 +83,9 @@
                                     <h3 class="card-title">カテゴリー別スレッド数</h3>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="categoryStatsChart"></canvas>
+                                    <div class="chart-container">
+                                        <canvas id="categoryStatsChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -133,7 +159,9 @@
                                     <h3 class="card-title">月間アクセス統計</h3>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="accessStatsChart"></canvas>
+                                    <div class="chart-container chart-container-large">
+                                        <canvas id="accessStatsChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -153,8 +181,8 @@
                                                 <tr>
                                                     <th>順位</th>
                                                     <th>スレッドタイトル</th>
-                                                    <th>投稿数</th>
                                                     <th>閲覧数</th>
+                                                    <th>作成者</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="popularThreads">
