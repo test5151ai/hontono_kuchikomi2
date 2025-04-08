@@ -27,6 +27,41 @@
             margin-top: 0;
             margin-left: 0;
         }
+        
+        /* ソート可能なヘッダーのスタイル */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        .sortable:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .sortable i {
+            font-size: 0.8rem;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        
+        /* 統計パネルのスタイル */
+        .stats-card {
+            transition: all 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* ページネーションスタイル */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -46,12 +81,31 @@
                             <h1 class="m-0">ユーザー一覧</h1>
                         </div>
                         <div class="col-sm-6">
-                            <button class="btn btn-primary float-right" id="bulkApproveBtn">
-                                <i class="bi bi-check-circle"></i> 選択したユーザーを承認
-                            </button>
-                            <button class="btn btn-info float-right me-2" data-bs-toggle="modal" data-bs-target="#screenshotHelpModal">
-                                <i class="bi bi-question-circle"></i> スクリーンショット確認手順
-                            </button>
+                            <div class="float-right">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" id="bulkApproveBtn">
+                                        <i class="bi bi-check-circle"></i> 一括承認
+                                    </button>
+                                    <button class="btn btn-danger" id="bulkRejectBtn">
+                                        <i class="bi bi-x-circle"></i> 一括拒否
+                                    </button>
+                                    <button class="btn btn-warning" id="bulkSuspendBtn">
+                                        <i class="bi bi-pause-circle"></i> 一括停止
+                                    </button>
+                                </div>
+                                <div class="btn-group ms-2">
+                                    <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-download"></i> エクスポート
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" id="exportCsv">CSVでダウンロード</a></li>
+                                        <li><a class="dropdown-item" href="#" id="exportExcel">Excelでダウンロード</a></li>
+                                    </ul>
+                                </div>
+                                <button class="btn btn-info ms-2" data-bs-toggle="modal" data-bs-target="#screenshotHelpModal">
+                                    <i class="bi bi-question-circle"></i> スクリーンショット確認手順
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -59,6 +113,127 @@
 
             <div class="content">
                 <div class="container-fluid">
+                    <!-- 統計カード -->
+                    <div class="row mb-4" id="statsRow">
+                        <div class="col-md-3">
+                            <div class="small-box bg-info stats-card">
+                                <div class="inner">
+                                    <h3 id="totalUsersCount">0</h3>
+                                    <p>総ユーザー数</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-success stats-card">
+                                <div class="inner">
+                                    <h3 id="approvedUsersCount">0</h3>
+                                    <p>認証済みユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-warning stats-card">
+                                <div class="inner">
+                                    <h3 id="pendingUsersCount">0</h3>
+                                    <p>未認証ユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-danger stats-card">
+                                <div class="inner">
+                                    <h3 id="rejectedUsersCount">0</h3>
+                                    <p>拒否ユーザー</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="bi bi-x-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 詳細フィルター -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                                    詳細検索 <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </h5>
+                        </div>
+                        <div class="collapse" id="filterCollapse">
+                            <div class="card-body">
+                                <form id="advancedFilterForm">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>登録日（から）</label>
+                                                <input type="date" class="form-control" id="dateFrom">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>登録日（まで）</label>
+                                                <input type="date" class="form-control" id="dateTo">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>ステータス</label>
+                                                <select class="form-select" id="advancedStatusFilter">
+                                                    <option value="">すべて</option>
+                                                    <option value="approved">認証済</option>
+                                                    <option value="pending">未認証</option>
+                                                    <option value="rejected">拒否</option>
+                                                    <option value="not_submitted">書類待ち</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100" id="applyFilter">検索</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- データビジュアライゼーション -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <button class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#chartsCollapse">
+                                    ユーザー統計 <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </h5>
+                        </div>
+                        <div class="collapse" id="chartsCollapse">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <canvas id="statusChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <canvas id="registrationChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header p-0">
                             <ul class="nav nav-tabs" id="userStatusTabs" role="tablist">
@@ -92,6 +267,14 @@
                         <div class="card-body">
                             <div class="tab-content" id="userStatusTabsContent">
                                 <div class="tab-pane fade show active" id="all-tab-pane" role="tabpanel" aria-labelledby="all-tab">
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="searchAll" placeholder="ユーザー名またはメールアドレスで検索">
+                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchAll">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -101,10 +284,11 @@
                                                             <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
                                                         </div>
                                                     </th>
-                                                    <th>ユーザー名</th>
-                                                    <th>メールアドレス</th>
-                                                    <th>ステータス</th>
-                                                    <th>ユーザー情報</th>
+                                                    <th class="sortable" data-sort="username">ユーザー名 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="email">メールアドレス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="status">ステータス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="createdAt">登録日 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="documentSubmittedAt">書類提出日 <i class="bi bi-arrow-down-up"></i></th>
                                                     <th>操作</th>
                                                 </tr>
                                             </thead>
@@ -113,9 +297,30 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <!-- ページネーション -->
+                                    <div class="pagination-container" id="all-pagination">
+                                        <div class="pagination-info">
+                                            表示: <span id="all-start">0</span>-<span id="all-end">0</span> / 全<span id="all-total">0</span>件
+                                        </div>
+                                        <nav>
+                                            <ul class="pagination">
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="all-prev">前へ</a></li>
+                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="all-next">次へ</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
                                 </div>
                                 
                                 <div class="tab-pane fade" id="pending-tab-pane" role="tabpanel" aria-labelledby="pending-tab">
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="searchPending" placeholder="ユーザー名またはメールアドレスで検索">
+                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchPending">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -125,10 +330,11 @@
                                                             <input type="checkbox" id="selectAllPendingCheckbox" class="form-check-input">
                                                         </div>
                                                     </th>
-                                                    <th>ユーザー名</th>
-                                                    <th>メールアドレス</th>
-                                                    <th>ステータス</th>
-                                                    <th>ユーザー情報</th>
+                                                    <th class="sortable" data-sort="username" data-tab="pending">ユーザー名 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="email" data-tab="pending">メールアドレス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="status" data-tab="pending">ステータス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="createdAt" data-tab="pending">登録日 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="documentSubmittedAt" data-tab="pending">書類提出日 <i class="bi bi-arrow-down-up"></i></th>
                                                     <th>操作</th>
                                                 </tr>
                                             </thead>
@@ -137,9 +343,30 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <!-- ページネーション -->
+                                    <div class="pagination-container" id="pending-pagination">
+                                        <div class="pagination-info">
+                                            表示: <span id="pending-start">0</span>-<span id="pending-end">0</span> / 全<span id="pending-total">0</span>件
+                                        </div>
+                                        <nav>
+                                            <ul class="pagination">
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="pending-prev">前へ</a></li>
+                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="pending-next">次へ</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
                                 </div>
                                 
                                 <div class="tab-pane fade" id="approved-tab-pane" role="tabpanel" aria-labelledby="approved-tab">
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="searchApproved" placeholder="ユーザー名またはメールアドレスで検索">
+                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchApproved">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -149,10 +376,11 @@
                                                             <input type="checkbox" id="selectAllApprovedCheckbox" class="form-check-input">
                                                         </div>
                                                     </th>
-                                                    <th>ユーザー名</th>
-                                                    <th>メールアドレス</th>
-                                                    <th>ステータス</th>
-                                                    <th>ユーザー情報</th>
+                                                    <th class="sortable" data-sort="username" data-tab="approved">ユーザー名 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="email" data-tab="approved">メールアドレス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="status" data-tab="approved">ステータス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="createdAt" data-tab="approved">登録日 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="documentSubmittedAt" data-tab="approved">書類提出日 <i class="bi bi-arrow-down-up"></i></th>
                                                     <th>操作</th>
                                                 </tr>
                                             </thead>
@@ -161,9 +389,30 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <!-- ページネーション -->
+                                    <div class="pagination-container" id="approved-pagination">
+                                        <div class="pagination-info">
+                                            表示: <span id="approved-start">0</span>-<span id="approved-end">0</span> / 全<span id="approved-total">0</span>件
+                                        </div>
+                                        <nav>
+                                            <ul class="pagination">
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="approved-prev">前へ</a></li>
+                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="approved-next">次へ</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
                                 </div>
                                 
                                 <div class="tab-pane fade" id="rejected-tab-pane" role="tabpanel" aria-labelledby="rejected-tab">
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="searchRejected" placeholder="ユーザー名またはメールアドレスで検索">
+                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchRejected">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -173,10 +422,11 @@
                                                             <input type="checkbox" id="selectAllRejectedCheckbox" class="form-check-input">
                                                         </div>
                                                     </th>
-                                                    <th>ユーザー名</th>
-                                                    <th>メールアドレス</th>
-                                                    <th>ステータス</th>
-                                                    <th>ユーザー情報</th>
+                                                    <th class="sortable" data-sort="username" data-tab="rejected">ユーザー名 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="email" data-tab="rejected">メールアドレス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="status" data-tab="rejected">ステータス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="createdAt" data-tab="rejected">登録日 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="documentSubmittedAt" data-tab="rejected">書類提出日 <i class="bi bi-arrow-down-up"></i></th>
                                                     <th>操作</th>
                                                 </tr>
                                             </thead>
@@ -185,9 +435,30 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <!-- ページネーション -->
+                                    <div class="pagination-container" id="rejected-pagination">
+                                        <div class="pagination-info">
+                                            表示: <span id="rejected-start">0</span>-<span id="rejected-end">0</span> / 全<span id="rejected-total">0</span>件
+                                        </div>
+                                        <nav>
+                                            <ul class="pagination">
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="rejected-prev">前へ</a></li>
+                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="rejected-next">次へ</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
                                 </div>
                                 
                                 <div class="tab-pane fade" id="not-submitted-tab-pane" role="tabpanel" aria-labelledby="not-submitted-tab">
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="searchNotSubmitted" placeholder="ユーザー名またはメールアドレスで検索">
+                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchNotSubmitted">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -197,10 +468,11 @@
                                                             <input type="checkbox" id="selectAllNotSubmittedCheckbox" class="form-check-input">
                                                         </div>
                                                     </th>
-                                                    <th>ユーザー名</th>
-                                                    <th>メールアドレス</th>
-                                                    <th>ステータス</th>
-                                                    <th>ユーザー情報</th>
+                                                    <th class="sortable" data-sort="username" data-tab="notSubmitted">ユーザー名 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="email" data-tab="notSubmitted">メールアドレス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="status" data-tab="notSubmitted">ステータス <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="createdAt" data-tab="notSubmitted">登録日 <i class="bi bi-arrow-down-up"></i></th>
+                                                    <th class="sortable" data-sort="documentSubmittedAt" data-tab="notSubmitted">書類提出日 <i class="bi bi-arrow-down-up"></i></th>
                                                     <th>操作</th>
                                                 </tr>
                                             </thead>
@@ -208,6 +480,19 @@
                                                 <!-- 未提出ユーザーはJavaScriptで動的に追加 -->
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <!-- ページネーション -->
+                                    <div class="pagination-container" id="notSubmitted-pagination">
+                                        <div class="pagination-info">
+                                            表示: <span id="notSubmitted-start">0</span>-<span id="notSubmitted-end">0</span> / 全<span id="notSubmitted-total">0</span>件
+                                        </div>
+                                        <nav>
+                                            <ul class="pagination">
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="notSubmitted-prev">前へ</a></li>
+                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                                <li class="page-item disabled"><a class="page-link" href="#" id="notSubmitted-next">次へ</a></li>
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>
@@ -301,10 +586,35 @@
         </div>
     </div>
 
+    <!-- 一括拒否モーダル -->
+    <div class="modal fade" id="bulkRejectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">一括拒否</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>選択された <span id="bulkRejectCount">0</span> 人のユーザーを拒否します。</p>
+                    <div class="form-group">
+                        <label for="bulkRejectReason" class="form-label">拒否理由</label>
+                        <textarea class="form-control" id="bulkRejectReason" rows="3" placeholder="拒否理由を入力してください"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" id="confirmBulkReject">拒否を確定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- AdminLTE JS -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="/js/admin/users.js"></script>
     <script>
         // 共通ヘッダーの読み込み
