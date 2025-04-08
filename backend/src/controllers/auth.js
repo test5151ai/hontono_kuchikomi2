@@ -6,7 +6,8 @@ const { Op } = require('sequelize');
 // 新規登録
 const register = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    console.log('register リクエスト受信:', req.body);
+    const { username, email, password, role, submissionMethod, submissionContact } = req.body;
 
     // 入力値の検証
     if (!username || !email || !password) {
@@ -27,14 +28,21 @@ const register = async (req, res) => {
     // パスワードのハッシュ化
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ユーザーの作成
-    const user = await User.create({
+    // デフォルト値の設定
+    const userData = {
       username,
       email,
       password: hashedPassword,
       role: role || 'user',
-      isApproved: role === 'admin'
-    });
+      isApproved: role === 'admin',
+      submissionMethod: submissionMethod || 'email',
+      submissionContact: submissionContact || email
+    };
+
+    console.log('ユーザー作成データ:', userData);
+
+    // ユーザーの作成
+    const user = await User.create(userData);
 
     // JWTトークンの生成
     const token = jwt.sign(
@@ -48,6 +56,7 @@ const register = async (req, res) => {
     );
 
     res.status(201).json({
+      success: true,
       message: 'ユーザー登録が完了しました',
       user: {
         id: user.id,

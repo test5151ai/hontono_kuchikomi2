@@ -1,6 +1,36 @@
 class SiteHeader extends HTMLElement {
     constructor() {
         super();
+        // APIエンドポイント取得用のヘルパー関数
+        this.getApiUrl = function(path) {
+            // APIのベースURL
+            const getBaseUrl = () => {
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                
+                // ローカル開発環境の場合
+                if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    return `${protocol}//${hostname}:3000`;
+                }
+                
+                // 本番環境の場合はAPIドメインを使用
+                return `${protocol}//${hostname}`;
+            };
+
+            const API_BASE_URL = getBaseUrl();
+            
+            // パスが既に/で始まっていない場合は追加
+            if (!path.startsWith('/')) {
+                path = '/' + path;
+            }
+            
+            // パスが/apiで始まっていない場合は追加
+            if (!path.startsWith('/api')) {
+                path = '/api' + path;
+            }
+            
+            return API_BASE_URL + path;
+        };
     }
 
     connectedCallback() {
@@ -92,7 +122,7 @@ class SiteHeader extends HTMLElement {
             if (payload.id) {
                 try {
                     // ユーザー情報をAPIから取得
-                    const userResponse = await fetch(getApiUrl('users/me'), {
+                    const userResponse = await fetch(this.getApiUrl('users/me'), {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -135,7 +165,7 @@ class SiteHeader extends HTMLElement {
     // カテゴリー一覧の読み込み
     async loadCategories() {
         try {
-            const response = await fetch(getApiUrl('categories'));
+            const response = await fetch(this.getApiUrl('categories'));
             const data = await response.json();
             
             const categories = Array.isArray(data) ? data : (data.categories || data.data || []);
