@@ -24,6 +24,9 @@ const formatDate = (dateString) => {
     });
 };
 
+// 静的ファイル用のベースURL
+const STATIC_BASE_URL = 'http://localhost:3000';
+
 // APIリクエストヘルパー
 const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('token');
@@ -110,10 +113,12 @@ class PendingUsers {
         const tableBody = document.getElementById('pendingUsersTable');
         tableBody.innerHTML = this.pendingUsers.map(user => `
             <tr>
-                <td>
-                    <input type="checkbox" class="user-checkbox form-check-input" 
-                           data-user-id="${user.id}" 
-                           onchange="pendingUsers.handleUserSelection(this)">
+                <td class="text-center align-middle">
+                    <div class="form-check d-flex justify-content-center">
+                        <input type="checkbox" class="user-checkbox form-check-input" 
+                               data-user-id="${user.id}" 
+                               onchange="pendingUsers.handleUserSelection(this)">
+                    </div>
                 </td>
                 <td>${user.username}</td>
                 <td>${user.email}</td>
@@ -171,6 +176,24 @@ class PendingUsers {
 
     // 書類プレビューモーダルを表示
     showDocumentModal(documentData) {
+        // 最新の書類を取得
+        const latestDocument = documentData.documents && documentData.documents.length > 0 
+            ? documentData.documents[0] 
+            : null;
+        
+        if (!latestDocument) {
+            alert('書類データが見つかりません');
+            return;
+        }
+        
+        // 画像パスの処理 - 相対パスの場合はベースURLを追加
+        let imgPath = latestDocument.documentPath;
+        if (imgPath && !imgPath.startsWith('http')) {
+            imgPath = `${STATIC_BASE_URL}${imgPath}`;
+        }
+        
+        console.log('表示する画像のパス:', imgPath);
+        
         // モーダルHTML作成
         const modalHtml = `
             <div class="modal fade" id="documentModal" tabindex="-1" aria-hidden="true">
@@ -182,11 +205,12 @@ class PendingUsers {
                         </div>
                         <div class="modal-body">
                             <div class="document-preview mb-3">
-                                <img src="${documentData.documentPath}" class="img-fluid" alt="書類" 
+                                <img src="${imgPath}" class="img-fluid" alt="書類" 
                                      style="max-height: 500px; width: auto; margin: 0 auto; display: block;">
                             </div>
                             <div class="document-info">
-                                <p><strong>提出日時:</strong> ${formatDate(documentData.documentSubmittedAt)}</p>
+                                <p><strong>書類名:</strong> ${latestDocument.documentName || '確認書類'}</p>
+                                <p><strong>提出日時:</strong> ${formatDate(latestDocument.uploadedAt || documentData.documentSubmittedAt)}</p>
                                 <p><strong>ステータス:</strong> ${this.renderDocumentBadge(documentData.documentStatus)}</p>
                             </div>
                         </div>

@@ -136,7 +136,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // ルートの設定
 app.use('/api/auth', authRoutes);
-app.use('/admin', adminRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);

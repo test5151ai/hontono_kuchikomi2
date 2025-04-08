@@ -2,18 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const { sequelize } = require('./models');
 const app = require('./app');
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
 
 // 環境変数の設定
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 // データベース接続とサーバー起動
 const PORT = process.env.PORT || 3000;
-
-// ルート
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
 
 async function startServer() {
     try {

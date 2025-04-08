@@ -7,6 +7,27 @@
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* チェックボックスの位置を調整するカスタムスタイル */
+        .table th.text-center input[type="checkbox"],
+        .table td.text-center input[type="checkbox"] {
+            margin: 0;
+            position: relative;
+            vertical-align: middle;
+        }
+        
+        .form-check {
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        /* ヘッダー内のチェックボックス調整 */
+        .form-check-input {
+            position: relative;
+            margin-top: 0;
+            margin-left: 0;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -44,8 +65,10 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>
-                                                <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
+                                            <th class="text-center align-middle" style="width: 40px;">
+                                                <div class="form-check d-flex justify-content-center">
+                                                    <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
+                                                </div>
                                             </th>
                                             <th>ユーザー名</th>
                                             <th>メールアドレス</th>

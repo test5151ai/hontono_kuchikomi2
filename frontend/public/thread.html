@@ -573,16 +573,21 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- メインスクリプト - config.jsを最初に読み込みます -->
+    <script src="/js/config.js"></script>
     <!-- コンポーネント -->
     <script src="/js/components/header.js"></script>
     <script src="/js/components/footer.js"></script>
     <script src="/js/components/sidebar.js"></script>
-    <!-- メインスクリプト -->
-    <script src="/js/config.js"></script>
     <script>
         // URLパラメータからスレッドIDを取得
         const urlParams = new URLSearchParams(window.location.search);
         const threadId = urlParams.get('id');
+        
+        // URLからスレッドIDを取得する関数（他の関数から呼び出されるため必要）
+        function getThreadIdFromUrl() {
+            return threadId;
+        }
         
         // 投稿を取得して表示
         async function loadPosts() {

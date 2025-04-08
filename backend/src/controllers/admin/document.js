@@ -1,4 +1,4 @@
-const { User } = require('../../models');
+const { User, VerificationDocument } = require('../../models');
 const path = require('path');
 const fs = require('fs');
 
@@ -119,7 +119,7 @@ exports.getDocumentDetails = async (req, res) => {
     const user = await User.findByPk(userId, {
       attributes: [
         'id', 'username', 'email', 
-        'documentStatus', 'documentSubmittedAt', 'documentVerifiedAt', 'documentRejectReason', 'documentPath'
+        'documentStatus', 'documentSubmittedAt', 'documentVerifiedAt', 'documentRejectReason'
       ]
     });
     
@@ -130,8 +130,14 @@ exports.getDocumentDetails = async (req, res) => {
       });
     }
     
+    // VerificationDocumentモデルから書類を取得
+    const documents = await VerificationDocument.findAll({
+      where: { userId },
+      order: [['uploadedAt', 'DESC']]
+    });
+    
     // 書類がアップロードされていない場合
-    if (!user.documentPath) {
+    if (!documents || documents.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'このユーザーの書類は提出されていません'
@@ -148,7 +154,7 @@ exports.getDocumentDetails = async (req, res) => {
         documentSubmittedAt: user.documentSubmittedAt,
         documentVerifiedAt: user.documentVerifiedAt,
         documentRejectReason: user.documentRejectReason,
-        documentPath: user.documentPath
+        documents: documents
       }
     });
   } catch (error) {
