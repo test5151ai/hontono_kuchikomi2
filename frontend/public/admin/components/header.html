@@ -24,7 +24,7 @@
     <!-- 右側のナビゲーション -->
     <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-            <button class="btn btn-outline-light" id="logoutBtn">
+            <button class="btn btn-outline-light" id="logoutBtn" onclick="return (typeof globalLogout === 'function' ? globalLogout() : (function(){localStorage.removeItem('token');localStorage.removeItem('refreshToken');window.location.href='/login.html';return false;})())">
                 <i class="bi bi-box-arrow-right"></i> ログアウト
             </button>
         </li>

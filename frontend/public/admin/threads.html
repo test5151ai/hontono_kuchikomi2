@@ -29,7 +29,7 @@
                 <li><a href="/admin/categories.html"><i class="fas fa-folder"></i> カテゴリー管理</a></li>
                 <li class="active"><a href="/admin/threads.html"><i class="fas fa-comments"></i> スレッド管理</a></li>
                 <li><a href="/admin/reports.html"><i class="fas fa-flag"></i> 通報管理</a></li>
-                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> ログアウト</a></li>
+                <li><a href="#" id="logout-btn" onclick="return (typeof globalLogout === 'function' ? globalLogout() : (function(){localStorage.removeItem('token');localStorage.removeItem('refreshToken');window.location.href='/login.html';return false;})())"><i class="fas fa-sign-out-alt"></i> ログアウト</a></li>
             </ul>
         </div>
 
