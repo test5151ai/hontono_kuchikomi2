@@ -112,6 +112,43 @@ exports.approveUser = async (req, res) => {
     }
 };
 
+// ユーザーを拒否
+exports.rejectUser = async (req, res) => {
+    try {
+        console.log('=== ユーザー拒否処理開始 ===');
+        console.log('拒否するユーザーID:', req.params.id);
+        
+        const user = await User.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'ユーザーが見つかりません' 
+            });
+        }
+
+        // 拒否フラグとしてdocumentStatusを'rejected'に設定
+        user.isApproved = false;
+        user.documentStatus = 'rejected';
+        user.documentRejectReason = req.body.reason || '管理者による拒否';
+        
+        await user.save();
+
+        console.log('ユーザー拒否完了:', user.username, user.documentStatus);
+        
+        res.json({
+            success: true,
+            message: 'ユーザーを拒否しました'
+        });
+    } catch (error) {
+        console.error('ユーザー拒否エラー:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'サーバーエラーが発生しました',
+            error: error.message
+        });
+    }
+};
+
 // ユーザーを一括承認
 exports.bulkApproveUsers = async (req, res) => {
     try {
@@ -261,7 +298,10 @@ exports.getPendingUsers = async (req, res) => {
             where: {
                 isApproved: false
             },
-            attributes: ['id', 'username', 'email', 'documentStatus', 'documentSubmittedAt', 'createdAt'],
+            attributes: [
+                'id', 'username', 'email', 'documentStatus', 
+                'documentSubmittedAt', 'createdAt', 'documentRejectReason'
+            ],
             order: [['createdAt', 'DESC']]
         });
 

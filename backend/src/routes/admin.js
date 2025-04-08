@@ -38,6 +38,7 @@ router.get('/users', authenticateToken, isAdmin, userController.getUsers);
 router.get('/users/pending', authenticateToken, isAdmin, userController.getPendingUsers);
 router.get('/users/:id', authenticateToken, isAdmin, userController.getUserDetails);
 router.post('/users/:id/approve', authenticateToken, isAdmin, userController.approveUser);
+router.post('/users/:id/reject', authenticateToken, isAdmin, userController.rejectUser);
 router.post('/users/:id/suspend', authenticateToken, isAdmin, userController.suspendUser);
 router.post('/users/bulk-approve', authenticateToken, isAdmin, userController.bulkApproveUsers);
 router.post('/users/bulk-suspend', authenticateToken, isAdmin, userController.bulkSuspendUsers);
