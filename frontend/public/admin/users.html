@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ユーザー一覧 - 管理画面</title>
-    <!-- Bootstrap 5.3.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- AdminLTE 3.2.0 -->
+    <title>ユーザー一覧 - 管理者ダッシュボード</title>
+    <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
-    <!-- カスタムスタイル -->
-    <link rel="stylesheet" href="/css/admin/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* チェックボックスの位置を調整するカスタムスタイル */
+        .table th.text-center input[type="checkbox"],
+        .table td.text-center input[type="checkbox"] {
+            margin: 0;
+            position: relative;
+            vertical-align: middle;
+        }
+        
+        .form-check {
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        /* ヘッダー内のチェックボックス調整 */
+        .form-check-input {
+            position: relative;
+            margin-top: 0;
+            margin-left: 0;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -23,115 +39,182 @@
 
         <!-- メインコンテンツ -->
         <div class="content-wrapper">
-            <!-- コンテンツヘッダー -->
-            <section class="content-header">
+            <div class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1>ユーザー一覧</h1>
+                            <h1 class="m-0">ユーザー一覧</h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <button class="btn btn-primary float-right" id="bulkApproveBtn">
+                                <i class="bi bi-check-circle"></i> 選択したユーザーを承認
+                            </button>
+                            <button class="btn btn-info float-right me-2" data-bs-toggle="modal" data-bs-target="#screenshotHelpModal">
+                                <i class="bi bi-question-circle"></i> スクリーンショット確認手順
+                            </button>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- メインコンテンツ -->
-            <section class="content">
+            <div class="content">
                 <div class="container-fluid">
-                    <!-- 検索・フィルターカード -->
                     <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">検索・フィルター</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="bi bi-minus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <form id="searchForm">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>キーワード検索</label>
-                                            <input type="text" class="form-control" id="searchKeyword" placeholder="ユーザー名・メールアドレス">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>ステータス</label>
-                                            <select class="form-control" id="statusFilter">
-                                                <option value="">すべて</option>
-                                                <option value="pending">承認待ち</option>
-                                                <option value="approved">承認済み</option>
-                                                <option value="suspended">停止中</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>書類状態</label>
-                                            <select class="form-control" id="documentFilter">
-                                                <option value="">すべて</option>
-                                                <option value="not_submitted">未提出</option>
-                                                <option value="submitted">提出済み（未確認）</option>
-                                                <option value="verified">確認済み</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-primary">検索</button>
-                                        <button type="reset" class="btn btn-default">リセット</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- ユーザー一覧カード -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h3 class="card-title">ユーザー一覧</h3>
-                                <div class="card-tools">
-                                    <button type="button" class="btn btn-success" id="exportBtn">
-                                        <i class="bi bi-download me-1"></i>エクスポート
+                        <div class="card-header p-0">
+                            <ul class="nav nav-tabs" id="userStatusTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-tab-pane" type="button" role="tab" aria-selected="true">
+                                        全ユーザー
                                     </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="selectAll"></th>
-                                        <th>ユーザー名</th>
-                                        <th>メールアドレス</th>
-                                        <th>ステータス</th>
-                                        <th>書類状態</th>
-                                        <th>登録日時</th>
-                                        <th>最終ログイン</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userTableBody">
-                                    <!-- JavaScriptで動的に生成 -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="card-footer clearfix">
-                            <div class="float-start">
-                                <button type="button" class="btn btn-warning me-2" id="bulkApproveBtn">一括承認</button>
-                                <button type="button" class="btn btn-danger" id="bulkSuspendBtn">一括停止</button>
-                            </div>
-                            <ul class="pagination pagination-sm m-0 float-end" id="pagination">
-                                <!-- JavaScriptで動的に生成 -->
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-tab-pane" type="button" role="tab" aria-selected="false">
+                                        承認待ち
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved-tab-pane" type="button" role="tab" aria-selected="false">
+                                        承認済み
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected-tab-pane" type="button" role="tab" aria-selected="false">
+                                        拒否済み
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="not-submitted-tab" data-bs-toggle="tab" data-bs-target="#not-submitted-tab-pane" type="button" role="tab" aria-selected="false">
+                                        未提出
+                                    </button>
+                                </li>
                             </ul>
                         </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="userStatusTabsContent">
+                                <div class="tab-pane fade show active" id="all-tab-pane" role="tabpanel" aria-labelledby="all-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center align-middle" style="width: 40px;">
+                                                        <div class="form-check d-flex justify-content-center">
+                                                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
+                                                        </div>
+                                                    </th>
+                                                    <th>ユーザー名</th>
+                                                    <th>メールアドレス</th>
+                                                    <th>ステータス</th>
+                                                    <th>ユーザー情報</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pendingUsersTable">
+                                                <!-- ユーザーリストはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="pending-tab-pane" role="tabpanel" aria-labelledby="pending-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center align-middle" style="width: 40px;">
+                                                        <div class="form-check d-flex justify-content-center">
+                                                            <input type="checkbox" id="selectAllPendingCheckbox" class="form-check-input">
+                                                        </div>
+                                                    </th>
+                                                    <th>ユーザー名</th>
+                                                    <th>メールアドレス</th>
+                                                    <th>ステータス</th>
+                                                    <th>ユーザー情報</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pendingUsersTableSubmitted">
+                                                <!-- 承認待ちユーザーはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="approved-tab-pane" role="tabpanel" aria-labelledby="approved-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center align-middle" style="width: 40px;">
+                                                        <div class="form-check d-flex justify-content-center">
+                                                            <input type="checkbox" id="selectAllApprovedCheckbox" class="form-check-input">
+                                                        </div>
+                                                    </th>
+                                                    <th>ユーザー名</th>
+                                                    <th>メールアドレス</th>
+                                                    <th>ステータス</th>
+                                                    <th>ユーザー情報</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pendingUsersTableApproved">
+                                                <!-- 承認済みユーザーはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="rejected-tab-pane" role="tabpanel" aria-labelledby="rejected-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center align-middle" style="width: 40px;">
+                                                        <div class="form-check d-flex justify-content-center">
+                                                            <input type="checkbox" id="selectAllRejectedCheckbox" class="form-check-input">
+                                                        </div>
+                                                    </th>
+                                                    <th>ユーザー名</th>
+                                                    <th>メールアドレス</th>
+                                                    <th>ステータス</th>
+                                                    <th>ユーザー情報</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pendingUsersTableRejected">
+                                                <!-- 拒否されたユーザーはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="not-submitted-tab-pane" role="tabpanel" aria-labelledby="not-submitted-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center align-middle" style="width: 40px;">
+                                                        <div class="form-check d-flex justify-content-center">
+                                                            <input type="checkbox" id="selectAllNotSubmittedCheckbox" class="form-check-input">
+                                                        </div>
+                                                    </th>
+                                                    <th>ユーザー名</th>
+                                                    <th>メールアドレス</th>
+                                                    <th>ステータス</th>
+                                                    <th>ユーザー情報</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pendingUsersTableNotSubmitted">
+                                                <!-- 未提出ユーザーはJavaScriptで動的に追加 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
         </div>
 
         <!-- フッター -->
@@ -141,36 +224,85 @@
         </footer>
     </div>
 
-    <!-- ユーザー詳細モーダル -->
-    <div class="modal fade" id="userDetailModal" tabindex="-1">
+    <!-- スクリーンショット確認ヘルプモーダル -->
+    <div class="modal fade" id="screenshotHelpModal" tabindex="-1" aria-labelledby="screenshotHelpModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ユーザー詳細</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title" id="screenshotHelpModalLabel">スクリーンショット確認手順</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs" id="userDetailTabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#basicInfo">基本情報</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#documentInfo">書類情報</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#activityInfo">アクティビティ</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content mt-3" id="userDetailContent">
-                        <!-- タブの内容はJavaScriptで動的に生成 -->
+                    <h4>スクリーンショット確認の重要性</h4>
+                    <p>15chでは、実際のサービス利用者だけが口コミを投稿できるよう、スクリーンショットによる承認制を採用しています。これにより、信頼性の高い口コミの収集と、質の高いコミュニティの維持を実現しています。</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>ユーザーの流れ：</strong><br>
+                        1. ユーザーは登録後、マイページからスクリーンショットをアップロード<br>
+                        2. 管理者がスクリーンショットを確認し、承認または拒否<br>
+                        3. 承認されたユーザーのみが投稿可能に
                     </div>
+                    
+                    <h5>スクリーンショット確認のポイント：</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> 承認すべきスクリーンショット</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li>対象サービスの利用画面が明確に確認できる</li>
+                                        <li>ユーザー名やアカウント情報が確認できる</li>
+                                        <li>最近の日付が確認できる（可能な場合）</li>
+                                        <li>画像が鮮明で改ざんの痕跡がない</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0"><i class="bi bi-x-circle"></i> 拒否すべきスクリーンショット</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li>対象サービスとは無関係な画像</li>
+                                        <li>明らかに編集・改ざんされている</li>
+                                        <li>極端に古い日付の画面キャプチャ</li>
+                                        <li>極端に不鮮明で内容確認ができない</li>
+                                        <li>他人の個人情報が過剰に含まれている</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>確認手順：</h5>
+                    <ol>
+                        <li>ユーザーリストから確認したいユーザーの「詳細」ボタンをクリック</li>
+                        <li>アップロードされたスクリーンショットを確認</li>
+                        <li>スクリーンショットの内容が基準を満たしているか確認</li>
+                        <li>問題がなければ「承認」ボタンをクリック</li>
+                        <li>問題がある場合は「拒否」をクリックし、理由を入力</li>
+                    </ol>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>注意事項：</strong><br>
+                        ・拒否したユーザーには自動的に理由が通知されます<br>
+                        ・ユーザーは再度スクリーンショットを提出することができます<br>
+                        ・判断に迷う場合は、他の管理者に相談してください
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 必要なJavaScriptファイル -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <!-- AdminLTE JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
     <script src="/js/admin/users.js"></script>

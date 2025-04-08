@@ -97,8 +97,8 @@ class PendingUsers {
         // 承認待ちタブの全選択チェックボックス
         document.getElementById('selectAllPendingCheckbox').addEventListener('change', (e) => {
             const checkboxes = document.querySelectorAll('#pendingUsersTableSubmitted .user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
                 this.handleUserSelection(checkbox);
             });
         });
@@ -170,10 +170,10 @@ class PendingUsers {
                 });
                 
                 this.renderAllUsersTabs();
-            } else {
+    } else {
                 throw new Error(pendingResponse.error || usersResponse.error || 'データの取得に失敗しました');
-            }
-        } catch (error) {
+    }
+  } catch (error) {
             console.error('ユーザーの取得に失敗:', error);
             alert('ユーザーの取得に失敗しました');
         }
@@ -257,15 +257,11 @@ class PendingUsers {
                     <td>${user.username}</td>
                     <td>${user.email}</td>
                     <td>
-                        ${this.renderDocumentBadge(user.documentStatus, user.documentRejectReason)}
+                        ${this.renderUserStatus(user)}
                         ${user.documentSubmittedAt ? `<div class="small text-muted mt-1">提出: ${formatDate(user.documentSubmittedAt)}</div>` : ''}
                     </td>
                     <td>
                         <div class="small text-muted">登録: ${formatDate(user.createdAt)}</div>
-                        ${user.documentStatus === 'rejected' ? 
-                        `<button class="btn btn-sm btn-outline-danger mt-1" onclick="pendingUsers.showRejectReasonModal('${user.id}', '${user.documentRejectReason || '理由なし'}')">
-                            <i class="bi bi-exclamation-triangle"></i> 拒否理由を確認
-                        </button>` : ''}
                     </td>
                     <td>
                         <div class="btn-group">
@@ -293,31 +289,32 @@ class PendingUsers {
         tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
     }
 
-    renderPendingUsers() {
-        this.renderAllUsersTabs();
+    // ユーザーステータスの表示
+    renderUserStatus(user) {
+        // ユーザーが承認済みの場合
+        if (user.isApproved === true) {
+            return '<span class="badge bg-success">認証済</span>';
+        }
+        
+        // ユーザーが拒否されている場合
+        if (user.documentStatus === 'rejected') {
+            const reason = user.documentRejectReason || '理由なし';
+            return `<span class="badge bg-danger" onclick="pendingUsers.showRejectReasonModal('${user.id}', '${reason}')" style="cursor: pointer;">
+                        拒否 <i class="bi bi-info-circle"></i>
+                    </span>`;
+        }
+        
+        // 書類が提出済みで承認待ちの場合
+        if (user.documentStatus === 'submitted') {
+            return '<span class="badge bg-warning">未認証</span>';
+        }
+        
+        // 書類が未提出の場合
+        return '<span class="badge bg-secondary">書類待ち</span>';
     }
 
-    // 書類状態バッジの生成
-    renderDocumentBadge(status, rejectReason) {
-        // デバッグ用のログ
-        console.log('書類状態:', status);
-        
-        switch(status) {
-            case 'submitted':
-                return '<span class="badge bg-info">提出済</span>';
-            case 'approved':
-                return '<span class="badge bg-success">承認済</span>';
-            case 'verified':
-                return '<span class="badge bg-success">確認済</span>';
-            case 'rejected':
-                const reason = rejectReason || '理由なし';
-                return `<span class="badge bg-danger" data-bs-toggle="tooltip" title="${reason}">拒否</span>`;
-            case 'not_submitted':
-                return '<span class="badge bg-secondary">未提出</span>';
-            default:
-                console.warn('不明な書類状態:', status);
-                return '<span class="badge bg-secondary">未提出</span>';
-        }
+    renderPendingUsers() {
+        this.renderAllUsersTabs();
     }
 
     // 書類を表示
@@ -375,17 +372,17 @@ class PendingUsers {
                             <div class="document-preview mb-3">
                                 <img src="${imgPath}" class="img-fluid" alt="書類" 
                                      style="max-height: 500px; width: auto; margin: 0 auto; display: block;">
-                            </div>
+        </div>
                             <div class="document-info">
                                 <p><strong>書類名:</strong> ${latestDocument.documentName || '確認書類'}</p>
                                 <p><strong>提出日時:</strong> ${formatDate(latestDocument.uploadedAt || documentData.documentSubmittedAt)}</p>
-                                <p><strong>ステータス:</strong> ${this.renderDocumentBadge(documentData.documentStatus, documentData.documentRejectReason)}</p>
+                                <p><strong>ステータス:</strong> ${this.renderUserStatus(documentData)}</p>
                                 ${documentData.documentStatus === 'rejected' && documentData.documentRejectReason ? 
                                 `<div class="alert alert-danger mt-2">
                                     <strong>拒否理由:</strong> ${documentData.documentRejectReason}
                                 </div>` : ''}
-                            </div>
-                        </div>
+        </div>
+      </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-success" onclick="pendingUsers.approveDocument('${documentData.id}')">
                                 承認
@@ -399,16 +396,16 @@ class PendingUsers {
                             <div class="mb-3">
                                 <label for="rejectReason" class="form-label">拒否理由</label>
                                 <textarea class="form-control" id="rejectReason" rows="3" placeholder="拒否理由を入力してください"></textarea>
-                            </div>
+    </div>
                             <button class="btn btn-danger" onclick="pendingUsers.rejectDocument('${documentData.id}')">
                                 拒否を確定
                             </button>
-                        </div>
-                    </div>
-                </div>
             </div>
-        `;
-        
+        </div>
+      </div>
+    </div>
+  `;
+
         // 既存のモーダルがあれば削除
         const existingModal = document.getElementById('documentModal');
         if (existingModal) {
@@ -439,7 +436,7 @@ class PendingUsers {
             } else {
                 throw new Error(response.message || '書類の承認に失敗しました');
             }
-        } catch (error) {
+  } catch (error) {
             console.error('書類承認エラー:', error);
             alert('書類の承認に失敗しました: ' + error.message);
         }
@@ -459,7 +456,7 @@ class PendingUsers {
             bootstrap.Modal.getInstance(document.getElementById('documentModal')).hide();
             
             const response = await fetchWithAuth(ADMIN_API.REJECT_DOCUMENT(userId), {
-                method: 'POST',
+      method: 'POST',
                 body: JSON.stringify({ reason })
             });
             
@@ -470,7 +467,7 @@ class PendingUsers {
             } else {
                 throw new Error(response.message || '書類の拒否に失敗しました');
             }
-        } catch (error) {
+  } catch (error) {
             console.error('書類拒否エラー:', error);
             alert('書類の拒否に失敗しました: ' + error.message);
         }
@@ -497,7 +494,7 @@ class PendingUsers {
 
         try {
             const response = await fetchWithAuth(ADMIN_API.BULK_APPROVE, {
-                method: 'POST',
+      method: 'POST',
                 body: JSON.stringify({ userIds: Array.from(this.selectedUsers) })
             });
 
@@ -513,7 +510,7 @@ class PendingUsers {
             } else {
                 throw new Error(response.error);
             }
-        } catch (error) {
+  } catch (error) {
             console.error('一括承認に失敗:', error);
             alert('一括承認に失敗しました');
         }
@@ -535,7 +532,7 @@ class PendingUsers {
             } else {
                 throw new Error(response.error);
             }
-        } catch (error) {
+  } catch (error) {
             console.error('ユーザー承認に失敗:', error);
             alert('ユーザー承認に失敗しました');
         }
