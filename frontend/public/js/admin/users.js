@@ -78,8 +78,8 @@ class PendingUsers {
         this.pendingUsers = [];
         this.selectedUsers = new Set();
         this.sortConfig = {
-            field: 'username',
-            direction: 'asc'
+            field: 'createdAt',
+            direction: 'desc'
         };
         
         // 各タブのフィルタリングされたユーザーリスト
@@ -107,7 +107,11 @@ class PendingUsers {
             status: ''
         };
         
+        this.statusChart = null;
+        this.registrationChart = null;
+        
         this.initializeEventListeners();
+        this.activateTabFromURL();
         this.loadUsers();
     }
 
@@ -1419,6 +1423,29 @@ class PendingUsers {
         } catch (error) {
             console.error('一括停止に失敗:', error);
             alert('一括停止に失敗しました');
+        }
+    }
+
+    // URLクエリパラメータに基づいてタブを選択する
+    activateTabFromURL() {
+        // URLからクエリパラメータを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        
+        if (tabParam) {
+            // 対応するタブが存在するか確認
+            const validTabs = ['all', 'pending', 'approved', 'rejected', 'notSubmitted'];
+            if (validTabs.includes(tabParam)) {
+                // 対応するBootstrapタブを取得してアクティブにする
+                const tabElement = document.getElementById(`${tabParam}-tab`);
+                if (tabElement) {
+                    // Bootstrapのタブオブジェクトを作成してshowメソッドを呼び出す
+                    const tab = new bootstrap.Tab(tabElement);
+                    tab.show();
+                    
+                    console.log(`タブを選択しました: ${tabParam}`);
+                }
+            }
         }
     }
 }
