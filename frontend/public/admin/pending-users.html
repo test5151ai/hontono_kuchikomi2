@@ -7,6 +7,22 @@
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* チェックボックス配置の調整 */
+        .form-check-input {
+            margin-top: 0;
+            margin-left: 0;
+            position: static;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        /* チェックボックス列の幅を固定 */
+        .checkbox-column {
+            width: 40px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -24,12 +40,12 @@
                         <div class="col-sm-6">
                             <h1 class="m-0">承認待ちユーザー</h1>
                         </div>
-                        <div class="col-sm-6">
-                            <button class="btn btn-primary float-right" id="bulkApproveBtn">
-                                <i class="bi bi-check-circle"></i> 選択したユーザーを承認
-                            </button>
-                            <button class="btn btn-info float-right me-2" data-bs-toggle="modal" data-bs-target="#screenshotHelpModal">
+                        <div class="col-sm-6 text-end">
+                            <button class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#screenshotHelpModal">
                                 <i class="bi bi-question-circle"></i> スクリーンショット確認手順
+                            </button>
+                            <button class="btn btn-primary" id="bulkApproveBtn">
+                                <i class="bi bi-check-circle"></i> 選択したユーザーを承認
                             </button>
                         </div>
                     </div>
@@ -44,7 +60,7 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>
+                                            <th class="checkbox-column">
                                                 <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
                                             </th>
                                             <th>ユーザー名</th>

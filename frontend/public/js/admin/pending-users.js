@@ -110,7 +110,7 @@ class PendingUsers {
         const tableBody = document.getElementById('pendingUsersTable');
         tableBody.innerHTML = this.pendingUsers.map(user => `
             <tr>
-                <td>
+                <td class="checkbox-column">
                     <input type="checkbox" class="user-checkbox form-check-input" 
                            data-user-id="${user.id}" 
                            onchange="pendingUsers.handleUserSelection(this)">
@@ -135,6 +135,9 @@ class PendingUsers {
                 </td>
             </tr>
         `).join('');
+        
+        // 一括承認ボタンの初期状態を設定
+        document.getElementById('bulkApproveBtn').disabled = true;
     }
 
     // 書類状態バッジの生成
