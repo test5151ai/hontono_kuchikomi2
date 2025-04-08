@@ -1,5 +1,5 @@
 // APIエンドポイントの設定
-const API_BASE_URL = 'http://localhost:3000/api'; // バックエンドサーバーのアドレスを指定
+const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
 const ADMIN_API = {
     CATEGORIES: `${API_BASE_URL}/admin/categories`,
     CATEGORY: (id) => `${API_BASE_URL}/admin/categories/${id}`,

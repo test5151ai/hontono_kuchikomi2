@@ -30,7 +30,11 @@ const accessLogger = async (req, res, next) => {
     let threadId = null;
     const threadMatch = originalUrl.match(/\/api\/threads\/([a-zA-Z0-9-]+)/);
     if (threadMatch && threadMatch[1]) {
-      threadId = threadMatch[1];
+      // UUIDパターンに一致するか検証
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidPattern.test(threadMatch[1])) {
+        threadId = threadMatch[1];
+      }
     }
     
     // アクセスログを非同期で記録（リクエスト処理を遅延させないため）

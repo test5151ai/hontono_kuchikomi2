@@ -1,20 +1,24 @@
-// APIベースURLの設定
-function getBaseUrl() {
-  // 現在のホスト名とプロトコルを取得
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname;
-  
-  // ローカル開発環境の場合
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // 開発環境のポートを使用
-    return `${protocol}//${hostname}:3000`;
-  }
-  
-  // 本番環境の場合はAPIドメインを使用
-  return `${protocol}//${hostname}`;
-}
+/**
+ * 環境に応じたAPIベースURLを設定するための設定ファイル
+ * 開発環境と本番環境で適切なURLを自動的に選択します
+ */
 
-const API_BASE_URL = getBaseUrl();
+// APIのベースURL設定
+const getApiBaseUrl = () => {
+  // 本番環境かどうかをURLのホスト名で判断
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000/api'; // 開発環境
+  } else {
+    return '/api'; // 本番環境
+  }
+};
+
+// グローバル変数としてエクスポート
+window.API_CONFIG = {
+  BASE_URL: getApiBaseUrl()
+};
+
+console.log('API設定を読み込みました:', window.API_CONFIG.BASE_URL);
 
 // 環境に応じてAPIベースURLを設定
 function getApiUrl(path) {
@@ -28,5 +32,5 @@ function getApiUrl(path) {
         path = '/api' + path;
     }
     
-    return API_BASE_URL + path;
+    return window.API_CONFIG.BASE_URL + path;
 } 
