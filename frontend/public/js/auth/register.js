@@ -74,11 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     email: formData.get('email'),
                     password: formData.get('password'),
-                    nickname: formData.get('nickname')
+                    username: formData.get('nickname'),
+                    submissionMethod: 'email',
+                    submissionContact: formData.get('email')
                 })
             });
 
+            console.log('登録APIレスポンス:', response.status);
             const result = await response.json();
+            console.log('登録API結果:', result);
 
             if (result.success) {
                 // トークンをローカルストレージに保存
@@ -91,13 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 成功メッセージを表示
                 showAlert('success', '登録が完了しました！');
             } else {
-                showAlert('danger', result.message || '登録に失敗しました。');
+                // エラーメッセージを表示
+                const errorMsg = result.error || result.message || '登録に失敗しました。';
+                errorMessage.textContent = errorMsg;
+                errorMessage.classList.remove('d-none');
+                console.error('登録エラー:', errorMsg);
             }
 
         } catch (error) {
             // エラーメッセージを表示
-            errorMessage.textContent = error.message;
+            errorMessage.textContent = error.message || '通信エラーが発生しました。後でもう一度お試しください。';
             errorMessage.classList.remove('d-none');
+            console.error('登録処理エラー:', error);
         }
     });
 }); 
