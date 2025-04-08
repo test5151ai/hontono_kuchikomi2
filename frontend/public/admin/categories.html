@@ -38,6 +38,9 @@
 
             <div class="content">
                 <div class="container-fluid">
+                    <!-- アラート表示領域 -->
+                    <div id="alertContainer"></div>
+                    
                     <div class="row" id="categoryList">
                         <!-- カテゴリーリストはJavaScriptで動的に追加 -->
                     </div>
@@ -68,6 +71,11 @@
                             <input type="text" class="form-control" id="categoryName" required>
                         </div>
                         <div class="mb-3">
+                            <label for="categorySlug" class="form-label">スラッグ（URL識別子）</label>
+                            <input type="text" class="form-control" id="categorySlug" placeholder="例: general">
+                            <small class="form-text text-muted">半角英数字とハイフンのみ。空白の場合はカテゴリー名から自動生成されます。</small>
+                        </div>
+                        <div class="mb-3">
                             <label for="categoryDescription" class="form-label">説明</label>
                             <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
                         </div>
@@ -85,12 +93,25 @@
     <div class="modal fade" id="deleteCategoryModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">カテゴリーの削除</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>このカテゴリーを削除すると、関連するスレッドも全て削除されます。本当に削除しますか？</p>
+                    <input type="hidden" id="deleteCategoryId">
+                    <p id="deleteConfirmationMessage">このカテゴリーを削除してもよろしいですか？</p>
+                    
+                    <div id="moveThreadsSection" style="display: none;">
+                        <div class="alert alert-warning">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="moveThreadsCheckbox" checked>
+                                <label class="form-check-label" for="moveThreadsCheckbox">
+                                    スレッドを「未分類」カテゴリーに移動する
+                                </label>
+                            </div>
+                            <small class="text-muted">※チェックを外すと、スレッドがある場合は削除できません。</small>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
