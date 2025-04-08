@@ -469,8 +469,11 @@ class PendingUsers {
                 // 初期フィルタリング
                 this.filterAllTabs();
                 
-                // チャートを描画
-                this.renderCharts();
+                // 統計データの更新（グラフなしで）
+                this.updateStatisticsData();
+                
+                // チャートを描画 - 統計ページに移動したためコメントアウト
+                // this.renderCharts();
             } else {
                 throw new Error(pendingResponse.error || usersResponse.error || 'データの取得に失敗しました');
             }
@@ -478,6 +481,21 @@ class PendingUsers {
             console.error('ユーザーの取得に失敗:', error);
             alert('ユーザーの取得に失敗しました');
         }
+    }
+    
+    // 統計データのみを更新する（グラフ描画なし）
+    updateStatisticsData() {
+        const approved = this.pendingUsers.filter(user => user.isApproved === true).length;
+        const pending = this.pendingUsers.filter(user => 
+            user.documentStatus === 'submitted' && (!user.isApproved || user.isApproved === false)).length;
+        const rejected = this.pendingUsers.filter(user => user.documentStatus === 'rejected').length;
+        const notSubmitted = this.pendingUsers.filter(user => user.documentStatus === 'not_submitted').length;
+        
+        // 統計数値の更新
+        document.getElementById('totalUsersCount').textContent = this.pendingUsers.length;
+        document.getElementById('approvedUsersCount').textContent = approved;
+        document.getElementById('pendingUsersCount').textContent = pending;
+        document.getElementById('rejectedUsersCount').textContent = rejected;
     }
     
     // すべてのタブのデータをフィルタリング
@@ -1038,12 +1056,14 @@ class PendingUsers {
             document.getElementById(`advancedStatusFilter${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).value : 
             '';
 
-        // フィルター設定を更新
+        // フィルター設定を更新（日付文字列をDate型に変換）
         this.advancedFilter = {
-            dateFrom: dateFrom || null,
-            dateTo: dateTo || null,
+            dateFrom: dateFrom ? new Date(dateFrom) : null,
+            dateTo: dateTo ? new Date(dateTo) : null,
             status: status || ''
         };
+
+        console.log('フィルター設定を適用:', this.advancedFilter);
 
         // ユーザーをフィルタリングして再描画
         this.filterAllTabs();
@@ -1065,10 +1085,21 @@ class PendingUsers {
                 
                 if (!createdAt) return false;
                 
-                if (this.advancedFilter.dateFrom && createdAt < this.advancedFilter.dateFrom) {
-                    return false;
+                // dateFromの比較（開始日以降）
+                if (this.advancedFilter.dateFrom) {
+                    // 日付の時刻部分をリセットして日付のみで比較
+                    const dateFrom = new Date(this.advancedFilter.dateFrom);
+                    dateFrom.setHours(0, 0, 0, 0);
+                    
+                    const createdDate = new Date(createdAt);
+                    createdDate.setHours(0, 0, 0, 0);
+                    
+                    if (createdDate < dateFrom) {
+                        return false;
+                    }
                 }
                 
+                // dateToの比較（終了日以前）
                 if (this.advancedFilter.dateTo) {
                     // 終了日の23:59:59まで含めるための調整
                     const dateTo = new Date(this.advancedFilter.dateTo);
@@ -1110,13 +1141,19 @@ class PendingUsers {
     
     // ステータス分布のチャート
     renderStatusChart() {
+        const statusChartElement = document.getElementById('statusChart');
+        if (!statusChartElement) {
+            console.log('statusChart要素が見つかりません。グラフ描画をスキップします。');
+            return;
+        }
+        
         const approved = this.pendingUsers.filter(user => user.isApproved === true).length;
         const pending = this.pendingUsers.filter(user => 
             user.documentStatus === 'submitted' && (!user.isApproved || user.isApproved === false)).length;
         const rejected = this.pendingUsers.filter(user => user.documentStatus === 'rejected').length;
         const notSubmitted = this.pendingUsers.filter(user => user.documentStatus === 'not_submitted').length;
         
-        const ctx = document.getElementById('statusChart').getContext('2d');
+        const ctx = statusChartElement.getContext('2d');
         
         // 既存のチャートを破棄
         if (this.statusChart) {
@@ -1161,6 +1198,12 @@ class PendingUsers {
     
     // 登録日分布のチャート
     renderRegistrationChart() {
+        const registrationChartElement = document.getElementById('registrationChart');
+        if (!registrationChartElement) {
+            console.log('registrationChart要素が見つかりません。グラフ描画をスキップします。');
+            return;
+        }
+        
         // 過去6ヶ月間のデータを集計
         const now = new Date();
         const months = [];
@@ -1189,7 +1232,7 @@ class PendingUsers {
             counts.push(count);
         }
         
-        const ctx = document.getElementById('registrationChart').getContext('2d');
+        const ctx = registrationChartElement.getContext('2d');
         
         // 既存のチャートを破棄
         if (this.registrationChart) {

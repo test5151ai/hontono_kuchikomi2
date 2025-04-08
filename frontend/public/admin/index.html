@@ -62,13 +62,13 @@
                         <div class="col-lg-3 col-6">
                             <div class="small-box bg-info">
                                 <div class="inner">
-                                    <h3 id="pendingUsersCount">0</h3>
+                                    <h3 id="pendingUsersCount">-</h3>
                                     <p>承認待ちユーザー</p>
                                 </div>
                                 <div class="icon">
                                     <i class="bi bi-people"></i>
                                 </div>
-                                <a href="/admin/pending-users.html" class="small-box-footer">
+                                <a href="/admin/users.html?tab=pending" class="small-box-footer">
                                     詳細を見る <i class="bi bi-arrow-right-circle"></i>
                                 </a>
                             </div>
@@ -76,7 +76,7 @@
                         <div class="col-lg-3 col-6">
                             <div class="small-box bg-success">
                                 <div class="inner">
-                                    <h3 id="totalUsersCount">0</h3>
+                                    <h3 id="totalUsersCount">-</h3>
                                     <p>登録ユーザー</p>
                                 </div>
                                 <div class="icon">
@@ -90,7 +90,7 @@
                         <div class="col-lg-3 col-6">
                             <div class="small-box bg-warning">
                                 <div class="inner">
-                                    <h3 id="totalCategoriesCount">0</h3>
+                                    <h3 id="totalCategoriesCount">-</h3>
                                     <p>カテゴリー数</p>
                                 </div>
                                 <div class="icon">
@@ -104,7 +104,7 @@
                         <div class="col-lg-3 col-6">
                             <div class="small-box bg-danger">
                                 <div class="inner">
-                                    <h3 id="totalThreadsCount">0</h3>
+                                    <h3 id="totalThreadsCount">-</h3>
                                     <p>スレッド数</p>
                                 </div>
                                 <div class="icon">
@@ -230,7 +230,29 @@
     </div>
 
     <!-- トースト通知 -->
-    <div class="toast-container"></div>
+    <div class="toast-container">
+        <!-- 成功トースト -->
+        <div class="toast" id="successToast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto"><i class="bi bi-check-circle"></i> 成功</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="successToastBody">
+                操作が成功しました
+            </div>
+        </div>
+        
+        <!-- エラートースト -->
+        <div class="toast" id="errorToast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-danger text-white">
+                <strong class="me-auto"><i class="bi bi-exclamation-circle"></i> エラー</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="errorToastBody">
+                エラーが発生しました
+            </div>
+        </div>
+    </div>
 
     <!-- ヘルプモーダル - ダッシュボード -->
     <div class="modal fade" id="dashboardHelpModal" tabindex="-1" aria-labelledby="dashboardHelpModalLabel" aria-hidden="true">

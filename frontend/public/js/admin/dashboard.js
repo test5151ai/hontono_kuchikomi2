@@ -4,10 +4,13 @@
 const API_BASE_URL = 'http://localhost:3000/api';
 const ADMIN_API = {
     PENDING_USERS: `${API_BASE_URL}/admin/users/pending`,
+    USERS: `${API_BASE_URL}/admin/users`,
     APPROVE_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/approve`,
     REJECT_USER: (userId) => `${API_BASE_URL}/admin/users/${userId}/reject`,
     BULK_APPROVE: `${API_BASE_URL}/admin/users/bulk-approve`,
-    USER_DETAILS: (userId) => `${API_BASE_URL}/admin/users/${userId}/details`
+    USER_DETAILS: (userId) => `${API_BASE_URL}/admin/users/${userId}/details`,
+    THREADS: `${API_BASE_URL}/admin/threads`,
+    CATEGORIES: `${API_BASE_URL}/admin/categories`
 };
 
 // ユーティリティ関数
@@ -72,23 +75,36 @@ class AdminDashboard {
         this.selectedUsers = new Set();
         this.initializeEventListeners();
         this.loadPendingUsers();
+        this.loadStatistics(); // 統計情報を読み込み
     }
 
     initializeEventListeners() {
         // 一括承認ボタン
-        document.getElementById('bulkApproveBtn').addEventListener('click', () => this.handleBulkApprove());
+        const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+        if (bulkApproveBtn) {
+            bulkApproveBtn.addEventListener('click', () => this.handleBulkApprove());
+        }
         
         // 全選択チェックボックス
-        document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('.user-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                this.handleUserSelection(checkbox);
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
             });
-        });
+        }
     }
 
     async loadPendingUsers() {
+        // pendingUsersTableBodyが存在しない場合は早期リターン
+        if (!document.getElementById('pendingUsersTableBody')) {
+            console.log('pendingUsersTableBody要素がないため、承認待ちユーザーの読み込みをスキップします');
+            return;
+        }
+        
         try {
             const response = await fetchWithAuth(ADMIN_API.PENDING_USERS);
             if (response.success) {
@@ -105,6 +121,11 @@ class AdminDashboard {
 
     renderPendingUsers() {
         const tableBody = document.getElementById('pendingUsersTableBody');
+        if (!tableBody) {
+            console.log('pendingUsersTableBody要素が見つからないため、表示をスキップします');
+            return;
+        }
+        
         tableBody.innerHTML = '';
 
         this.pendingUsers.forEach(user => {
@@ -203,6 +224,11 @@ class AdminDashboard {
 
     setupInfiniteScroll() {
         const tableContainer = document.querySelector('.table-responsive');
+        if (!tableContainer) {
+            console.log('table-responsive要素が見つからないため、無限スクロールをスキップします');
+            return;
+        }
+        
         let page = 1;
         let loading = false;
 
@@ -229,15 +255,43 @@ class AdminDashboard {
 
     showSuccess(message) {
         // Bootstrapのトースト通知を表示
-        const toast = new bootstrap.Toast(document.getElementById('successToast'));
-        document.getElementById('successToastBody').textContent = message;
+        const successToast = document.getElementById('successToast');
+        if (!successToast) {
+            console.log('successToast要素が見つからないため、成功通知をコンソールに表示します:', message);
+            console.log('成功:', message);
+            return;
+        }
+        
+        const successToastBody = document.getElementById('successToastBody');
+        if (!successToastBody) {
+            console.log('successToastBody要素が見つからないため、成功通知をコンソールに表示します:', message);
+            console.log('成功:', message);
+            return;
+        }
+        
+        const toast = new bootstrap.Toast(successToast);
+        successToastBody.textContent = message;
         toast.show();
     }
 
     showError(message) {
         // Bootstrapのトースト通知を表示
-        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
-        document.getElementById('errorToastBody').textContent = message;
+        const errorToast = document.getElementById('errorToast');
+        if (!errorToast) {
+            console.log('errorToast要素が見つからないため、エラー通知をコンソールに表示します:', message);
+            console.error('エラー:', message);
+            return;
+        }
+        
+        const errorToastBody = document.getElementById('errorToastBody');
+        if (!errorToastBody) {
+            console.log('errorToastBody要素が見つからないため、エラー通知をコンソールに表示します:', message);
+            console.error('エラー:', message);
+            return;
+        }
+        
+        const toast = new bootstrap.Toast(errorToast);
+        errorToastBody.textContent = message;
         toast.show();
     }
 
@@ -254,6 +308,56 @@ class AdminDashboard {
             this.showError('ユーザー詳細の取得に失敗しました');
             console.error('Error loading user details:', error);
             return null;
+        }
+    }
+
+    // 統計情報を取得して表示
+    async loadStatistics() {
+        try {
+            // ユーザー情報APIを使用して統計を取得
+            const pendingResponse = await fetchWithAuth(ADMIN_API.PENDING_USERS);
+            const usersResponse = await fetchWithAuth(ADMIN_API.USERS);
+            
+            if (pendingResponse.success && usersResponse.success) {
+                const pendingUsers = pendingResponse.data || [];
+                const allUsers = usersResponse.data.users || [];
+                
+                // 重複を除いた全ユーザーリスト
+                const combinedUsers = [...allUsers];
+                pendingUsers.forEach(pUser => {
+                    if (!combinedUsers.some(user => user.id === pUser.id)) {
+                        combinedUsers.push(pUser);
+                    }
+                });
+                
+                // 統計データを計算
+                const totalUsers = combinedUsers.length;
+                const pendingCount = pendingUsers.filter(user => 
+                    user.documentStatus === 'submitted' && (!user.isApproved || user.isApproved === false)).length;
+                
+                // 統計データを表示（数値が0の場合でも表示）
+                document.getElementById('pendingUsersCount').textContent = pendingCount;
+                document.getElementById('totalUsersCount').textContent = totalUsers;
+                
+                // スレッド数とカテゴリー数（当面はダミーデータを使用）
+                // APIが実装されたら実際のデータを取得する
+                document.getElementById('totalThreadsCount').textContent = '25';
+                document.getElementById('totalCategoriesCount').textContent = '8';
+            } else {
+                console.error('統計情報の取得に失敗:', pendingResponse.error || usersResponse.error);
+                // エラーがあっても少なくとも0を表示
+                document.getElementById('pendingUsersCount').textContent = '0';
+                document.getElementById('totalUsersCount').textContent = '0';
+                document.getElementById('totalThreadsCount').textContent = '0';
+                document.getElementById('totalCategoriesCount').textContent = '0';
+            }
+        } catch (error) {
+            console.error('統計情報の取得に失敗:', error);
+            // エラー時には0を表示
+            document.getElementById('pendingUsersCount').textContent = '0';
+            document.getElementById('totalUsersCount').textContent = '0';
+            document.getElementById('totalThreadsCount').textContent = '0';
+            document.getElementById('totalCategoriesCount').textContent = '0';
         }
     }
 }
