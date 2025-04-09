@@ -199,7 +199,7 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="not-submitted-tab" data-bs-toggle="tab" data-bs-target="#not-submitted-tab-pane" type="button" role="tab" aria-selected="false">
                                         未提出
-                                    </button>
+                                </button>
                                 </li>
                             </ul>
                         </div>
@@ -241,17 +241,17 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-md-3">
-                                                            <div class="form-group">
-                                                                <label>ステータス</label>
+                                        <div class="form-group">
+                                            <label>ステータス</label>
                                                                 <select class="form-select" id="advancedStatusFilterAll">
-                                                                    <option value="">すべて</option>
+                                                <option value="">すべて</option>
                                                                     <option value="approved">認証済</option>
                                                                     <option value="pending">未認証</option>
                                                                     <option value="rejected">拒否</option>
                                                                     <option value="not_submitted">書類待ち</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
+                                            </select>
+                                        </div>
+                                    </div>
                                                         <div class="col-md-3 d-flex align-items-end">
                                                             <button type="submit" class="btn btn-primary w-100" id="applyFilterAll">検索</button>
                                                         </div>
@@ -327,8 +327,8 @@
                                                                 <input type="date" class="form-control" id="dateFromPending">
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
                                                                 <label>登録日（まで）</label>
                                                                 <input type="date" class="form-control" id="dateToPending">
                                                             </div>
@@ -497,13 +497,13 @@
                                                         </div>
                                                         <div class="col-md-4 d-flex align-items-end">
                                                             <button type="submit" class="btn btn-primary w-100" id="applyFilterRejected">検索</button>
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
                                     </div>
-                                    
+                                </div>
+                            </form>
+                                            </div>
+                        </div>
+                    </div>
+
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -581,14 +581,14 @@
                                                         </div>
                                                     </div>
                                                 </form>
-                                            </div>
-                                        </div>
-                                    </div>
+                                </div>
+                            </div>
+                        </div>
                                     
                                     <div class="table-responsive">
                                         <table class="table table-striped">
-                                            <thead>
-                                                <tr>
+                                <thead>
+                                    <tr>
                                                     <th class="text-center align-middle" style="width: 40px;">
                                                         <div class="form-check d-flex justify-content-center">
                                                             <input type="checkbox" id="selectAllNotSubmittedCheckbox" class="form-check-input">
@@ -599,14 +599,14 @@
                                                     <th class="sortable" data-sort="status" data-tab="notSubmitted">ステータス <i class="bi bi-arrow-down-up"></i></th>
                                                     <th class="sortable" data-sort="createdAt" data-tab="notSubmitted">登録日 <i class="bi bi-arrow-down-up"></i></th>
                                                     <th class="sortable" data-sort="documentSubmittedAt" data-tab="notSubmitted">書類提出日 <i class="bi bi-arrow-down-up"></i></th>
-                                                    <th>操作</th>
-                                                </tr>
-                                            </thead>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
                                             <tbody id="pendingUsersTableNotSubmitted">
                                                 <!-- 未提出ユーザーはJavaScriptで動的に追加 -->
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                </tbody>
+                            </table>
+                        </div>
                                     <!-- ページネーション -->
                                     <div class="pagination-container" id="notSubmitted-pagination">
                                         <div class="pagination-info">
@@ -683,7 +683,7 @@
                                         <li>極端に古い日付の画面キャプチャ</li>
                                         <li>極端に不鮮明で内容確認ができない</li>
                                         <li>他人の個人情報が過剰に含まれている</li>
-                                    </ul>
+                    </ul>
                                 </div>
                             </div>
                         </div>

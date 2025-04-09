@@ -146,7 +146,7 @@ class PendingUsers {
             const formElement = document.getElementById(form.id);
             if (formElement) {
                 formElement.addEventListener('submit', (e) => {
-                    e.preventDefault();
+    e.preventDefault();
                     this.applyAdvancedFilter(form.tab);
                 });
             }
@@ -157,8 +157,8 @@ class PendingUsers {
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', (e) => {
                 const checkboxes = document.querySelectorAll('#pendingUsersTable .user-checkbox');
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = e.target.checked;
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
                     this.handleUserSelection(checkbox);
                 });
             });
@@ -482,10 +482,10 @@ class PendingUsers {
                 
                 // チャートを描画 - 統計ページに移動したためコメントアウト
                 // this.renderCharts();
-            } else {
+    } else {
                 throw new Error(pendingResponse.error || usersResponse.error || 'データの取得に失敗しました');
-            }
-        } catch (error) {
+    }
+  } catch (error) {
             console.error('ユーザーの取得に失敗:', error);
             alert('ユーザーの取得に失敗しました');
         }
@@ -652,30 +652,30 @@ class PendingUsers {
                     <td>${user.email}</td>
                     <td>
                         ${this.renderUserStatus(user)}
-                    </td>
+      </td>
                     <td>
                         ${user.createdAt ? formatDate(user.createdAt) : 'N/A'}
                     </td>
                     <td>
                         ${user.documentSubmittedAt ? formatDate(user.documentSubmittedAt) : 'N/A'}
                     </td>
-                    <td>
-                        <div class="btn-group">
-                            ${!user.isApproved ? `
+      <td>
+        <div class="btn-group">
+          ${!user.isApproved ? `
                             <button class="btn btn-sm btn-success" onclick="pendingUsers.approveUser('${user.id}')">
                                 <i class="bi bi-check-circle"></i> 承認
-                            </button>
-                            ` : ''}
+          </button>
+          ` : ''}
                             ${user.documentStatus === 'submitted' || user.documentStatus === 'rejected' ? `
                             <button class="btn btn-sm btn-info" onclick="pendingUsers.viewDocument('${user.id}')">
                                 <i class="bi bi-file-earmark"></i> 書類
-                            </button>
-                            ` : ''}
+          </button>
+          ` : ''}
                             <button class="btn btn-sm btn-danger" onclick="pendingUsers.rejectUser('${user.id}')">
                                 <i class="bi bi-x-circle"></i> 拒否
                             </button>
-                        </div>
-                    </td>
+        </div>
+      </td>
                 </tr>
             `;
         }).join('');
@@ -724,7 +724,7 @@ class PendingUsers {
             if (response.success) {
                 // 書類プレビューモーダルを表示
                 this.showDocumentModal(response.data);
-            } else {
+  } else {
                 throw new Error(response.message || '書類の取得に失敗しました');
             }
         } catch (error) {
@@ -863,7 +863,7 @@ class PendingUsers {
             } else {
                 throw new Error(response.message || '書類の拒否に失敗しました');
             }
-        } catch (error) {
+  } catch (error) {
             console.error('書類拒否エラー:', error);
             alert('書類の拒否に失敗しました: ' + error.message);
         }
@@ -947,7 +947,7 @@ class PendingUsers {
                         <div class="modal-header bg-danger text-white">
                             <h5 class="modal-title">ユーザー拒否理由</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
+        </div>
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="rejectReasonInput" class="form-label">拒否理由を入力してください</label>
@@ -955,17 +955,17 @@ class PendingUsers {
                                     placeholder="ユーザーに通知される拒否理由を具体的に記入してください"></textarea>
                                 <div class="form-text text-muted">
                                     ※拒否理由はユーザーに通知され、管理画面でも表示されます
-                                </div>
-                            </div>
-                        </div>
+        </div>
+      </div>
+    </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
                             <button type="button" class="btn btn-danger" id="confirmRejectBtn">拒否を確定</button>
-                        </div>
-                    </div>
-                </div>
             </div>
-        `;
+        </div>
+      </div>
+    </div>
+  `;
 
         // 既存のモーダルがあれば削除
         const existingModal = document.getElementById('rejectReasonModal');
@@ -994,7 +994,7 @@ class PendingUsers {
                 modal.hide();
                 
                 const response = await fetchWithAuth(ADMIN_API.REJECT_USER(userId), {
-                    method: 'POST',
+      method: 'POST',
                     body: JSON.stringify({
                         reason: reason
                     })
@@ -1388,7 +1388,7 @@ class PendingUsers {
             // バックエンドで一括拒否APIがない場合は、順次処理する
             const promises = Array.from(this.selectedUsers).map(userId => {
                 return fetchWithAuth(ADMIN_API.REJECT_USER(userId), {
-                    method: 'POST',
+      method: 'POST',
                     body: JSON.stringify({ reason })
                 });
             });
@@ -1403,7 +1403,7 @@ class PendingUsers {
             document.querySelectorAll('.user-checkbox, #selectAllCheckbox, #selectAllPendingCheckbox, #selectAllRejectedCheckbox, #selectAllNotSubmittedCheckbox, #selectAllApprovedCheckbox').forEach(checkbox => {
                 checkbox.checked = false;
             });
-        } catch (error) {
+  } catch (error) {
             console.error('一括拒否に失敗:', error);
             alert('一括拒否に失敗しました');
         }
