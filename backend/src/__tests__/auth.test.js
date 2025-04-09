@@ -15,7 +15,9 @@ describe('認証API テスト', () => {
       username: 'testuser',
       email: 'test@example.com',
       password: hashedPassword,
-      role: 'user'
+      role: 'user',
+      submissionContact: 'test-contact',
+      status: 'active'
     });
   });
 
