@@ -77,9 +77,9 @@ async function loadRecentThreads() {
             throw new Error('APIからのレスポンスが正常ではありません');
         }
         
-        const data = await response.json();
+        const threads = await response.json();
         
-        if (!data.threads || data.threads.length === 0) {
+        if (!threads || threads.length === 0) {
             container.innerHTML = '<div class="col-12 text-center py-4">新着スレッドはありません</div>';
             return;
         }
@@ -87,7 +87,7 @@ async function loadRecentThreads() {
         // 新着スレッドのHTMLを生成
         let html = '';
         
-        data.threads.forEach(thread => {
+        threads.forEach(thread => {
             // 日付をフォーマット
             const createdDate = new Date(thread.createdAt);
             const formattedDate = `${createdDate.getFullYear()}/${(createdDate.getMonth() + 1).toString().padStart(2, '0')}/${createdDate.getDate().toString().padStart(2, '0')}`;
