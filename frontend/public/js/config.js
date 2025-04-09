@@ -16,7 +16,7 @@ const getApiBaseUrl = () => {
   const protocol = window.location.protocol;
   
   // バックエンドのポート設定
-  const BACKEND_PORT = 3001; // 実際に使用しているポート
+  const BACKEND_PORT = 3000; // 実際に使用しているポート
   const FRONTEND_PORT = window.location.port || '80'; // フロントエンドポート
   
   // ポート情報をコンソールに表示
