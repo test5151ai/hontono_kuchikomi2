@@ -1,7 +1,14 @@
 // 管理者ダッシュボードのメインJavaScriptファイル
 
+// 環境設定から取得
+const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+const STATIC_BASE_URL = window.location.origin;
+
+// デバッグ情報
+console.log('🔌 管理画面APIベースURL:', API_BASE_URL);
+console.log('🔌 静的コンテンツURL:', STATIC_BASE_URL);
+
 // APIエンドポイントの設定
-const API_BASE_URL = 'http://localhost:3000/api';
 const ADMIN_API = {
     USERS: `${API_BASE_URL}/admin/users`,
     PENDING_USERS: `${API_BASE_URL}/admin/users/pending`,
@@ -24,9 +31,6 @@ const formatDate = (dateString) => {
         minute: '2-digit'
     });
 };
-
-// 静的ファイル用のベースURL
-const STATIC_BASE_URL = 'http://localhost:3000';
 
 // APIリクエストヘルパー
 const fetchWithAuth = async (url, options = {}) => {

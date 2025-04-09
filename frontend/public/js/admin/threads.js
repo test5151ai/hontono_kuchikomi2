@@ -1,3 +1,11 @@
+// 環境設定から取得するAPIベースURL
+const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+const STATIC_BASE_URL = window.location.origin;
+
+// デバッグ情報
+console.log('🔌 スレッド管理APIベースURL:', API_BASE_URL);
+console.log('🔌 静的コンテンツURL:', STATIC_BASE_URL);
+
 document.addEventListener('DOMContentLoaded', function() {
     // 認証チェック
     const token = localStorage.getItem('token');
@@ -6,10 +14,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // URLからthreadIdを取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const threadId = urlParams.get('id');
+
     // スレッド一覧を取得
     async function loadThreads() {
         try {
-            const response = await fetch('http://localhost:3000/api/admin/threads', {
+            const loadingSpinner = document.getElementById('loading-spinner');
+            if (loadingSpinner) loadingSpinner.classList.remove('d-none');
+            
+            const response = await fetch(`${API_BASE_URL}/admin/threads`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
@@ -47,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
             alert.className = 'alert alert-danger';
             alert.textContent = error.message || 'スレッド一覧の取得に失敗しました';
             document.querySelector('.container').prepend(alert);
+        } finally {
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
         }
     }
     
@@ -74,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // スレッド編集モーダルを表示
     async function editThread(threadId) {
         try {
-            const response = await fetch(`http://localhost:3000/api/threads/${threadId}`, {
+            const response = await fetch(`${API_BASE_URL}/threads/${threadId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -87,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const thread = await response.json();
             
             // カテゴリ一覧を取得
-            const categoriesResponse = await fetch('http://localhost:3000/api/categories');
+            const categoriesResponse = await fetch(`${API_BASE_URL}/categories`);
             const categories = await categoriesResponse.json();
             
             // モーダルの内容を設定
@@ -121,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoryId = document.getElementById('threadCategory').value;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/threads/${threadId}`, {
+            const response = await fetch(`${API_BASE_URL}/threads/${threadId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -164,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // スレッドを削除
     async function deleteThread(threadId) {
         try {
-            const response = await fetch(`http://localhost:3000/api/threads/${threadId}`, {
+            const response = await fetch(`${API_BASE_URL}/threads/${threadId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
