@@ -26,7 +26,7 @@ function checkAdminAuth() {
     console.log('ユーザーロール:', userRole || 'なし');
     
     // ログインページの場合は処理をスキップ
-    if (window.location.pathname.includes('/login.html')) {
+    if (window.location.pathname.includes('/admin/login.html')) {
         console.log('ログインページなのでチェックをスキップします');
         return;
     }
