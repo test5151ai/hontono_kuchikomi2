@@ -27,9 +27,12 @@ function getApiUrl(path) {
         path = '/' + path;
     }
     
-    // パスが/apiで始まっていない場合は追加
-    if (!path.startsWith('/api')) {
-        path = '/api' + path;
+    // BASE_URLはすでに/apiを含んでいるので、
+    // パスから/apiプレフィックスを削除（もし存在する場合）
+    if (path.startsWith('/api/')) {
+        path = path.substring(4); // '/api/'の長さ(=4)を取り除く
+    } else if (path === '/api') {
+        path = ''; // パスが '/api' だけの場合は空文字に
     }
     
     return window.API_CONFIG.BASE_URL + path;
