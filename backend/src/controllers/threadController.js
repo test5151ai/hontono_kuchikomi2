@@ -657,15 +657,7 @@ exports.getThreads = async (req, res) => {
             return threadJson;
         }));
         
-        res.json({
-            threads: threadsWithPostCount,
-            pagination: {
-                total: count,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(count / parseInt(limit))
-            }
-        });
+        res.json(threadsWithPostCount);
     } catch (error) {
         console.error('スレッド一覧取得エラー:', error);
         res.status(500).json({ 
