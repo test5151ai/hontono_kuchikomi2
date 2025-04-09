@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者ログイン</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Hontono Kuchikomi | 管理者ログイン</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
@@ -23,6 +27,9 @@
 </head>
 <body class="bg-light">
     <div class="container login-container">
+        <!-- デバッグ情報表示エリア -->
+        <div id="debugInfo" style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: lime; padding: 5px; font-family: monospace; font-size: 12px; z-index: 9999; border-radius: 4px;"></div>
+        
         <div class="card">
             <div class="card-header py-3">
                 <h4 class="mb-0 text-center">管理者ログイン</h4>
@@ -52,10 +59,57 @@
         </div>
     </div>
 
+    <footer class="mt-4 text-center small text-muted">
+        <div>Version: <span id="app-version">v1.0.6</span></div>
+        <div>Build: <span id="build-date">2024-07-13</span> (<span id="build-id">release-15ch-v1.0.6</span>)</div>
+    </footer>
+
+    <script>
+        // コンソールにバージョン情報を表示（デバッグ用）
+        console.log('Hontono Kuchikomi Admin Portal');
+        console.log('Version:', document.getElementById('app-version').textContent);
+        console.log('Build:', document.getElementById('build-date').textContent, document.getElementById('build-id').textContent);
+        console.log('Load time:', new Date().toISOString());
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/config.js"></script>
     <script>
+        // アプリケーションバージョン（デバッグ用）
+        const APP_VERSION = 'v1.0.6';
+        const BUILD_DATE = '2024-07-13';
+        const BUILD_ID = 'release-15ch-v1.0.6';
+        
+        // デバッグ情報を表示
+        function showDebugInfo() {
+            const debugInfoElement = document.getElementById('debugInfo');
+            const timestamp = new Date().toISOString();
+            const debug = {
+                version: APP_VERSION,
+                buildDate: BUILD_DATE,
+                buildId: BUILD_ID,
+                timestamp: timestamp,
+                host: window.location.hostname,
+                pathname: window.location.pathname
+            };
+            
+            // コンソールに出力
+            console.log('🔄 更新チェック情報:', debug);
+            
+            // 画面に表示
+            debugInfoElement.innerHTML = `
+                バージョン: ${APP_VERSION}<br>
+                ビルド: ${BUILD_DATE}<br>
+                ID: ${BUILD_ID}<br>
+                更新: ${timestamp.split('T')[1].split('.')[0]}
+            `;
+            
+            return debug;
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
+            // デバッグ情報を表示
+            const debugInfo = showDebugInfo();
+            
             const loginForm = document.getElementById('adminLoginForm');
             const errorMessage = document.getElementById('errorMessage');
             const togglePasswordButton = document.getElementById('togglePassword');
@@ -86,120 +140,52 @@
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const formData = new FormData(loginForm);
-                const email = formData.get('email');
-                const password = formData.get('password');
-
                 try {
-                    errorMessage.classList.add('d-none');
+                    // デバッグ情報の表示
+                    console.log('=== サーバー診断開始 ===');
+                    console.log('デバッグビルド情報:', debugInfo);
                     
-                    // APIリクエスト用URL
+                    // APIの基本設定
                     const host = window.location.hostname;
-                    const port = '3000'; // バックエンドポート
                     const protocol = window.location.protocol;
                     
-                    // 本番環境では相対パスを使用
-                    let loginUrl;
-                    if (host === 'localhost' || host === '127.0.0.1') {
-                        // 開発環境
-                        loginUrl = `${protocol}//${host}:${port}/api/login`;
-                    } else {
-                        // 本番環境 - 相対パスを使用
-                        loginUrl = '/api/login';
-                    }
-                    
-                    console.log('リクエスト送信先候補:', loginUrl);
-                    console.log('=== サーバー設定デバッグ開始 ===');
-                    
-                    // API接続テスト（複数のパターンを試す）
-                    const testEndpoints = [
-                        { name: '相対パス /api', url: '/api', method: 'GET' },
-                        { name: '相対パス /api/login', url: '/api/login', method: 'GET' },
-                        { name: '相対パス /api/auth/login', url: '/api/auth/login', method: 'GET' },
-                        { name: 'ポート3000 api', url: `${protocol}//${host}:3000/api`, method: 'GET' },
-                        { name: 'ポート3001 api', url: `${protocol}//${host}:3001/api`, method: 'GET' },
-                        { name: 'ポート3000 login', url: `${protocol}//${host}:3000/api/login`, method: 'GET' },
-                        { name: 'ポート3001 login', url: `${protocol}//${host}:3001/api/login`, method: 'GET' },
-                        { name: 'ポート3000 auth/login', url: `${protocol}//${host}:3000/api/auth/login`, method: 'GET' },
-                        { name: 'ポート3001 auth/login', url: `${protocol}//${host}:3001/api/auth/login`, method: 'GET' }
+                    // 直接テスト用のエンドポイント一覧
+                    const endpoints = [
+                        '/api',
+                        '/api/login',
+                        '/api/auth/login'
                     ];
                     
-                    // エンドポイントテスト結果
-                    let endpointResults;
-                    try {
-                        endpointResults = await Promise.all(testEndpoints.map(endpoint => {
-                            return fetch(endpoint.url, { method: endpoint.method })
-                                .then(response => ({ 
-                                    name: endpoint.name, 
-                                    status: response.status,
-                                    ok: response.ok,
-                                    url: endpoint.url
-                                }))
-                                .catch(error => ({ 
-                                    name: endpoint.name, 
-                                    error: error.message,
-                                    url: endpoint.url
-                                }));
-                        }));
-                        console.log('== API エンドポイントテスト結果 ==');
-                        console.table(endpointResults);
-                        console.log('利用可能なAPIエンドポイント:', endpointResults.filter(r => r.status && r.status !== 404).map(r => r.url));
-                    } catch (error) {
-                        console.error('API エンドポイントテストエラー:', error);
-                    }
+                    // テストの実行前に表示
+                    console.log('サーバーテスト実行中...');
                     
-                    // ログインエンドポイントテスト
-                    const loginTestEndpoints = [
-                        { name: '相対パス /api/login', url: '/api/login' },
-                        { name: '相対パス /api/auth/login', url: '/api/auth/login' },
-                        { name: 'ポート3000 login', url: `${protocol}//${host}:3000/api/login` },
-                        { name: 'ポート3001 login', url: `${protocol}//${host}:3001/api/login` }
-                    ];
-                    
-                    // ログインエンドポイントテスト結果
-                    let loginResults;
-                    try {
-                        loginResults = await Promise.all(loginTestEndpoints.map(endpoint => {
-                            return fetch(endpoint.url, { 
-                                method: 'OPTIONS'
-                            })
-                            .then(response => ({ 
-                                name: endpoint.name, 
-                                status: response.status,
-                                ok: response.ok,
-                                url: endpoint.url
-                            }))
-                            .catch(error => ({ 
-                                name: endpoint.name, 
-                                error: error.message,
-                                url: endpoint.url
-                            }));
-                        }));
-                        console.log('== ログインエンドポイントテスト結果 ==');
-                        console.table(loginResults);
-                        
-                        // 使用可能なエンドポイントを検出
-                        const workingEndpoints = loginResults.filter(r => r.ok || (r.status && r.status !== 404));
-                        if (workingEndpoints.length > 0) {
-                            console.log('使用可能なログインエンドポイント:', workingEndpoints);
-                            // 自動的に動作するエンドポイントを選択
-                            const bestEndpoint = loginTestEndpoints.find(e => 
-                                workingEndpoints.some(w => w.name === e.name && w.url === e.url)
-                            );
-                            if (bestEndpoint) {
-                                console.log('自動選択されたログインエンドポイント:', bestEndpoint.url);
-                                loginUrl = bestEndpoint.url;
-                            }
+                    // シンプルなエンドポイントテスト
+                    for (const path of endpoints) {
+                        try {
+                            const resp = await fetch(path);
+                            console.log(`[テスト] ${path}: ステータス=${resp.status}`);
+                        } catch (err) {
+                            console.log(`[テスト] ${path}: エラー=${err.message}`);
                         }
-                    } catch (error) {
-                        console.error('ログインエンドポイントテストエラー:', error);
                     }
                     
-                    console.log('=== デバッグ終了 ===');
-                    console.log('最終的なログインURL:', loginUrl);
-                    console.log('リクエスト開始...');
+                    // ログイン処理の準備
+                    const formData = new FormData(loginForm);
+                    const email = formData.get('email');
+                    const password = formData.get('password');
                     
-                    // 通常ログイン処理
+                    // エラーメッセージをクリア
+                    errorMessage.classList.add('d-none');
+                    
+                    // デバッグ情報の表示
+                    console.log('=== ログイン処理開始 ===');
+                    console.log('メールアドレス:', email);
+                    
+                    // 最終的に使用するエンドポイント
+                    const loginUrl = '/api/login';
+                    console.log('使用するログインURL:', loginUrl);
+                    
+                    // ログインリクエスト
                     const response = await fetch(loginUrl, {
                         method: 'POST',
                         headers: {
@@ -211,11 +197,21 @@
                         })
                     });
                     
-                    console.log('レスポンスステータス:', response.status);
+                    console.log('ログインレスポンス状態:', response.status);
                     
-                    // レスポンスJSONを取得
-                    const data = await response.json();
-                    console.log('レスポンスデータ:', data);
+                    // レスポンスボディをテキストとして取得（デバッグ用）
+                    const responseText = await response.text();
+                    console.log('レスポンステキスト:', responseText);
+                    
+                    // JSONとして解析
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                        console.log('ログインレスポンスデータ:', data);
+                    } catch (jsonError) {
+                        console.error('JSONパースエラー:', jsonError);
+                        throw new Error('サーバーからの応答を解析できませんでした');
+                    }
                     
                     if (!response.ok) {
                         throw new Error(data.error || data.message || 'ログインに失敗しました');
