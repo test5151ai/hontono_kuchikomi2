@@ -108,11 +108,8 @@
                         loginUrl = '/api/login';
                     }
                     
-                    console.log('リクエスト送信先:', loginUrl);
-                    console.log('リクエスト開始...');
-                    
-                    // サーバーポート検出デバッグ
-                    console.log('=== サーバー設定デバッグ ===');
+                    console.log('リクエスト送信先候補:', loginUrl);
+                    console.log('=== サーバー設定デバッグ開始 ===');
                     
                     // API接続テスト（複数のパターンを試す）
                     const testEndpoints = [
@@ -127,9 +124,45 @@
                         { name: 'ポート3001 auth/login', url: `${protocol}//${host}:3001/api/auth/login`, method: 'GET' }
                     ];
                     
-                    // 全エンドポイントをテスト
-                    Promise.all(testEndpoints.map(endpoint => {
-                        return fetch(endpoint.url, { method: endpoint.method })
+                    // エンドポイントテスト結果
+                    let endpointResults;
+                    try {
+                        endpointResults = await Promise.all(testEndpoints.map(endpoint => {
+                            return fetch(endpoint.url, { method: endpoint.method })
+                                .then(response => ({ 
+                                    name: endpoint.name, 
+                                    status: response.status,
+                                    ok: response.ok,
+                                    url: endpoint.url
+                                }))
+                                .catch(error => ({ 
+                                    name: endpoint.name, 
+                                    error: error.message,
+                                    url: endpoint.url
+                                }));
+                        }));
+                        console.log('== API エンドポイントテスト結果 ==');
+                        console.table(endpointResults);
+                        console.log('利用可能なAPIエンドポイント:', endpointResults.filter(r => r.status && r.status !== 404).map(r => r.url));
+                    } catch (error) {
+                        console.error('API エンドポイントテストエラー:', error);
+                    }
+                    
+                    // ログインエンドポイントテスト
+                    const loginTestEndpoints = [
+                        { name: '相対パス /api/login', url: '/api/login' },
+                        { name: '相対パス /api/auth/login', url: '/api/auth/login' },
+                        { name: 'ポート3000 login', url: `${protocol}//${host}:3000/api/login` },
+                        { name: 'ポート3001 login', url: `${protocol}//${host}:3001/api/login` }
+                    ];
+                    
+                    // ログインエンドポイントテスト結果
+                    let loginResults;
+                    try {
+                        loginResults = await Promise.all(loginTestEndpoints.map(endpoint => {
+                            return fetch(endpoint.url, { 
+                                method: 'OPTIONS'
+                            })
                             .then(response => ({ 
                                 name: endpoint.name, 
                                 status: response.status,
@@ -141,54 +174,30 @@
                                 error: error.message,
                                 url: endpoint.url
                             }));
-                    }))
-                    .then(results => {
-                        console.table(results);
-                        console.log('利用可能なエンドポイント:', results.filter(r => r.status && r.status !== 404).map(r => r.url));
-                    })
-                    .catch(error => console.error('エンドポイントテストエラー:', error));
-                    
-                    // 実際のログインエンドポイントもテスト（OPTIONS）
-                    const loginTestEndpoints = [
-                        { name: '相対パス /api/login', url: '/api/login' },
-                        { name: '相対パス /api/auth/login', url: '/api/auth/login' },
-                        { name: 'ポート3000 login', url: `${protocol}//${host}:3000/api/login` },
-                        { name: 'ポート3001 login', url: `${protocol}//${host}:3001/api/login` }
-                    ];
-                    
-                    Promise.all(loginTestEndpoints.map(endpoint => {
-                        return fetch(endpoint.url, { 
-                            method: 'OPTIONS',
-                            headers: { 'Content-Type': 'application/json' }
-                        })
-                        .then(response => ({ 
-                            name: endpoint.name, 
-                            status: response.status,
-                            ok: response.ok
-                        }))
-                        .catch(error => ({ 
-                            name: endpoint.name, 
-                            error: error.message
                         }));
-                    }))
-                    .then(results => {
-                        console.log('=== ログインエンドポイントテスト結果 ===');
-                        console.table(results);
+                        console.log('== ログインエンドポイントテスト結果 ==');
+                        console.table(loginResults);
+                        
                         // 使用可能なエンドポイントを検出
-                        const workingEndpoints = results.filter(r => r.ok || (r.status && r.status !== 404));
+                        const workingEndpoints = loginResults.filter(r => r.ok || (r.status && r.status !== 404));
                         if (workingEndpoints.length > 0) {
                             console.log('使用可能なログインエンドポイント:', workingEndpoints);
                             // 自動的に動作するエンドポイントを選択
                             const bestEndpoint = loginTestEndpoints.find(e => 
-                                workingEndpoints.some(w => w.name === e.name)
+                                workingEndpoints.some(w => w.name === e.name && w.url === e.url)
                             );
                             if (bestEndpoint) {
                                 console.log('自動選択されたログインエンドポイント:', bestEndpoint.url);
                                 loginUrl = bestEndpoint.url;
                             }
                         }
-                    })
-                    .catch(error => console.error('ログインエンドポイントテストエラー:', error));
+                    } catch (error) {
+                        console.error('ログインエンドポイントテストエラー:', error);
+                    }
+                    
+                    console.log('=== デバッグ終了 ===');
+                    console.log('最終的なログインURL:', loginUrl);
+                    console.log('リクエスト開始...');
                     
                     // 通常ログイン処理
                     const response = await fetch(loginUrl, {
