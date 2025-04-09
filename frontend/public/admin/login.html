@@ -96,7 +96,17 @@
                     // APIリクエスト用URL
                     const host = window.location.hostname;
                     const port = '3000'; // バックエンドポート
-                    const loginUrl = `http://${host}:${port}/api/auth/login`;
+                    const protocol = window.location.protocol;
+                    
+                    // 本番環境では相対パスを使用
+                    let loginUrl;
+                    if (host === 'localhost' || host === '127.0.0.1') {
+                        // 開発環境
+                        loginUrl = `${protocol}//${host}:${port}/api/auth/login`;
+                    } else {
+                        // 本番環境 - 相対パスを使用
+                        loginUrl = '/api/auth/login';
+                    }
                     
                     console.log('リクエスト送信先:', loginUrl);
                     console.log('リクエスト開始...');

@@ -5,9 +5,12 @@
 
 // APIのベースURL設定
 const getApiBaseUrl = () => {
+  // 現在のプロトコルを取得（httpかhttps）
+  const protocol = window.location.protocol;
+  
   // 本番環境かどうかをURLのホスト名で判断
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return `http://${window.location.hostname}:3000/api`; // 開発環境
+    return `${protocol}//${window.location.hostname}:3000/api`; // 開発環境
   } else {
     return '/api'; // 本番環境
   }
