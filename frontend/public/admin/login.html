@@ -7,9 +7,11 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <!-- ランダムパラメータでキャッシュ回避 -->
     <title>Hontono Kuchikomi | 管理者ログイン</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/admin.css?v=20240713">
     <style>
         .login-container {
             max-width: 450px;
@@ -83,24 +85,42 @@
         function showDebugInfo() {
             const debugInfoElement = document.getElementById('debugInfo');
             const timestamp = new Date().toISOString();
+            
+            // ネットワーク情報を取得
+            const host = window.location.hostname;
+            const port = window.location.port || '80';
+            const protocol = window.location.protocol;
+            const backendPort = '3001'; // 実際のバックエンドポート
+            
             const debug = {
                 version: APP_VERSION,
                 buildDate: BUILD_DATE,
                 buildId: BUILD_ID,
                 timestamp: timestamp,
-                host: window.location.hostname,
+                network: {
+                    host: host,
+                    frontendPort: port,
+                    backendPort: backendPort,
+                    protocol: protocol
+                },
                 pathname: window.location.pathname
             };
             
             // コンソールに出力
             console.log('🔄 更新チェック情報:', debug);
+            console.log('🔌 接続設定:');
+            console.log('- フロントエンド:', `${protocol}//${host}:${port}`);
+            console.log('- バックエンド想定:', `${protocol}//${host}:${backendPort}`);
             
             // 画面に表示
             debugInfoElement.innerHTML = `
+                <div style="font-weight:bold;color:#fff;text-align:center;margin-bottom:3px;border-bottom:1px solid #444;padding-bottom:2px;">デバッグ情報</div>
                 バージョン: ${APP_VERSION}<br>
                 ビルド: ${BUILD_DATE}<br>
                 ID: ${BUILD_ID}<br>
-                更新: ${timestamp.split('T')[1].split('.')[0]}
+                更新: ${timestamp.split('T')[1].split('.')[0]}<br>
+                フロント: ${port}<br>
+                バックエンド: ${backendPort}
             `;
             
             return debug;
