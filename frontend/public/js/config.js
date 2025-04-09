@@ -7,7 +7,7 @@
 const getApiBaseUrl = () => {
   // 本番環境かどうかをURLのホスト名で判断
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000/api'; // 開発環境
+    return `http://${window.location.hostname}:3000/api`; // 開発環境
   } else {
     return '/api'; // 本番環境
   }
@@ -21,7 +21,7 @@ window.API_CONFIG = {
 console.log('API設定を読み込みました:', window.API_CONFIG.BASE_URL);
 
 // 環境に応じてAPIベースURLを設定
-function getApiUrl(path) {
+window.getApiUrl = function(path) {
     // パスが既に/で始まっていない場合は追加
     if (!path.startsWith('/')) {
         path = '/' + path;

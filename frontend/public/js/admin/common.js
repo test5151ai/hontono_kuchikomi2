@@ -34,7 +34,7 @@ function handleLogout(event) {
         // ローカルストレージからトークンを削除
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        // ログインページにリダイレクト
-        window.location.href = '/login.html';
+        // 管理者ログインページにリダイレクト
+        window.location.href = '/admin/login.html';
     }
 } 
