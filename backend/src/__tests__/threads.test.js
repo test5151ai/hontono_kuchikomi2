@@ -31,8 +31,9 @@ describe('スレッド機能テスト', () => {
       email: 'user@example.com',
       password: userPassword,
       role: 'user',
-      submissionContact: 'test-contact',
-      status: 'active'
+      submission_method: 'email',
+      submission_contact: 'user@example.com',
+      isApproved: true
     });
 
     // 管理者ユーザーの作成
@@ -42,8 +43,9 @@ describe('スレッド機能テスト', () => {
       email: 'admin@example.com',
       password: adminPassword,
       role: 'admin',
-      submissionContact: 'admin-contact',
-      status: 'active'
+      submission_method: 'email',
+      submission_contact: 'admin@example.com',
+      isApproved: true
     });
 
     // トークンの取得

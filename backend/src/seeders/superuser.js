@@ -33,9 +33,9 @@ const createSuperUser = async () => {
                 password: hashedPassword,
                 role: 'superuser',
                 isApproved: true,
-                isSuperAdmin: true,
-                submissionMethod: 'email',
-                submissionContact: 'admin@15ch.net',
+                is_super_admin: true,
+                submission_method: 'email',
+                submission_contact: 'admin@15ch.net',
                 documentStatus: 'approved',
                 documentVerifiedAt: new Date()
             });
