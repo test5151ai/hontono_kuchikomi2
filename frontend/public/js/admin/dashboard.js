@@ -317,6 +317,10 @@ class AdminDashboard {
             // ユーザー情報APIを使用して統計を取得
             const pendingResponse = await fetchWithAuth(ADMIN_API.PENDING_USERS);
             const usersResponse = await fetchWithAuth(ADMIN_API.USERS);
+            // スレッド数を取得
+            const threadsResponse = await fetchWithAuth(ADMIN_API.THREADS);
+            // カテゴリーを取得
+            const categoriesResponse = await fetchWithAuth(ADMIN_API.CATEGORIES);
             
             if (pendingResponse.success && usersResponse.success) {
                 const pendingUsers = pendingResponse.data || [];
@@ -339,10 +343,21 @@ class AdminDashboard {
                 document.getElementById('pendingUsersCount').textContent = pendingCount;
                 document.getElementById('totalUsersCount').textContent = totalUsers;
                 
-                // スレッド数とカテゴリー数（当面はダミーデータを使用）
-                // APIが実装されたら実際のデータを取得する
-                document.getElementById('totalThreadsCount').textContent = '25';
-                document.getElementById('totalCategoriesCount').textContent = '8';
+                // スレッド数を表示（APIから取得）
+                let threadsCount = 0;
+                if (threadsResponse && threadsResponse.success && threadsResponse.pagination) {
+                    threadsCount = threadsResponse.pagination.total || 0;
+                    console.log('APIから取得したスレッド数:', threadsCount);
+                }
+                document.getElementById('totalThreadsCount').textContent = threadsCount;
+                
+                // カテゴリー数を表示（APIから取得）
+                let categoriesCount = 0;
+                if (categoriesResponse && categoriesResponse.success && categoriesResponse.data) {
+                    categoriesCount = categoriesResponse.data.length || 0;
+                    console.log('APIから取得したカテゴリー数:', categoriesCount);
+                }
+                document.getElementById('totalCategoriesCount').textContent = categoriesCount;
             } else {
                 console.error('統計情報の取得に失敗:', pendingResponse.error || usersResponse.error);
                 // エラーがあっても少なくとも0を表示
