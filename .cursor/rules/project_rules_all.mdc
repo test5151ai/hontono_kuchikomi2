@@ -4,11 +4,6 @@ globs:
 alwaysApply: true
 ---
 ---
-description: 
-globs: 
-alwaysApply: true
----
----
 description: プロジェクト全体の作業手順とルール
 globs: - "**/*"
 alwaysApply: true
