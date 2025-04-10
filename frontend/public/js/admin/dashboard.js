@@ -29,7 +29,8 @@ const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('token');
     if (!token) {
         console.error('認証トークンが存在しません');
-        window.location.href = '/login.html';
+        // 管理者用ログインページにリダイレクト
+        window.location.href = '/admin/login.html';
         return;
     }
 
@@ -55,7 +56,8 @@ const fetchWithAuth = async (url, options = {}) => {
         if (response.status === 401) {
             console.error('認証エラー:', data);
             localStorage.removeItem('token');
-            window.location.href = '/login.html';
+            // 管理者用ログインページにリダイレクト
+            window.location.href = '/admin/login.html';
             return;
         }
         if (!response.ok) {
