@@ -77,8 +77,13 @@ async function ensureCategories() {
   }
 }
 
-// アプリケーション起動時にカテゴリーデータを確認
-ensureCategories();
+// テスト環境かどうかを確認
+const isTestEnvironment = process.env.NODE_ENV === 'test';
+
+// テスト環境でない場合のみ即時実行
+if (!isTestEnvironment) {
+  ensureCategories();
+}
 
 // CORSの設定を最初に行う
 const corsOptions = {
@@ -156,6 +161,15 @@ app.use((req, res, next) => {
         method: layer.route ? layer.route.methods : 'middleware'
     })));
     next();
+});
+
+// API利用開始前のカテゴリーデータ初期化（テスト環境用）
+app.use(async (req, res, next) => {
+  // APIエンドポイントへのリクエスト時にのみカテゴリー初期化を実行（テスト環境の場合）
+  if (isTestEnvironment && req.path.startsWith('/api')) {
+    await ensureCategories();
+  }
+  next();
 });
 
 // エラーハンドリング
