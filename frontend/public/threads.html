@@ -283,8 +283,16 @@
                 showLoading(true);
                 
                 // APIエンドポイントのURL構築
-                const apiUrlString = getApiUrl('threads');
-                console.log('生成されたAPI URL:', apiUrlString);
+                let apiUrlString;
+                
+                // 人気スレッド表示の場合は専用エンドポイントを使用
+                if (currentFilters.sort === 'postCount' && currentFilters.order === 'desc' && new URLSearchParams(window.location.search).has('popular')) {
+                    apiUrlString = getApiUrl('threads/popular');
+                    console.log('人気スレッド専用APIを使用:', apiUrlString);
+                } else {
+                    apiUrlString = getApiUrl('threads');
+                    console.log('通常のスレッド一覧APIを使用:', apiUrlString);
+                }
                 
                 // URLオブジェクトを作成（ベースURLを指定して相対パスを処理）
                 const apiUrl = new URL(apiUrlString, window.location.origin);
@@ -292,9 +300,13 @@
                 // クエリパラメータの追加
                 apiUrl.searchParams.append('page', currentFilters.page);
                 apiUrl.searchParams.append('limit', 20);
-                apiUrl.searchParams.append('search', currentFilters.search);
-                apiUrl.searchParams.append('sort', currentFilters.sort);
-                apiUrl.searchParams.append('order', currentFilters.order);
+                
+                // 人気スレッド専用エンドポイント以外の場合はフィルター条件を追加
+                if (!(currentFilters.sort === 'postCount' && currentFilters.order === 'desc' && new URLSearchParams(window.location.search).has('popular'))) {
+                    apiUrl.searchParams.append('search', currentFilters.search);
+                    apiUrl.searchParams.append('sort', currentFilters.sort);
+                    apiUrl.searchParams.append('order', currentFilters.order);
+                }
                 
                 console.log('最終的なAPI URL:', apiUrl.toString());
                 
