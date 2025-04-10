@@ -79,151 +79,392 @@ const fetchWithAuth = async (url, options = {}) => {
 // メイン機能
 class PendingUsers {
     constructor() {
-        this.allUsers = [];
-        this.searchKeywords = {
-            all: '',
-            pending: '',
-            approved: '',
-            rejected: '',
-            notSubmitted: '',
-            admin: '' // 管理者タブ用の検索キーワード
-        };
+        this.pendingUsers = [];
         this.selectedUsers = new Set();
-        this.currentPages = {
-            all: 1,
-            pending: 1,
-            approved: 1,
-            rejected: 1,
-            notSubmitted: 1,
-            admin: 1 // 管理者タブ用のページ
-        };
-        this.limits = {
-            all: 10,
-            pending: 10,
-            approved: 10,
-            rejected: 10,
-            notSubmitted: 10,
-            admin: 10 // 管理者タブ用のリミット
-        };
-        this.sortFields = {
-            all: 'createdAt',
-            pending: 'createdAt',
-            approved: 'createdAt',
-            rejected: 'createdAt',
-            notSubmitted: 'createdAt',
-            admin: 'createdAt' // 管理者タブ用のソートフィールド
-        };
-        this.sortDirections = {
-            all: 'desc',
-            pending: 'desc',
-            approved: 'desc',
-            rejected: 'desc',
-            notSubmitted: 'desc',
-            admin: 'desc' // 管理者タブ用のソート方向
+        this.sortConfig = {
+            field: 'createdAt',
+            direction: 'desc'
         };
         
-        // イベントハンドラを初期化
-        this.initializeEventHandlers();
+        // 各タブのフィルタリングされたユーザーリスト
+        this.filteredUsers = {
+            all: [],
+            pending: [],
+            approved: [],
+            rejected: [],
+            notSubmitted: []
+        };
+        
+        // ページネーション設定
+        this.pagination = {
+            all: { page: 1, pageSize: 10, totalPages: 1 },
+            pending: { page: 1, pageSize: 10, totalPages: 1 },
+            approved: { page: 1, pageSize: 10, totalPages: 1 },
+            rejected: { page: 1, pageSize: 10, totalPages: 1 },
+            notSubmitted: { page: 1, pageSize: 10, totalPages: 1 }
+        };
+        
+        // 高度なフィルター設定
+        this.advancedFilter = {
+            dateFrom: null,
+            dateTo: null,
+            status: ''
+        };
+        
+        this.statusChart = null;
+        this.registrationChart = null;
+        
+        this.initializeEventListeners();
+        this.activateTabFromURL();
+        this.loadUsers();
     }
 
-    // 既存ユーザーの初期化
-    async init() {
-        await this.loadUsers();
-        this.renderPendingUsers();
-        this.initializeSelectAllCheckboxes();
-    }
-
-    // イベントハンドラの初期化
-    initializeEventHandlers() {
-        // 全ユーザー検索
-        document.getElementById('searchAll').addEventListener('input', e => {
-            this.handleSearchInput(e, 'all');
-        });
-        document.getElementById('clearSearchAll').addEventListener('click', () => {
-            this.clearSearch('all');
+    initializeEventListeners() {
+        // 一括承認ボタン
+        document.getElementById('bulkApproveBtn').addEventListener('click', () => this.handleBulkApprove());
+        
+        // 一括拒否ボタン
+        document.getElementById('bulkRejectBtn').addEventListener('click', () => this.handleBulkReject());
+        
+        // 一括停止ボタン
+        document.getElementById('bulkSuspendBtn').addEventListener('click', () => this.handleBulkSuspend());
+        
+        // エクスポートボタン
+        document.getElementById('exportCsv').addEventListener('click', () => this.exportData('csv'));
+        document.getElementById('exportExcel').addEventListener('click', () => this.exportData('excel'));
+        
+        // 詳細フィルターフォーム（各タブ）
+        const filterForms = [
+            { id: 'advancedFilterFormAll', tab: 'all' },
+            { id: 'advancedFilterFormPending', tab: 'pending' },
+            { id: 'advancedFilterFormApproved', tab: 'approved' },
+            { id: 'advancedFilterFormRejected', tab: 'rejected' },
+            { id: 'advancedFilterFormNotSubmitted', tab: 'notSubmitted' }
+        ];
+        
+        filterForms.forEach(form => {
+            const formElement = document.getElementById(form.id);
+            if (formElement) {
+                formElement.addEventListener('submit', (e) => {
+    e.preventDefault();
+                    this.applyAdvancedFilter(form.tab);
+                });
+            }
         });
         
-        // 管理者タブ検索
-        document.getElementById('searchAdmin').addEventListener('input', e => {
-            this.handleSearchInput(e, 'admin');
-        });
-        document.getElementById('clearSearchAdmin').addEventListener('click', () => {
-            this.clearSearch('admin');
+        // 全選択チェックボックス
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTable .user-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
+            });
+        }
+        
+        // 承認待ちタブの全選択チェックボックス
+        const selectAllPendingCheckbox = document.getElementById('selectAllPendingCheckbox');
+        if (selectAllPendingCheckbox) {
+            selectAllPendingCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableSubmitted .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
+            });
+        }
+        
+        // 拒否済みタブの全選択チェックボックス
+        const selectAllRejectedCheckbox = document.getElementById('selectAllRejectedCheckbox');
+        if (selectAllRejectedCheckbox) {
+            selectAllRejectedCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableRejected .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
+            });
+        }
+        
+        // 未提出タブの全選択チェックボックス
+        const selectAllNotSubmittedCheckbox = document.getElementById('selectAllNotSubmittedCheckbox');
+        if (selectAllNotSubmittedCheckbox) {
+            selectAllNotSubmittedCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableNotSubmitted .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
+            });
+        }
+        
+        // 承認済みタブの全選択チェックボックス
+        const selectAllApprovedCheckbox = document.getElementById('selectAllApprovedCheckbox');
+        if (selectAllApprovedCheckbox) {
+            selectAllApprovedCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('#pendingUsersTableApproved .user-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    this.handleUserSelection(checkbox);
+                });
+            });
+        }
+        
+        // ページネーションイベントリスナー
+        const tabIds = ['all', 'pending', 'approved', 'rejected', 'notSubmitted'];
+        tabIds.forEach(tabId => {
+            // 前へボタン
+            const prevButton = document.getElementById(`${tabId}-prev`);
+            if (prevButton) {
+                prevButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (this.pagination[tabId].page > 1) {
+                        this.pagination[tabId].page--;
+                        this.renderFilteredTable(tabId);
+                    }
+                });
+            }
+            
+            // 次へボタン
+            const nextButton = document.getElementById(`${tabId}-next`);
+            if (nextButton) {
+                nextButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (this.pagination[tabId].page < this.pagination[tabId].totalPages) {
+                        this.pagination[tabId].page++;
+                        this.renderFilteredTable(tabId);
+                    }
+                });
+            }
         });
         
-        // 承認待ち検索
-        document.getElementById('searchPending').addEventListener('input', e => {
-            this.handleSearchInput(e, 'pending');
-        });
-        document.getElementById('clearSearchPending').addEventListener('click', () => {
-            this.clearSearch('pending');
+        // 検索フィールドの処理
+        const searchFields = [
+            { id: 'searchAll', tab: 'all' },
+            { id: 'searchPending', tab: 'pending' },
+            { id: 'searchApproved', tab: 'approved' },
+            { id: 'searchRejected', tab: 'rejected' },
+            { id: 'searchNotSubmitted', tab: 'notSubmitted' }
+        ];
+        
+        searchFields.forEach(field => {
+            // 検索入力イベント
+            const searchField = document.getElementById(field.id);
+            if (searchField) {
+                searchField.addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value, field.tab);
+                });
+            }
+            
+            // クリアボタン
+            const clearButton = document.getElementById(`clearSearch${field.tab.charAt(0).toUpperCase() + field.tab.slice(1)}`);
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    const searchInput = document.getElementById(field.id);
+                    if (searchInput) {
+                        searchInput.value = '';
+                        this.handleSearch('', field.tab);
+                    }
+                });
+            }
         });
         
-        // 承認済み検索
-        document.getElementById('searchApproved').addEventListener('input', e => {
-            this.handleSearchInput(e, 'approved');
-        });
-        document.getElementById('clearSearchApproved').addEventListener('click', () => {
-            this.clearSearch('approved');
-        });
-        
-        // 拒否済み検索
-        document.getElementById('searchRejected').addEventListener('input', e => {
-            this.handleSearchInput(e, 'rejected');
-        });
-        document.getElementById('clearSearchRejected').addEventListener('click', () => {
-            this.clearSearch('rejected');
-        });
-        
-        // 未提出検索
-        document.getElementById('searchNotSubmitted').addEventListener('input', e => {
-            this.handleSearchInput(e, 'notSubmitted');
-        });
-        document.getElementById('clearSearchNotSubmitted').addEventListener('click', () => {
-            this.clearSearch('notSubmitted');
-        });
-        
-        // ページネーションボタンイベント
-        document.getElementById('all-prev').addEventListener('click', e => this.handlePaginationClick(e, 'all', 'prev'));
-        document.getElementById('all-next').addEventListener('click', e => this.handlePaginationClick(e, 'all', 'next'));
-        document.getElementById('admin-prev').addEventListener('click', e => this.handlePaginationClick(e, 'admin', 'prev'));
-        document.getElementById('admin-next').addEventListener('click', e => this.handlePaginationClick(e, 'admin', 'next'));
-        document.getElementById('pending-prev').addEventListener('click', e => this.handlePaginationClick(e, 'pending', 'prev'));
-        document.getElementById('pending-next').addEventListener('click', e => this.handlePaginationClick(e, 'pending', 'next'));
-        document.getElementById('approved-prev').addEventListener('click', e => this.handlePaginationClick(e, 'approved', 'prev'));
-        document.getElementById('approved-next').addEventListener('click', e => this.handlePaginationClick(e, 'approved', 'next'));
-        document.getElementById('rejected-prev').addEventListener('click', e => this.handlePaginationClick(e, 'rejected', 'prev'));
-        document.getElementById('rejected-next').addEventListener('click', e => this.handlePaginationClick(e, 'rejected', 'next'));
-        document.getElementById('notSubmitted-prev').addEventListener('click', e => this.handlePaginationClick(e, 'notSubmitted', 'prev'));
-        document.getElementById('notSubmitted-next').addEventListener('click', e => this.handlePaginationClick(e, 'notSubmitted', 'next'));
-        
-        // ソートヘッダーのイベントハンドラ
-        document.querySelectorAll('th.sortable').forEach(th => {
-            th.addEventListener('click', e => {
-                const field = th.dataset.sort;
-                const tab = th.dataset.tab;
-                this.handleSort(field, tab);
+        // ソート機能のイベントリスナー
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', (e) => {
+                const sortField = header.getAttribute('data-sort');
+                const tabId = header.getAttribute('data-tab') || 'all';
+                this.handleSort(sortField, tabId);
             });
         });
         
-        // タブ切り替え時のイベント
-        const tabEl = document.querySelector('#myTab button[data-bs-toggle="tab"]');
-        tabEl.addEventListener('shown.bs.tab', event => {
-            // タブが切り替わった時に再レンダリング
-            this.renderAllUsersTabs();
+        // 一括拒否確定ボタン
+        const confirmBulkRejectBtn = document.getElementById('confirmBulkReject');
+        if (confirmBulkRejectBtn) {
+            confirmBulkRejectBtn.addEventListener('click', () => {
+                this.confirmBulkReject();
+            });
+        }
+        
+        // タブの切り替えイベント
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (event) => {
+                // タブ切り替え時に選択状態をリセット
+                this.selectedUsers.clear();
+                
+                // チェックボックスの選択状態をリセット
+                document.querySelectorAll('.user-checkbox, #selectAllCheckbox, #selectAllPendingCheckbox, #selectAllRejectedCheckbox, #selectAllNotSubmittedCheckbox, #selectAllApprovedCheckbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            });
         });
+    }
+
+    // 検索処理
+    handleSearch(query, tabId) {
+        console.log(`検索: ${query} タブ: ${tabId}`);
+        query = query.toLowerCase().trim();
+        
+        // 対象のユーザーリストを選択
+        let userList;
+        switch(tabId) {
+            case 'pending':
+                userList = this.pendingUsers.filter(user => 
+                    user.documentStatus === 'submitted' && (!user.isApproved || user.isApproved === false));
+                break;
+            case 'approved':
+                userList = this.pendingUsers.filter(user => 
+                    user.isApproved === true);
+                break;
+            case 'rejected':
+                userList = this.pendingUsers.filter(user => 
+                    user.documentStatus === 'rejected');
+                break;
+            case 'notSubmitted':
+                userList = this.pendingUsers.filter(user => 
+                    user.documentStatus === 'not_submitted');
+                break;
+            case 'all':
+            default:
+                userList = [...this.pendingUsers];
+                break;
+        }
+        
+        // 検索クエリが空の場合、フィルタリングなし
+        if (query === '') {
+            this.filteredUsers[tabId] = userList;
+        } else {
+            // ユーザー名またはメールアドレスで検索
+            this.filteredUsers[tabId] = userList.filter(user => 
+                user.username.toLowerCase().includes(query) || 
+                user.email.toLowerCase().includes(query)
+            );
+        }
+        
+        // ページをリセット
+        this.pagination[tabId].page = 1;
+        
+        // ソート状態を維持して再描画
+        this.sortUsers(this.sortConfig.field, this.sortConfig.direction, tabId);
+        
+        // テーブル再描画
+        this.renderFilteredTable(tabId);
+    }
+    
+    // ソート処理
+    handleSort(field, tabId) {
+        // 同じフィールドでクリックした場合は方向を反転
+        let direction = 'asc';
+        if (this.sortConfig.field === field) {
+            direction = this.sortConfig.direction === 'asc' ? 'desc' : 'asc';
+        }
+        
+        // ソート設定を更新
+        this.sortConfig = { field, direction };
+        
+        // ユーザーリストをソート
+        this.sortUsers(field, direction, tabId);
+        
+        // ソートアイコンを更新
+        this.updateSortIcons(field, direction, tabId);
+        
+        // テーブル再描画
+        this.renderFilteredTable(tabId);
+    }
+    
+    // ユーザーリストのソート
+    sortUsers(field, direction, tabId) {
+        // ユーザーリストの複製を作成してソート
+        this.filteredUsers[tabId] = [...this.filteredUsers[tabId]].sort((a, b) => {
+            let valueA, valueB;
+            
+            switch(field) {
+                case 'username':
+                    valueA = a.username.toLowerCase();
+                    valueB = b.username.toLowerCase();
+                    break;
+                case 'email':
+                    valueA = a.email.toLowerCase();
+                    valueB = b.email.toLowerCase();
+                    break;
+                case 'status':
+                    valueA = this.getUserStatusPriority(a);
+                    valueB = this.getUserStatusPriority(b);
+                    break;
+                case 'createdAt':
+                    valueA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    valueB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    break;
+                case 'documentSubmittedAt':
+                    valueA = a.documentSubmittedAt ? new Date(a.documentSubmittedAt).getTime() : 0;
+                    valueB = b.documentSubmittedAt ? new Date(b.documentSubmittedAt).getTime() : 0;
+                    break;
+                default:
+                    valueA = a[field];
+                    valueB = b[field];
+            }
+            
+            if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+            if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    
+    // ステータスの優先度を数値で返す（ソート用）
+    getUserStatusPriority(user) {
+        if (user.isApproved === true) return 1; // 認証済
+        if (user.documentStatus === 'submitted') return 2; // 未認証
+        if (user.documentStatus === 'rejected') return 3; // 拒否
+        return 4; // 書類待ち
+    }
+    
+    // ソートアイコンの更新
+    updateSortIcons(field, direction, tabId) {
+        // タブセレクタ
+        const tabSelector = tabId === 'all' ? '' : `[data-tab="${tabId}"]`;
+        
+        // すべてのアイコンをリセット
+        document.querySelectorAll(`.sortable${tabSelector} i`).forEach(icon => {
+            icon.className = 'bi bi-arrow-down-up';
+        });
+        
+        // 現在のソートフィールドのアイコンを更新
+        const currentHeader = document.querySelector(`.sortable[data-sort="${field}"]${tabSelector}`);
+        if (currentHeader) {
+            const icon = currentHeader.querySelector('i');
+            icon.className = direction === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
+        }
+    }
+    
+    // フィルタリング済みテーブルの描画
+    renderFilteredTable(tabId) {
+        try {
+            const tableId = tabId === 'all' ? 'pendingUsersTable' : 
+                            tabId === 'pending' ? 'pendingUsersTableSubmitted' :
+                            tabId === 'approved' ? 'pendingUsersTableApproved' :
+                            tabId === 'rejected' ? 'pendingUsersTableRejected' :
+                            tabId === 'notSubmitted' ? 'pendingUsersTableNotSubmitted' :
+                            'pendingUsersTableAdmin';
+            
+            const filteredUsers = this.getFilteredUsers(tabId);
+            this.renderUserTable(tableId, filteredUsers);
+        } catch (error) {
+            console.error(`テーブル表示エラー (${tabId}):`, error);
+        }
     }
 
     // フィルタリングしたユーザーリストを取得
     getFilteredUsers(tabId) {
-        const keyword = this.searchKeywords[tabId].toLowerCase();
+        const keyword = this.searchKeywords[tabId] ? this.searchKeywords[tabId].toLowerCase() : '';
         
         // タブに応じて異なるフィルタリング条件を適用
-        let filteredUsers = this.allUsers.filter(user => {
+        let filteredUsers = this.pendingUsers.filter(user => {
             // 検索キーワードでのフィルタリング
             const matchesKeyword = !keyword || 
-                user.username?.toLowerCase().includes(keyword) || 
-                user.email?.toLowerCase().includes(keyword);
+                (user.username && user.username.toLowerCase().includes(keyword)) || 
+                (user.email && user.email.toLowerCase().includes(keyword));
                 
             if (!matchesKeyword) return false;
             
@@ -252,8 +493,8 @@ class PendingUsers {
         });
         
         // ソート
-        const sortField = this.sortFields[tabId];
-        const sortDirection = this.sortDirections[tabId];
+        const sortField = this.sortFields[tabId] || 'createdAt';
+        const sortDirection = this.sortDirections[tabId] || 'desc';
         
         filteredUsers.sort((a, b) => {
             let aValue = a[sortField];
@@ -265,8 +506,8 @@ class PendingUsers {
             
             // 日付の場合
             if (sortField === 'createdAt' || sortField === 'documentSubmittedAt' || sortField === 'lastLoginAt') {
-                aValue = new Date(aValue);
-                bValue = new Date(bValue);
+                aValue = new Date(aValue).getTime();
+                bValue = new Date(bValue).getTime();
             }
             
             // 文字列の場合
@@ -283,31 +524,154 @@ class PendingUsers {
         return filteredUsers;
     }
 
-    // すべてのタブにユーザーリストを表示
-    renderAllUsersTabs() {
-        // 各タブのユーザー数をカウント
-        const adminUsers = this.allUsers.filter(user => user.role === 'admin' || user.role === 'superuser');
-        const regularUsers = this.allUsers.filter(user => user.role === 'user');
-        const pendingUsers = this.allUsers.filter(user => !user.isApproved && user.documentStatus === 'submitted');
-        const approvedUsers = this.allUsers.filter(user => user.isApproved && user.role === 'user');
-        const rejectedUsers = this.allUsers.filter(user => user.documentStatus === 'rejected');
-        const notSubmittedUsers = this.allUsers.filter(user => !user.documentSubmittedAt || user.documentStatus === 'not_submitted');
-        
-        // バッジにユーザー数を表示
-        document.getElementById('badge-all').textContent = regularUsers.length;
-        document.getElementById('badge-admin').textContent = adminUsers.length;
-        document.getElementById('badge-pending').textContent = pendingUsers.length;
-        document.getElementById('badge-approved').textContent = approvedUsers.length;
-        document.getElementById('badge-rejected').textContent = rejectedUsers.length;
-        document.getElementById('badge-notSubmitted').textContent = notSubmittedUsers.length;
-        
-        // 各タブのテーブルを表示
-        this.renderUserTable('pendingUsersTableAll', this.getFilteredUsers('all'));
-        this.renderUserTable('pendingUsersTableAdmin', this.getFilteredUsers('admin'));
-        this.renderUserTable('pendingUsersTableSubmitted', this.getFilteredUsers('pending'));
-        this.renderUserTable('pendingUsersTableApproved', this.getFilteredUsers('approved'));
-        this.renderUserTable('pendingUsersTableRejected', this.getFilteredUsers('rejected'));
-        this.renderUserTable('pendingUsersTableNotSubmitted', this.getFilteredUsers('notSubmitted'));
+    // 特定のテーブルにユーザーリストを表示
+    renderUserTable(tableId, users) {
+        try {
+            console.log(`テーブル ${tableId} をレンダリング中...`, users.length);
+            
+            // テーブルIDからタブIDを取得
+            let tabId = 'all';
+            if (tableId === 'pendingUsersTableSubmitted') tabId = 'pending';
+            else if (tableId === 'pendingUsersTableApproved') tabId = 'approved';
+            else if (tableId === 'pendingUsersTableRejected') tabId = 'rejected';
+            else if (tableId === 'pendingUsersTableNotSubmitted') tabId = 'notSubmitted';
+            else if (tableId === 'pendingUsersTableAdmin') tabId = 'admin';
+            
+            // ページングされたデータを取得
+            const paginatedUsers = this.getPaginatedData(tabId, users);
+            
+            const tableBody = document.getElementById(tableId);
+            if (!tableBody) {
+                console.error(`テーブル要素が見つかりません: ${tableId}`);
+                return;
+            }
+            
+            if (!paginatedUsers || paginatedUsers.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-3">
+                            <div class="alert alert-info mb-0">
+                                表示するユーザーがいません
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = paginatedUsers.map(user => {
+                return `
+                    <tr class="${user.role === 'admin' ? 'table-primary' : user.role === 'superuser' ? 'table-danger' : ''}">
+                        <td class="text-center align-middle">
+                            <div class="form-check d-flex justify-content-center">
+                                <input type="checkbox" class="user-checkbox form-check-input" 
+                                       data-user-id="${user.id}" 
+                                       onchange="pendingUsers.handleUserSelection(this)">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span>${user.username}</span>
+                                ${this.getUserRoleBadge(user.role || 'user')}
+                            </div>
+                        </td>
+                        <td>${user.email}</td>
+                        <td>
+                            ${this.renderUserStatus(user)}
+                        </td>
+                        <td>
+                            ${user.createdAt ? formatDate(user.createdAt) : 'N/A'}
+                        </td>
+                        <td>
+                            ${user.documentSubmittedAt ? formatDate(user.documentSubmittedAt) : 'N/A'}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                ${!user.isApproved ? `
+                                <button class="btn btn-sm btn-success" onclick="pendingUsers.approveUser('${user.id}')">
+                                    <i class="bi bi-check-circle"></i> 承認
+                                </button>
+                                ` : ''}
+                                ${user.documentStatus === 'submitted' || user.documentStatus === 'rejected' ? `
+                                <button class="btn btn-sm btn-info" onclick="pendingUsers.viewDocument('${user.id}')">
+                                    <i class="bi bi-file-earmark"></i> 書類
+                                </button>
+                                ` : ''}
+                                <button class="btn btn-sm btn-danger" onclick="pendingUsers.rejectUser('${user.id}')">
+                                    <i class="bi bi-x-circle"></i> 拒否
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // ツールチップを初期化
+            const tooltips = document.querySelectorAll(`#${tableId} [data-bs-toggle="tooltip"]`);
+            tooltips.forEach(tooltip => {
+                try {
+                    new bootstrap.Tooltip(tooltip);
+                } catch (error) {
+                    console.warn('ツールチップ初期化エラー:', error);
+                }
+            });
+        } catch (error) {
+            console.error(`テーブルレンダリングエラー (${tableId}):`, error);
+        }
+    }
+
+    // ページング用のデータを取得
+    getPaginatedData(tabId, users) {
+        try {
+            if (!users) {
+                console.error(`ユーザーデータがありません (${tabId})`);
+                return [];
+            }
+            
+            const page = this.currentPages[tabId] || 1;
+            const limit = this.limits[tabId] || 10;
+            const startIndex = (page - 1) * limit;
+            const endIndex = startIndex + limit;
+            const totalPages = Math.ceil(users.length / limit);
+            
+            // ページネーション情報を更新
+            if (document.getElementById(`${tabId}-start`)) {
+                document.getElementById(`${tabId}-start`).textContent = users.length > 0 ? startIndex + 1 : 0;
+            }
+            if (document.getElementById(`${tabId}-end`)) {
+                document.getElementById(`${tabId}-end`).textContent = Math.min(endIndex, users.length);
+            }
+            if (document.getElementById(`${tabId}-total`)) {
+                document.getElementById(`${tabId}-total`).textContent = users.length;
+            }
+            
+            // ページネーションボタンの状態を更新
+            if (document.getElementById(`${tabId}-prev`)) {
+                document.getElementById(`${tabId}-prev`).parentElement.classList.toggle('disabled', page <= 1);
+            }
+            if (document.getElementById(`${tabId}-next`)) {
+                document.getElementById(`${tabId}-next`).parentElement.classList.toggle('disabled', page >= totalPages);
+            }
+            
+            // 現在のページに表示するデータを返す
+            return users.slice(startIndex, endIndex);
+        } catch (error) {
+            console.error(`ページネーションエラー (${tabId}):`, error);
+            return users;
+        }
+    }
+
+    // ユーザーロールに応じたバッジスタイルを返す関数
+    getUserRoleBadge(role) {
+        switch(role) {
+            case 'admin':
+                return '<span class="badge bg-purple ms-2" title="管理者">管理者</span>';
+            case 'superuser':
+                return '<span class="badge bg-danger ms-2" title="スーパー管理者">スーパー管理者</span>';
+            case 'user':
+            default:
+                return '<span class="badge bg-secondary ms-2" title="一般ユーザー">一般</span>';
+        }
     }
 
     async loadUsers() {
@@ -343,15 +707,15 @@ class PendingUsers {
                 
                 // チャートを描画 - 統計ページに移動したためコメントアウト
                 // this.renderCharts();
-            } else {
+    } else {
                 throw new Error(pendingResponse.error || usersResponse.error || 'データの取得に失敗しました');
-            }
-        } catch (error) {
+    }
+  } catch (error) {
             console.error('ユーザーの取得に失敗:', error);
             alert('ユーザーの取得に失敗しました');
         }
     }
-
+    
     // 統計データのみを更新する（グラフ描画なし）
     updateStatisticsData() {
         const approved = this.pendingUsers.filter(user => user.isApproved === true).length;
@@ -367,15 +731,147 @@ class PendingUsers {
         document.getElementById('rejectedUsersCount').textContent = rejected;
     }
     
+    // すべてのタブのデータをフィルタリング
+    filterAllTabs() {
+        // 高度なフィルターを適用
+        const filteredUsers = this.filterUsers(this.pendingUsers);
+        
+        // 全ユーザー
+        this.filteredUsers.all = [...filteredUsers];
+        
+        // 承認待ち（書類提出済みかつ未承認）
+        this.filteredUsers.pending = filteredUsers.filter(user => 
+            user.documentStatus === 'submitted' && (!user.isApproved || user.isApproved === false));
+        
+        // 拒否済み
+        this.filteredUsers.rejected = filteredUsers.filter(user => 
+            user.documentStatus === 'rejected');
+        
+        // 未提出
+        this.filteredUsers.notSubmitted = filteredUsers.filter(user => 
+            user.documentStatus === 'not_submitted');
+        
+        // 承認済み
+        this.filteredUsers.approved = filteredUsers.filter(user => 
+            user.isApproved === true);
+        
+        // 各タブのカウントを更新
+        this.updateTabCounts(
+            this.filteredUsers.pending.length,
+            this.filteredUsers.rejected.length,
+            this.filteredUsers.notSubmitted.length,
+            this.filteredUsers.approved.length
+        );
+        
+        // 各タブの初期ソート
+        Object.keys(this.filteredUsers).forEach(tabId => {
+            this.sortUsers(this.sortConfig.field, this.sortConfig.direction, tabId);
+        });
+        
+        // 各タブのテーブルを描画
+        this.renderAllUsersTabs();
+    }
+    
+    // すべてのタブのデータを更新
+    renderAllUsersTabs() {
+        try {
+            // 各タブのユーザー数をカウント
+            const adminUsers = this.pendingUsers.filter(user => user.role === 'admin' || user.role === 'superuser');
+            const regularUsers = this.pendingUsers.filter(user => user.role === 'user');
+            const pendingUsers = this.pendingUsers.filter(user => !user.isApproved && user.documentStatus === 'submitted');
+            const approvedUsers = this.pendingUsers.filter(user => user.isApproved && user.role === 'user');
+            const rejectedUsers = this.pendingUsers.filter(user => user.documentStatus === 'rejected');
+            const notSubmittedUsers = this.pendingUsers.filter(user => !user.documentSubmittedAt || user.documentStatus === 'not_submitted');
+            
+            // バッジにユーザー数を表示
+            if (document.getElementById('badge-all')) {
+                document.getElementById('badge-all').textContent = regularUsers.length;
+            }
+            if (document.getElementById('badge-admin')) {
+                document.getElementById('badge-admin').textContent = adminUsers.length;
+            }
+            if (document.getElementById('badge-pending')) {
+                document.getElementById('badge-pending').textContent = pendingUsers.length;
+            }
+            if (document.getElementById('badge-approved')) {
+                document.getElementById('badge-approved').textContent = approvedUsers.length;
+            }
+            if (document.getElementById('badge-rejected')) {
+                document.getElementById('badge-rejected').textContent = rejectedUsers.length;
+            }
+            if (document.getElementById('badge-notSubmitted')) {
+                document.getElementById('badge-notSubmitted').textContent = notSubmittedUsers.length;
+            }
+            
+            console.log('レンダリング - ユーザー数:', {
+                all: regularUsers.length,
+                admin: adminUsers.length,
+                pending: pendingUsers.length,
+                approved: approvedUsers.length,
+                rejected: rejectedUsers.length,
+                notSubmitted: notSubmittedUsers.length
+            });
+            
+            // 全ユーザータブの描画
+            if (document.getElementById('pendingUsersTable')) {
+                this.renderFilteredTable('all');
+            }
+            
+            // 管理者タブの描画
+            if (document.getElementById('pendingUsersTableAdmin')) {
+                this.renderFilteredTable('admin');
+            }
+            
+            // 承認待ちタブの描画
+            if (document.getElementById('pendingUsersTableSubmitted')) {
+                this.renderFilteredTable('pending');
+            }
+            
+            // 承認済みタブの描画
+            if (document.getElementById('pendingUsersTableApproved')) {
+                this.renderFilteredTable('approved');
+            }
+            
+            // 拒否済みタブの描画
+            if (document.getElementById('pendingUsersTableRejected')) {
+                this.renderFilteredTable('rejected');
+            }
+            
+            // 未提出タブの描画
+            if (document.getElementById('pendingUsersTableNotSubmitted')) {
+                this.renderFilteredTable('notSubmitted');
+            }
+        } catch (error) {
+            console.error('タブ表示エラー:', error);
+        }
+    }
+    
+    // タブのカウント表示を更新
+    updateTabCounts(submittedCount, rejectedCount, notSubmittedCount, approvedCount) {
+        const totalCount = this.pendingUsers.length;
+        
+        document.getElementById('all-tab').textContent = `全ユーザー (${totalCount})`;
+        document.getElementById('pending-tab').textContent = `承認待ち (${submittedCount})`;
+        document.getElementById('rejected-tab').textContent = `拒否済み (${rejectedCount})`;
+        document.getElementById('not-submitted-tab').textContent = `未提出 (${notSubmittedCount})`;
+        document.getElementById('approved-tab').textContent = `承認済み (${approvedCount})`;
+    }
+    
     // フィルタリング済みテーブルの描画
     renderFilteredTable(tabId) {
-        const tableId = tabId === 'all' ? 'pendingUsersTable' : 
-                        tabId === 'pending' ? 'pendingUsersTableSubmitted' :
-                        tabId === 'approved' ? 'pendingUsersTableApproved' :
-                        tabId === 'rejected' ? 'pendingUsersTableRejected' :
-                        'pendingUsersTableNotSubmitted';
-        
-        this.renderUserTable(tableId, this.getFilteredUsers(tabId));
+        try {
+            const tableId = tabId === 'all' ? 'pendingUsersTable' : 
+                            tabId === 'pending' ? 'pendingUsersTableSubmitted' :
+                            tabId === 'approved' ? 'pendingUsersTableApproved' :
+                            tabId === 'rejected' ? 'pendingUsersTableRejected' :
+                            tabId === 'notSubmitted' ? 'pendingUsersTableNotSubmitted' :
+                            'pendingUsersTableAdmin';
+            
+            const filteredUsers = this.getFilteredUsers(tabId);
+            this.renderUserTable(tableId, filteredUsers);
+        } catch (error) {
+            console.error(`テーブル表示エラー (${tabId}):`, error);
+        }
     }
 
     // ユーザーステータスの表示
@@ -417,7 +913,7 @@ class PendingUsers {
             if (response.success) {
                 // 書類プレビューモーダルを表示
                 this.showDocumentModal(response.data);
-            } else {
+  } else {
                 throw new Error(response.message || '書類の取得に失敗しました');
             }
         } catch (error) {
@@ -461,7 +957,7 @@ class PendingUsers {
                             <div class="document-preview mb-3">
                                 <img src="${imgPath}" class="img-fluid" alt="書類" 
                                      style="max-height: 500px; width: auto; margin: 0 auto; display: block;">
-                            </div>
+        </div>
                             <div class="document-info">
                                 <p><strong>書類名:</strong> ${latestDocument.documentName || '確認書類'}</p>
                                 <p><strong>提出日時:</strong> ${formatDate(latestDocument.uploadedAt || documentData.documentSubmittedAt)}</p>
@@ -470,8 +966,8 @@ class PendingUsers {
                                 `<div class="alert alert-danger mt-2">
                                     <strong>拒否理由:</strong> ${documentData.documentRejectReason}
                                 </div>` : ''}
-                            </div>
-                        </div>
+        </div>
+      </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-success" onclick="pendingUsers.approveDocument('${documentData.id}')">
                                 承認
@@ -485,15 +981,15 @@ class PendingUsers {
                             <div class="mb-3">
                                 <label for="rejectReason" class="form-label">拒否理由</label>
                                 <textarea class="form-control" id="rejectReason" rows="3" placeholder="拒否理由を入力してください"></textarea>
-                            </div>
+    </div>
                             <button class="btn btn-danger" onclick="pendingUsers.rejectDocument('${documentData.id}')">
                                 拒否を確定
                             </button>
-                        </div>
-                    </div>
-                </div>
             </div>
-        `;
+        </div>
+      </div>
+    </div>
+  `;
 
         // 既存のモーダルがあれば削除
         const existingModal = document.getElementById('documentModal');
@@ -521,7 +1017,7 @@ class PendingUsers {
                 // モーダルを閉じる
                 bootstrap.Modal.getInstance(document.getElementById('documentModal')).hide();
                 // 一覧を更新
-                await this.fetchUsers();
+                await this.loadUsers();
             } else {
                 throw new Error(response.message || '書類の承認に失敗しました');
             }
@@ -552,11 +1048,11 @@ class PendingUsers {
             if (response.success) {
                 alert('書類を拒否しました');
                 // 一覧を更新
-                await this.fetchUsers();
+                await this.loadUsers();
             } else {
                 throw new Error(response.message || '書類の拒否に失敗しました');
             }
-        } catch (error) {
+  } catch (error) {
             console.error('書類拒否エラー:', error);
             alert('書類の拒否に失敗しました: ' + error.message);
         }
@@ -590,7 +1086,7 @@ class PendingUsers {
             if (response.success) {
                 alert(`${this.selectedUsers.size}人のユーザーを承認しました`);
                 this.selectedUsers.clear();
-                await this.fetchUsers();
+                await this.loadUsers();
                 
                 // チェックボックスの選択状態をリセット
                 document.querySelectorAll('.user-checkbox, #selectAllCheckbox, #selectAllPendingCheckbox, #selectAllRejectedCheckbox, #selectAllNotSubmittedCheckbox, #selectAllApprovedCheckbox').forEach(checkbox => {
@@ -617,7 +1113,7 @@ class PendingUsers {
 
             if (response.success) {
                 alert('ユーザーを承認しました');
-                await this.fetchUsers();
+                await this.loadUsers();
             } else {
                 throw new Error(response.error);
             }
@@ -640,7 +1136,7 @@ class PendingUsers {
                         <div class="modal-header bg-danger text-white">
                             <h5 class="modal-title">ユーザー拒否理由</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
+        </div>
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="rejectReasonInput" class="form-label">拒否理由を入力してください</label>
@@ -648,17 +1144,17 @@ class PendingUsers {
                                     placeholder="ユーザーに通知される拒否理由を具体的に記入してください"></textarea>
                                 <div class="form-text text-muted">
                                     ※拒否理由はユーザーに通知され、管理画面でも表示されます
-                                </div>
-                            </div>
-                        </div>
+        </div>
+      </div>
+    </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
                             <button type="button" class="btn btn-danger" id="confirmRejectBtn">拒否を確定</button>
-                        </div>
-                    </div>
-                </div>
             </div>
-        `;
+        </div>
+      </div>
+    </div>
+  `;
 
         // 既存のモーダルがあれば削除
         const existingModal = document.getElementById('rejectReasonModal');
@@ -687,7 +1183,7 @@ class PendingUsers {
                 modal.hide();
                 
                 const response = await fetchWithAuth(ADMIN_API.REJECT_USER(userId), {
-                    method: 'POST',
+      method: 'POST',
                     body: JSON.stringify({
                         reason: reason
                     })
@@ -696,7 +1192,7 @@ class PendingUsers {
                 if (response.success) {
                     alert('ユーザーを拒否しました');
                     // データを再読み込みして全てのタブを更新
-                    await this.fetchUsers();
+                    await this.loadUsers();
                 } else {
                     throw new Error(response.error || response.message || '拒否処理に失敗しました');
                 }
@@ -848,11 +1344,11 @@ class PendingUsers {
             return;
         }
         
-        const approved = this.allUsers.filter(user => user.isApproved === true).length;
-        const pending = this.allUsers.filter(user => 
+        const approved = this.pendingUsers.filter(user => user.isApproved === true).length;
+        const pending = this.pendingUsers.filter(user => 
             user.documentStatus === 'submitted' && (!user.isApproved || user.isApproved === false)).length;
-        const rejected = this.allUsers.filter(user => user.documentStatus === 'rejected').length;
-        const notSubmitted = this.allUsers.filter(user => user.documentStatus === 'not_submitted').length;
+        const rejected = this.pendingUsers.filter(user => user.documentStatus === 'rejected').length;
+        const notSubmitted = this.pendingUsers.filter(user => user.documentStatus === 'not_submitted').length;
         
         const ctx = statusChartElement.getContext('2d');
         
@@ -891,7 +1387,7 @@ class PendingUsers {
         });
         
         // 統計数値の更新
-        document.getElementById('totalUsersCount').textContent = this.allUsers.length;
+        document.getElementById('totalUsersCount').textContent = this.pendingUsers.length;
         document.getElementById('approvedUsersCount').textContent = approved;
         document.getElementById('pendingUsersCount').textContent = pending;
         document.getElementById('rejectedUsersCount').textContent = rejected;
@@ -921,7 +1417,7 @@ class PendingUsers {
             const lastDay = new Date(year, month + 1, 0);
             
             // この月に登録したユーザー数
-            const count = this.allUsers.filter(user => {
+            const count = this.pendingUsers.filter(user => {
                 if (!user.createdAt) return false;
                 const createDate = new Date(user.createdAt);
                 return createDate >= firstDay && createDate <= lastDay;
@@ -976,7 +1472,7 @@ class PendingUsers {
     exportData(format) {
         // 現在のタブのユーザーリストを取得
         const activeTabId = document.querySelector('.tab-pane.active').id.replace('-tab-pane', '');
-        const users = this.getFilteredUsers(activeTabId);
+        const users = this.filteredUsers[activeTabId];
         
         if (users.length === 0) {
             alert('エクスポートするデータがありません');
@@ -1081,7 +1577,7 @@ class PendingUsers {
             // バックエンドで一括拒否APIがない場合は、順次処理する
             const promises = Array.from(this.selectedUsers).map(userId => {
                 return fetchWithAuth(ADMIN_API.REJECT_USER(userId), {
-                    method: 'POST',
+      method: 'POST',
                     body: JSON.stringify({ reason })
                 });
             });
@@ -1090,13 +1586,13 @@ class PendingUsers {
             
             alert(`${this.selectedUsers.size}人のユーザーを拒否しました`);
             this.selectedUsers.clear();
-            await this.fetchUsers();
+            await this.loadUsers();
             
             // チェックボックスの選択状態をリセット
             document.querySelectorAll('.user-checkbox, #selectAllCheckbox, #selectAllPendingCheckbox, #selectAllRejectedCheckbox, #selectAllNotSubmittedCheckbox, #selectAllApprovedCheckbox').forEach(checkbox => {
                 checkbox.checked = false;
             });
-        } catch (error) {
+  } catch (error) {
             console.error('一括拒否に失敗:', error);
             alert('一括拒否に失敗しました');
         }
