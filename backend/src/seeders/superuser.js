@@ -27,7 +27,7 @@ const createSuperUser = async () => {
         }
     } catch (error) {
         console.error('スーパーユーザーの作成に失敗しました:', error);
-        throw error;
+        console.log('スーパーユーザーの作成に失敗しましたが、処理を続行します');
     }
 };
 

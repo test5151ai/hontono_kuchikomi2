@@ -1,6 +1,7 @@
 const createTestUsers = require('./testUsers');
 const createSuperUser = require('./superuser');
 const createDummyUsers = require('./dummyUsers');
+const seedLocalFinanceThreads = require('../database/seed-local-finance-threads');
 
 const seedAll = async () => {
     try {
@@ -18,6 +19,10 @@ const seedAll = async () => {
         if (process.env.NODE_ENV !== 'production') {
             await createDummyUsers();
             console.log('ダミーユーザーの作成が完了しました');
+            
+            // 街金カテゴリーの初期スレッド作成
+            await seedLocalFinanceThreads();
+            console.log('街金カテゴリーの初期スレッド作成が完了しました');
         }
         
         console.log('==== すべてのシード処理が完了しました ====');

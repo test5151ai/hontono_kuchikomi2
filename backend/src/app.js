@@ -11,6 +11,7 @@ const threadRoutes = require('./routes/threads');
 const apiRoutes = require('./routes/api');
 const accessLogger = require('./middleware/accessLogger');
 const createSuperUser = require('./seeders/superuser');
+const seedLocalFinanceThreads = require('./database/seed-local-finance-threads');
 
 // カテゴリーのシードデータ
 const categorySeeds = [
@@ -86,6 +87,18 @@ async function initializeData() {
     
     // スーパーユーザーを確認・作成
     await createSuperUser();
+    
+    // 開発環境の場合、街金カテゴリーの初期スレッドを作成
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        await seedLocalFinanceThreads();
+        console.log('街金カテゴリーの初期スレッドを確認しました');
+      } catch (error) {
+        console.error('街金カテゴリーの初期スレッド作成中にエラーが発生しました:', error);
+        console.log('街金カテゴリーの初期スレッド作成に失敗しましたが、処理を続行します');
+      }
+    }
+    
     console.log('基本データの初期化が完了しました');
   } catch (error) {
     console.error('基本データの初期化中にエラーが発生しました:', error);
