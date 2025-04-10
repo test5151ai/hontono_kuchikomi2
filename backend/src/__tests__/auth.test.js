@@ -1,16 +1,15 @@
 const request = require('supertest');
-const app = require('../app');  // Express appのインスタンス
-const { sequelize } = require('../models');
-const bcrypt = require('bcrypt');
+const app = require('../app');
 const { User } = require('../models');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 describe('認証API テスト', () => {
+  let authToken;
+
   beforeAll(async () => {
-    // テストデータベースの準備
-    await sequelize.sync({ force: true });
-    
-    // テストユーザーの作成
-    const hashedPassword = await bcrypt.hash('testpass123', 10);
+    // テストユーザーを作成
+    const hashedPassword = await bcrypt.hash('password123', 10);
     await User.create({
       username: 'testuser',
       email: 'test@example.com',
@@ -19,20 +18,24 @@ describe('認証API テスト', () => {
       submissionContact: 'test-contact',
       status: 'active'
     });
+
+    // テスト用の認証トークンを生成
+    const user = await User.findOne({ where: { email: 'test@example.com' } });
+    const tokenPayload = { id: user.id, email: user.email, role: user.role };
+    authToken = jwt.sign(tokenPayload, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '1h' });
   });
 
   afterAll(async () => {
-    // データベース接続のクリーンアップ
-    await sequelize.close();
+    await User.destroy({ where: { email: 'test@example.com' } });
   });
 
-  describe('POST /api/login', () => {
+  describe('POST /api/auth/login', () => {
     test('正しい認証情報でログインできる', async () => {
       const response = await request(app)
-        .post('/api/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
-          password: 'testpass123'
+          password: 'password123'
         });
 
       expect(response.status).toBe(200);
@@ -43,7 +46,7 @@ describe('認証API テスト', () => {
 
     test('誤った認証情報でログイン失敗', async () => {
       const response = await request(app)
-        .post('/api/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'wrongpassword'
@@ -54,32 +57,20 @@ describe('認証API テスト', () => {
     });
   });
 
-  describe('GET /api/user/profile', () => {
-    let authToken;
-
-    beforeAll(async () => {
-      // ログインしてトークンを取得
-      const response = await request(app)
-        .post('/api/login')
-        .send({
-          email: 'test@example.com',
-          password: 'testpass123'
-        });
-      authToken = response.body.token;
-    });
-
+  describe('GET /api/auth/check', () => {
     test('認証済みユーザーがプロフィールを取得できる', async () => {
       const response = await request(app)
-        .get('/api/user/profile')
+        .get('/api/auth/check')
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('email', 'test@example.com');
+      expect(response.body).toHaveProperty('success', true);
+      expect(response.body).toHaveProperty('id');
     });
 
     test('認証なしでプロフィール取得に失敗', async () => {
       const response = await request(app)
-        .get('/api/user/profile');
+        .get('/api/auth/check');
 
       expect(response.status).toBe(401);
     });
