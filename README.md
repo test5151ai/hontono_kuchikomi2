@@ -1,70 +1,175 @@
 # 15ch - リアルタイム掲示板システム
 
-## 概要
+![バージョン](https://img.shields.io/badge/version-1.0.0-blue)
+![Node.js](https://img.shields.io/badge/Node.js-18.x-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13.x-blue)
 
-15chは承認制のリアルタイム掲示板システムです。ユーザーはスクリーンショット提出による承認を受けた後に投稿が可能になります。管理者はユーザー承認、カテゴリー管理、コンテンツ管理などの機能を利用できます。
+## 📋 目次
 
-## サーバー管理情報
+- [概要](#概要)
+- [システム構成](#システム構成)
+- [開発ワークフロー](#開発ワークフロー)
+- [デプロイ手順](#デプロイ手順)
+- [管理・運用ガイド](#管理運用ガイド)
+- [プロジェクト詳細](#プロジェクト詳細)
+- [トラブルシューティング](#トラブルシューティング)
+- [関連ドキュメント](#関連ドキュメント)
+- [拡張計画](#拡張計画)
+- [ライセンス](#ライセンス)
 
-### 環境設定
+## 📝 概要
+
+15chは承認制のリアルタイム掲示板システムです。主な特徴は以下の通りです：
+
+- **ユーザー承認制**: スクリーンショット提出による本人確認後に投稿可能
+- **カテゴリ分類**: 複数カテゴリによる整理された掲示板構造
+- **リアルタイム更新**: 最新の投稿がリアルタイムで反映
+- **モデレーション機能**: 管理者による投稿監視と制御
+- **店舗情報表示**: スレッド単位での店舗情報の表示と管理
+
+## 🖥️ システム構成
+
+### インフラストラクチャ
 
 - **本番環境**: VPS（さくらのVPS）
-- **ドメイン**: https://15ch.net
+- **ドメイン**: [https://15ch.net](https://15ch.net)
 - **Webサーバー**: Nginx
 - **アプリケーションサーバー**: Node.js + PM2
-- **データベース**: PostgreSQL
+- **データベース**: PostgreSQL 13
+- **SSL**: Let's Encrypt
 
-### デプロイ手順
+### アーキテクチャ
 
-1. **初回デプロイ**:
+```
+                   +---------------+
+                   |     Nginx     |
+                   |  リバースプロキシ  |
+                   +-------+-------+
+                           |
+           +---------------+---------------+
+           |                               |
+  +--------v--------+           +---------v--------+
+  |   Frontend      |           |    Backend       |
+  |   (React)       |           |   (Express.js)   |
+  |   Port: 8080    |           |   Port: 3000     |
+  +--------+--------+           +---------+--------+
+           |                               |
+           |                               |
+           |                    +----------v--------+
+           |                    |   PostgreSQL      |
+           |                    |   Database        |
+           |                    +-------------------+
+           |
++----------v-----------+
+| Static Files (Public) |
++----------------------+
+```
+
+## 🔄 開発ワークフロー
+
+### ブランチ戦略
+
+- **`main`**: 本番環境用ブランチ。本番環境にデプロイされるコードが集約される
+- **`server-state`**: サーバーサイド開発用ブランチ。バックエンド関連の変更
+- **`feature/*`**: 新機能開発用の作業ブランチ
+
+### CI/CD パイプライン (GitHub Actions)
+
+GitHub Actionsにより、以下の自動化が実現されています：
+
+1. **自動テスト**: バックエンドとフロントエンドのテスト自動実行
+2. **コードチェック**: コード品質の検証
+3. **ビルド確認**: 本番環境へのデプロイ前の最終確認
+
+### 開発フロー
+
+1. **機能ブランチの作成**:
    ```bash
-   # サーバー上での作業
+   git checkout -b feature/新機能名
+   ```
+
+2. **開発・テスト**:
+   ```bash
+   # コードの変更
+   # テストの実行
+   npm test
+   ```
+
+3. **変更のコミットとプッシュ**:
+   ```bash
+   git add .
+   git commit -m "機能の説明"
+   git push origin feature/新機能名
+   ```
+
+4. **CI/CD確認とプルリクエスト作成**:
+   - GitHubの「Actions」タブでワークフロー実行状況を確認
+   - テスト成功後、プルリクエストを作成
+   - コードレビュー依頼
+
+5. **本番環境反映**:
+   - `main`ブランチへのマージはプルリクエストを通じて行う
+   - マージ後、サーバーで反映コマンドを実行
+
+## 🚀 デプロイ手順
+
+### 初回デプロイ
+
+1. **リポジトリのクローン**:
+   ```bash
    cd /var/www
    git clone https://github.com/test5151ai/hontono_kuchikomi2.git 15ch
-   cd 15ch/backend
+   cd 15ch
+   ```
+
+2. **依存関係のインストール**:
+   ```bash
+   # バックエンド
+   cd backend
    npm install
+   
+   # フロントエンド
    cd ../frontend
    npm install
    ```
 
-2. **環境変数の設定**:
+3. **環境設定**:
    ```bash
-   # バックエンド用の.env作成
-   cd /var/www/15ch/backend
+   # .env ファイルの作成
+   cd ../backend
    cp .env.example .env
-   nano .env  # 必要な環境変数を設定
+   nano .env  # 環境変数を設定
    ```
 
-3. **データベースのセットアップ**:
+4. **データベースセットアップ**:
    ```bash
    # PostgreSQLデータベース作成
    sudo -u postgres createdb hontono_kuchikomi
    
    # マイグレーション実行
-   cd /var/www/15ch/backend
    DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate --migrations-path=./src/database/migrations
    ```
 
-4. **PM2でのアプリケーション起動**:
+5. **PM2構成**:
    ```bash
-   # PM2のインストール（未インストールの場合）
+   # PM2のインストール
    npm install -g pm2
    
    # アプリケーション起動
    cd /var/www/15ch
    pm2 start ecosystem.config.js
    
-   # 起動時に自動実行するように設定
+   # 自動起動設定
    pm2 save
    pm2 startup
    ```
 
-5. **Nginxの設定**:
+6. **Nginx設定**:
    ```bash
-   # Nginx設定ファイルの作成
+   # 設定ファイル作成
    sudo nano /etc/nginx/sites-available/15ch
    
-   # 以下の内容を追加（ドメインを適切に設定）
+   # 以下の内容を追加
    server {
        listen 80;
        server_name 15ch.net www.15ch.net;
@@ -88,206 +193,197 @@
        }
    }
    
-   # シンボリックリンクの作成
+   # シンボリックリンク作成
    sudo ln -s /etc/nginx/sites-available/15ch /etc/nginx/sites-enabled/
    
-   # Nginx設定テスト
+   # 設定テスト
    sudo nginx -t
    
    # Nginx再起動
    sudo systemctl restart nginx
    ```
 
-6. **SSL証明書の設定（Let's Encrypt）**:
+7. **SSL設定**:
    ```bash
-   # Certbotのインストール
+   # Certbotインストール
    sudo apt-get update
    sudo apt-get install certbot python3-certbot-nginx
    
-   # SSL証明書の取得と設定
+   # SSL証明書取得
    sudo certbot --nginx -d 15ch.net -d www.15ch.net
    ```
 
-### 日常の管理と運用
+### 更新デプロイ（簡易手順）
 
-#### コードの更新方法
-
-1. **リポジトリの更新（通常の更新）**:
-   ```bash
-   cd /var/www/15ch
-   git pull
-   ```
-
-2. **依存関係の更新（必要に応じて）**:
-   ```bash
-   cd /var/www/15ch/backend
-   npm install
-   
-   cd /var/www/15ch/frontend
-   npm install
-   ```
-
-3. **アプリケーションの再起動**:
-   ```bash
-   pm2 restart all
-   ```
-
-#### 簡易更新手順
-
-サイトを更新する際の簡易手順は以下の通りです：
 ```bash
-# SSHでサーバーに接続
+# SSHでサーバー接続
 ssh root@38.242.229.94
 # パスワード: 5151test
 
-# アプリケーションディレクトリに移動
+# コード更新
 cd /var/www/15ch
-
-# GitHubから最新のコードを取得
 git pull
 
-# アプリケーションを再起動
+# アプリケーション再起動
 pm2 restart all
 ```
 
-#### データベース操作
+## 🔧 管理・運用ガイド
 
-1. **マイグレーションの実行**:
+### データベース操作
+
+1. **マイグレーション実行**:
    ```bash
    cd /var/www/15ch/backend
    DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate --migrations-path=./src/database/migrations
    ```
 
-2. **特定のマイグレーションまで実行**:
-   ```bash
-   DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate:to --to ファイル名.js --migrations-path=./src/database/migrations
-   ```
-
-3. **マイグレーションの状態確認**:
+2. **マイグレーション状態確認**:
    ```bash
    DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:migrate:status --migrations-path=./src/database/migrations
    ```
 
-#### バックアップ
-
-1. **データベースのバックアップ**:
+3. **シード実行（初期データ）**:
    ```bash
+   DB_USER=postgres DB_PASSWORD=postgres123456 DB_NAME=hontono_kuchikomi DB_HOST=localhost DB_PORT=5432 NODE_ENV=production npx sequelize-cli db:seed:all --seeders-path=./src/database/seeders
+   ```
+
+### バックアップと復元
+
+1. **データベースバックアップ**:
+   ```bash
+   # 日付付きバックアップ作成
    pg_dump -U postgres hontono_kuchikomi > /var/backups/hontono_kuchikomi_$(date +%Y%m%d).sql
    ```
 
-2. **ファイルのバックアップ**:
+2. **アップロードファイルバックアップ**:
    ```bash
    tar -czf /var/backups/15ch_files_$(date +%Y%m%d).tar.gz /var/www/15ch/backend/uploads
    ```
 
-#### トラブルシューティング
-
-1. **ログの確認**:
+3. **バックアップの復元**:
    ```bash
-   # PM2ログの確認
-   pm2 logs
+   # データベース復元
+   psql -U postgres -d hontono_kuchikomi < /var/backups/バックアップファイル名.sql
    
-   # 特定のアプリケーションのログ
-   pm2 logs 15ch-backend
-   pm2 logs 15ch-frontend
-   
-   # Nginxのエラーログ
-   sudo tail -f /var/log/nginx/error.log
+   # ファイル復元
+   tar -xzf /var/backups/15ch_files_バックアップ日付.tar.gz -C /
    ```
 
-2. **アプリケーションの再起動**:
-   ```bash
-   pm2 restart 15ch-backend
-   pm2 restart 15ch-frontend
-   # または
-   pm2 restart all
-   ```
+### アプリケーション管理
 
-3. **Nginxの再起動**:
-   ```bash
-   sudo systemctl restart nginx
-   ```
-
-4. **アプリケーションステータスの確認**:
+1. **プロセス状態確認**:
    ```bash
    pm2 status
    ```
 
-### 開発ワークフロー
-
-#### GitHub Actionsとブランチ戦略
-
-1. **ブランチ戦略**:
-   - `main`: 本番環境用ブランチ。本番環境にデプロイされるコードはここに集約されます。
-   - `server-state`: サーバーサイドの開発用ブランチ。バックエンド関連の変更はこのブランチで行います。
-   - `feature/*`: 新機能開発用の作業ブランチ。
-
-2. **プルリクエストフロー**:
-   - 機能開発やバグ修正は作業ブランチで行い、完了後にプルリクエストを作成します。
-   - プルリクエストはレビューとCIテスト通過後にマージされます。
-   - `server-state`ブランチへの変更は、プルリクエストとして扱われるため、直接サーバーに反映されません。
-
-3. **GitHub Actions**:
-   - プッシュやプルリクエスト時に自動的にCIパイプラインが実行されます。
-   - テスト、コードチェック、ビルドが自動的に行われます。
-   - CI結果を確認してから次のステップに進むことが重要です。
-
-4. **CI/CD確認手順**:
+2. **ログ監視**:
    ```bash
-   # コードの変更後
-   git add .
-   git commit -m "変更内容の説明"
-   git push origin <ブランチ名>
+   # すべてのログ
+   pm2 logs
    
-   # GitHubでワークフロー実行状況を確認
-   # Actions タブで最新のワークフロー実行を確認
-   # テストが成功したら、プルリクエストを作成
+   # バックエンドのみ
+   pm2 logs 15ch-backend
+   
+   # フロントエンドのみ
+   pm2 logs 15ch-frontend
    ```
 
-5. **本番環境への反映**:
-   - `main`ブランチにマージされた変更のみが本番環境に反映されます。
-   - 本番環境への反映は、GitHubのプルリクエストを通じて行う必要があります。
-   - マージ後、サーバーで以下のコマンドを実行します:
+3. **アプリケーション再起動**:
    ```bash
-   cd /var/www/15ch
-   git pull
+   # 全プロセス再起動
    pm2 restart all
+   
+   # 個別再起動
+   pm2 restart 15ch-backend
+   pm2 restart 15ch-frontend
    ```
 
-## プロジェクト詳細
+### モニタリング
 
-### 機能概要
+- **サーバー状態**: `htop`、`df -h`、`free -m`コマンドで確認
+- **Nginx状態**: `systemctl status nginx`で確認
+- **アクセスログ**: `/var/log/nginx/access.log`を分析
 
-- **ユーザー管理**: 登録、ログイン、プロフィール編集、管理者承認
-- **掲示板機能**: スレッド作成、投稿、リアルタイム更新
-- **カテゴリー管理**: 管理者によるカテゴリー追加・編集
-- **管理機能**: ユーザー承認、コンテンツ管理、統計情報
+## 📊 プロジェクト詳細
 
-### 管理者用アクセス情報
+### 主要機能
+
+- **ユーザー管理**: 
+  - 登録、ログイン、プロフィール編集
+  - スクリーンショット提出による承認プロセス
+  - 管理者・一般ユーザー権限分離
+
+- **掲示板機能**: 
+  - カテゴリ別スレッド作成
+  - 投稿、引用、リアルタイム更新
+  - アンカー機能（他投稿参照）
+
+- **店舗情報機能**:
+  - スレッドヘッダーでの店舗情報表示
+  - 店舗URL、詳細情報の管理
+  - 管理者による編集
+
+- **モデレーション**:
+  - 投稿の編集・削除
+  - ユーザー承認管理
+  - 不適切コンテンツ対応
+
+### 管理者アクセス
 
 - **管理者ダッシュボード**: https://15ch.net/admin/
-- **管理者専用ログイン画面**: https://15ch.net/admin/login.html
-  - 管理者権限を持つアカウントでログインしてください
-  - 一般ユーザーアカウントでは管理画面にアクセスできません
+- **管理者ログイン**: https://15ch.net/admin/login.html
+  - 管理者権限を持つアカウントでのみアクセス可能
 
-### 関連ドキュメント
+## ❓ トラブルシューティング
+
+### 一般的な問題
+
+1. **サイトにアクセスできない**:
+   - Nginxの状態確認: `systemctl status nginx`
+   - アプリケーションの状態確認: `pm2 status`
+   - ログの確認: `pm2 logs` および `/var/log/nginx/error.log`
+
+2. **APIエラー**:
+   - バックエンドログの確認: `pm2 logs 15ch-backend`
+   - データベース接続確認: `psql -U postgres -d hontono_kuchikomi -c "\dt"`
+   - 環境変数の確認: `.env`ファイルの内容確認
+
+3. **デプロイ後の変更が反映されない**:
+   - ブラウザキャッシュのクリア
+   - PM2の再起動確認: `pm2 restart all`
+   - 正しいブランチにいるか確認: `git branch --show-current`
+
+### GitHub Actionsの問題
+
+1. **テスト失敗**:
+   - GitHub Actionsのログでエラーを確認
+   - ローカルでテストを実行して再現確認
+   - データベース接続設定を確認
+
+2. **ビルドエラー**:
+   - 依存関係の問題がないか確認
+   - Node.jsバージョン互換性の確認
+
+## 📚 関連ドキュメント
 
 - [技術仕様書](./docs/TECHNICAL_SPECS.md) - 技術スタックやアーキテクチャの詳細
 - [API仕様書](./docs/API_SPECS.md) - APIエンドポイントの詳細
 - [開発ガイド](./docs/DEVELOPMENT_GUIDE.md) - 開発環境構築と貢献方法
 - [機能仕様書](./docs/FUNCTIONAL_SPECS.md) - 詳細な機能要件と仕様
 
-## 拡張計画
+## 🔮 拡張計画
 
-今後計画されている主な拡張・改善は以下の通りです：
+今後計画されている主な拡張・改善：
 
 1. **リアルタイム通知機能**: WebSocketを利用した通知システム
 2. **高度な検索機能**: 投稿内容の全文検索
 3. **リアクション機能**: 「参考になった」などのリアクション
-4. **モバイルアプリ対応**: REST APIを活用したモバイルアプリの開発
+4. **モバイルアプリ対応**: REST APIを活用したモバイルアプリ
 5. **統計・分析ダッシュボード**: 詳細な利用統計と分析機能
+6. **多言語対応**: 国際化対応の拡張
 
-## ライセンス
+## 📄 ライセンス
 
 このプロジェクトは非公開ソフトウェアです。無断での複製・配布・改変は禁止されています。
 
