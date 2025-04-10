@@ -97,19 +97,13 @@ async function initializeData() {
     
     // 開発環境の場合のみ、かつ、初回実行フラグがない場合のみ街金カテゴリーの初期スレッドを作成
     if (process.env.NODE_ENV !== 'production') {
-      // 初期データ作成済みフラグをグローバル変数として保持
-      if (!global.seedDataInitialized) {
-        try {
-          await seedLocalFinanceThreads();
-          console.log('街金カテゴリーの初期スレッドを確認しました');
-          // 初期データ作成済みフラグを設定
-          global.seedDataInitialized = true;
-        } catch (error) {
-          console.error('街金カテゴリーの初期スレッド作成中にエラーが発生しました:', error);
-          console.log('街金カテゴリーの初期スレッド作成に失敗しましたが、処理を続行します');
-        }
-      } else {
-        console.log('初期データは既に作成済みです。重複作成を防ぐためスキップします。');
+      // 常に初期スレッドをチェックして存在しない場合は作成する
+      try {
+        await seedLocalFinanceThreads();
+        console.log('街金カテゴリーの初期スレッドを確認しました');
+      } catch (error) {
+        console.error('街金カテゴリーの初期スレッド作成中にエラーが発生しました:', error);
+        console.log('街金カテゴリーの初期スレッド作成に失敗しましたが、処理を続行します');
       }
     }
     
