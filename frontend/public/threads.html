@@ -284,9 +284,15 @@
                 
                 // APIエンドポイントのURL構築
                 let apiUrlString;
+                const urlParams = new URLSearchParams(window.location.search);
+                const isPopular = urlParams.has('popular');
+                
+                console.log('現在のフィルター:', currentFilters);
+                console.log('URLパラメータ:', Object.fromEntries(urlParams.entries()));
+                console.log('人気スレッド表示モード:', isPopular);
                 
                 // 人気スレッド表示の場合は専用エンドポイントを使用
-                if (currentFilters.sort === 'postCount' && currentFilters.order === 'desc' && new URLSearchParams(window.location.search).has('popular')) {
+                if (currentFilters.sort === 'postCount' && currentFilters.order === 'desc' && isPopular) {
                     apiUrlString = getApiUrl('threads/popular');
                     console.log('人気スレッド専用APIを使用:', apiUrlString);
                 } else {
@@ -302,7 +308,7 @@
                 apiUrl.searchParams.append('limit', 20);
                 
                 // 人気スレッド専用エンドポイント以外の場合はフィルター条件を追加
-                if (!(currentFilters.sort === 'postCount' && currentFilters.order === 'desc' && new URLSearchParams(window.location.search).has('popular'))) {
+                if (!(currentFilters.sort === 'postCount' && currentFilters.order === 'desc' && isPopular)) {
                     apiUrl.searchParams.append('search', currentFilters.search);
                     apiUrl.searchParams.append('sort', currentFilters.sort);
                     apiUrl.searchParams.append('order', currentFilters.order);
@@ -311,9 +317,36 @@
                 console.log('最終的なAPI URL:', apiUrl.toString());
                 
                 const response = await fetch(apiUrl);
-                const data = await response.json();
+                if (!response.ok) {
+                    console.error('APIエラー:', response.status, response.statusText);
+                    throw new Error(`APIレスポンスエラー: ${response.status} ${response.statusText}`);
+                }
                 
+                const data = await response.json();
+                console.log('API応答データ型:', typeof data);
+                console.log('API応答データ構造:', Array.isArray(data) ? 'Array' : 'Object');
                 console.log('API応答データ:', data);
+                
+                // データの形式を確認して標準化
+                let threads = [];
+                let pagination = null;
+                
+                if (Array.isArray(data)) {
+                    // 配列形式の場合（/api/threads/popularの応答）
+                    console.log('配列形式のレスポンスを処理');
+                    threads = data;
+                } else if (data.threads && Array.isArray(data.threads)) {
+                    // オブジェクト形式で threads プロパティがある場合
+                    console.log('オブジェクト形式でthreadsプロパティを持つレスポンスを処理');
+                    threads = data.threads;
+                    pagination = data.pagination;
+                } else {
+                    // その他の形式（不明）
+                    console.log('未知の形式のレスポンスを処理');
+                    threads = [];
+                }
+                
+                console.log('処理後のスレッド数:', threads.length);
                 
                 updateActiveFilters(currentFilters); // アクティブなフィルターの表示を更新
                 
@@ -321,7 +354,7 @@
                 const threadsContainer = document.getElementById('threads');
                 threadsContainer.classList.remove('d-none'); // 確実に表示する
                 
-                if (!data.threads || data.threads.length === 0) {
+                if (!threads || threads.length === 0) {
                     console.log('スレッドがありません');
                     threadsContainer.innerHTML = `
                         <div class="text-center py-5">
@@ -336,9 +369,9 @@
                         </div>
                     `;
                 } else {
-                    console.log('スレッド数:', data.threads.length);
+                    console.log('スレッド数:', threads.length);
                     let threadsHTML = '';
-                    data.threads.forEach(thread => {
+                    threads.forEach(thread => {
                         const createdAt = formatDate(thread.createdAt);
                         const lastPostedAt = thread.lastPostedAt ? formatDate(thread.lastPostedAt) : createdAt;
                         const categoryName = thread.category ? thread.category.name : '不明';
@@ -379,25 +412,25 @@
 
                 // ページネーションの表示
                 const paginationContainer = document.getElementById('pagination');
-                if (data.pagination && data.pagination.totalPages > 1) {
+                if (pagination && pagination.totalPages > 1) {
                     let paginationHTML = '<nav><ul class="pagination">';
                     
                     // 前へ
                     paginationHTML += `
-                        <li class="page-item ${data.pagination.page === 1 ? 'disabled' : ''}">
-                            <button class="page-link" onclick="changePage(${data.pagination.page - 1})">
+                        <li class="page-item ${pagination.page === 1 ? 'disabled' : ''}">
+                            <button class="page-link" onclick="changePage(${pagination.page - 1})">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                         </li>
                     `;
                     
                     // ページ番号
-                    const startPage = Math.max(1, data.pagination.page - 2);
-                    const endPage = Math.min(data.pagination.totalPages, startPage + 4);
+                    const startPage = Math.max(1, pagination.page - 2);
+                    const endPage = Math.min(pagination.totalPages, startPage + 4);
                     
                     for (let i = startPage; i <= endPage; i++) {
                         paginationHTML += `
-                            <li class="page-item ${data.pagination.page === i ? 'active' : ''}">
+                            <li class="page-item ${pagination.page === i ? 'active' : ''}">
                                 <button class="page-link" onclick="changePage(${i})">${i}</button>
                             </li>
                         `;
@@ -405,8 +438,8 @@
                     
                     // 次へ
                     paginationHTML += `
-                        <li class="page-item ${data.pagination.page === data.pagination.totalPages ? 'disabled' : ''}">
-                            <button class="page-link" onclick="changePage(${data.pagination.page + 1})">
+                        <li class="page-item ${pagination.page === pagination.totalPages ? 'disabled' : ''}">
+                            <button class="page-link" onclick="changePage(${pagination.page + 1})">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </li>
@@ -417,12 +450,18 @@
                 } else {
                     paginationContainer.innerHTML = '';
                 }
-                
-                showLoading(false);
             } catch (error) {
-                console.error('スレッド一覧の取得に失敗しました:', error);
+                console.error('スレッドの読み込み中にエラーが発生しました:', error);
                 const threadsContainer = document.getElementById('threads');
-                threadsContainer.innerHTML = '<div class="alert alert-danger">スレッド一覧の取得に失敗しました。</div>';
+                threadsContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">エラーが発生しました</h4>
+                        <p>スレッド一覧の取得に失敗しました。</p>
+                        <hr>
+                        <p class="mb-0">詳細: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
                 showLoading(false);
             }
         }
@@ -558,4 +597,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
