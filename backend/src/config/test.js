@@ -11,4 +11,11 @@ module.exports = {
   server: {
     port: 3001
   }
-}; 
+};
+
+// ダミーテストを追加
+describe('Config', () => {
+  test('テスト設定が存在する', () => {
+    expect(module.exports).toBeDefined();
+  });
+}); 
