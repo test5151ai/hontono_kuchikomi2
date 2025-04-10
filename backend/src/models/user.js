@@ -64,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
-    submissionMethod: {
+    submission_method: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: 'email',
@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
         isIn: [['email', 'line']]
       }
     },
-    submissionContact: {
+    submission_contact: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
