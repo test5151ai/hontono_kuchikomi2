@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres123456
-          POSTGRES_DB: hontono_kuchikomi
+          POSTGRES_DB: hontono_kuchikomi_test
         ports:
           - 5432:5432
         options: >-
@@ -45,13 +45,79 @@ jobs:
       working-directory: ./backend
       run: npm install
 
-    - name: Setup database
+    - name: Create database schema file
+      working-directory: ./backend
+      run: |
+        echo "CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY,
+          username VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          role VARCHAR(50) NOT NULL DEFAULT 'user',
+          \"isApproved\" BOOLEAN NOT NULL DEFAULT false,
+          \"isSuperAdmin\" BOOLEAN DEFAULT false,
+          \"submissionMethod\" VARCHAR(50) DEFAULT 'email',
+          \"submissionContact\" VARCHAR(255) NOT NULL,
+          icon VARCHAR(255) DEFAULT 'fas fa-user',
+          \"approvedAt\" TIMESTAMP WITH TIME ZONE,
+          \"approvedBy\" UUID,
+          \"lastLoginAt\" TIMESTAMP WITH TIME ZONE,
+          \"documentStatus\" VARCHAR(50) DEFAULT 'not_submitted',
+          \"documentSubmittedAt\" TIMESTAMP WITH TIME ZONE,
+          \"documentVerifiedAt\" TIMESTAMP WITH TIME ZONE,
+          \"documentVerifiedBy\" UUID,
+          \"documentRejectReason\" TEXT,
+          \"documentPath\" VARCHAR(255),
+          \"createdAt\" TIMESTAMP WITH TIME ZONE NOT NULL,
+          \"updatedAt\" TIMESTAMP WITH TIME ZONE NOT NULL
+        );" > create_tables.sql
+        
+        echo "CREATE TABLE IF NOT EXISTS categories (
+          id UUID PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          slug VARCHAR(255) NOT NULL,
+          \"createdAt\" TIMESTAMP WITH TIME ZONE NOT NULL,
+          \"updatedAt\" TIMESTAMP WITH TIME ZONE NOT NULL
+        );" >> create_tables.sql
+        
+        echo "CREATE TABLE IF NOT EXISTS threads (
+          id UUID PRIMARY KEY,
+          title VARCHAR(255) NOT NULL,
+          \"categoryId\" UUID NOT NULL REFERENCES categories(id),
+          \"authorId\" UUID REFERENCES users(id),
+          \"shopUrl\" VARCHAR(255),
+          \"shopDetails\" TEXT,
+          \"createdAt\" TIMESTAMP WITH TIME ZONE NOT NULL,
+          \"updatedAt\" TIMESTAMP WITH TIME ZONE NOT NULL
+        );" >> create_tables.sql
+        
+        echo "CREATE TABLE IF NOT EXISTS posts (
+          id UUID PRIMARY KEY,
+          content TEXT NOT NULL,
+          \"threadId\" UUID NOT NULL REFERENCES threads(id),
+          \"authorId\" UUID REFERENCES users(id),
+          \"authorName\" VARCHAR(255) DEFAULT '名無しさん',
+          \"helpfulCount\" INTEGER DEFAULT 0,
+          \"postNumber\" INTEGER NOT NULL,
+          \"createdAt\" TIMESTAMP WITH TIME ZONE NOT NULL,
+          \"updatedAt\" TIMESTAMP WITH TIME ZONE NOT NULL
+        );" >> create_tables.sql
+
+    - name: Setup database schema
+      working-directory: ./backend
+      run: |
+        PGPASSWORD=postgres123456 psql -h localhost -U postgres -d hontono_kuchikomi_test -f create_tables.sql
+      env:
+        PGPASSWORD: postgres123456
+
+    - name: Run database migrations
       working-directory: ./backend
       run: npx sequelize-cli db:migrate --migrations-path=./src/database/migrations
       env:
         DB_USER: postgres
         DB_PASSWORD: postgres123456
-        DB_NAME: hontono_kuchikomi
+        DB_NAME: hontono_kuchikomi_test
         DB_HOST: localhost
         DB_PORT: 5432
         NODE_ENV: test
@@ -62,7 +128,7 @@ jobs:
       env:
         DB_USER: postgres
         DB_PASSWORD: postgres123456
-        DB_NAME: hontono_kuchikomi
+        DB_NAME: hontono_kuchikomi_test
         DB_HOST: localhost
         DB_PORT: 5432
         NODE_ENV: test
