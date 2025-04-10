@@ -608,6 +608,19 @@ class PendingUsers {
         return users.slice(startIndex, endIndex);
     }
     
+    // ユーザーロールに応じたバッジスタイルを返す関数を追加
+    getUserRoleBadge(role) {
+        switch(role) {
+            case 'admin':
+                return '<span class="badge bg-purple ms-2" title="管理者">管理者</span>';
+            case 'superuser':
+                return '<span class="badge bg-danger ms-2" title="スーパー管理者">スーパー管理者</span>';
+            case 'user':
+            default:
+                return '<span class="badge bg-secondary ms-2" title="一般ユーザー">一般</span>';
+        }
+    }
+
     // 特定のテーブルにユーザーリストを表示
     renderUserTable(tableId, users) {
         // テーブルIDからタブIDを取得
@@ -637,10 +650,10 @@ class PendingUsers {
         
         tableBody.innerHTML = paginatedUsers.map(user => {
             // デバッグ用ログ
-            console.log(`ユーザーID: ${user.id}, isApproved: ${user.isApproved}, documentStatus: ${user.documentStatus}`);
+            console.log(`ユーザーID: ${user.id}, isApproved: ${user.isApproved}, documentStatus: ${user.documentStatus}, role: ${user.role}`);
             
             return `
-                <tr>
+                <tr class="${user.role === 'admin' ? 'table-primary' : user.role === 'superuser' ? 'table-danger' : ''}">
                     <td class="text-center align-middle">
                         <div class="form-check d-flex justify-content-center">
                             <input type="checkbox" class="user-checkbox form-check-input" 
@@ -648,34 +661,39 @@ class PendingUsers {
                                    onchange="pendingUsers.handleUserSelection(this)">
                         </div>
                     </td>
-                    <td>${user.username}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span>${user.username}</span>
+                            ${this.getUserRoleBadge(user.role)}
+                        </div>
+                    </td>
                     <td>${user.email}</td>
                     <td>
                         ${this.renderUserStatus(user)}
-      </td>
+                    </td>
                     <td>
                         ${user.createdAt ? formatDate(user.createdAt) : 'N/A'}
                     </td>
                     <td>
                         ${user.documentSubmittedAt ? formatDate(user.documentSubmittedAt) : 'N/A'}
                     </td>
-      <td>
-        <div class="btn-group">
-          ${!user.isApproved ? `
+                    <td>
+                        <div class="btn-group">
+                            ${!user.isApproved ? `
                             <button class="btn btn-sm btn-success" onclick="pendingUsers.approveUser('${user.id}')">
                                 <i class="bi bi-check-circle"></i> 承認
-          </button>
-          ` : ''}
+                            </button>
+                            ` : ''}
                             ${user.documentStatus === 'submitted' || user.documentStatus === 'rejected' ? `
                             <button class="btn btn-sm btn-info" onclick="pendingUsers.viewDocument('${user.id}')">
                                 <i class="bi bi-file-earmark"></i> 書類
-          </button>
-          ` : ''}
+                            </button>
+                            ` : ''}
                             <button class="btn btn-sm btn-danger" onclick="pendingUsers.rejectUser('${user.id}')">
                                 <i class="bi bi-x-circle"></i> 拒否
                             </button>
-        </div>
-      </td>
+                        </div>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -689,7 +707,7 @@ class PendingUsers {
     renderUserStatus(user) {
         // ユーザーが承認済みの場合
         if (user.isApproved === true) {
-            return '<span class="badge bg-success">認証済</span>';
+            return `<span class="badge bg-success">認証済</span>`;
         }
         
         // ユーザーが拒否されている場合
