@@ -10,7 +10,6 @@ const categoryRoutes = require('./routes/categories');
 const threadRoutes = require('./routes/threads');
 const apiRoutes = require('./routes/api');
 const accessLogger = require('./middleware/accessLogger');
-const createSuperUser = require('./seeders/superuser');
 const seedLocalFinanceThreads = require('./database/seed-local-finance-threads');
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20,71 +19,7 @@ const seedLocalFinanceThreads = require('./database/seed-local-finance-threads')
 // !!! サーバーの再起動はユーザーが手動で行います               !!!
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-// カテゴリーのシードデータ
-const categorySeeds = [
-  {
-    id: '9a4f3f31-4363-4554-be09-3cc6d94c788c',
-    name: '銀行関連スレ',
-    description: '銀行に関する情報や経験を共有する掲示板',
-    slug: 'bank'
-  },
-  {
-    id: 'baaa575d-4323-4246-9a50-c177c52d6648',
-    name: '消費者金融スレ',
-    description: '消費者金融に関する情報や経験を共有する掲示板',
-    slug: 'consumer-finance'
-  },
-  {
-    id: '843af8ed-4ea9-4508-9c73-27b949884d97',
-    name: '街金スレ',
-    description: '街金に関する情報や経験を共有する掲示板',
-    slug: 'local-finance'
-  },
-  {
-    id: 'f620c51e-1176-4522-8dce-48ec31b6640a',
-    name: '個人融資スレ',
-    description: '個人融資に関する情報や経験を共有する掲示板',
-    slug: 'personal-loan'
-  },
-  {
-    id: 'd5d7294c-a3dd-49f0-b9e4-9a34c2b56726',
-    name: 'ファクタリングスレ',
-    description: 'ファクタリングに関する情報や経験を共有する掲示板',
-    slug: 'factoring'
-  },
-  {
-    id: 'd0ede8d1-7fab-480b-8e82-bf643d580b50',
-    name: '後払いスレ',
-    description: '後払いサービスに関する情報や経験を共有する掲示板',
-    slug: 'deferred-payment'
-  },
-  {
-    id: 'fb17e2f1-2114-4e82-ba04-1263528ca256',
-    name: '闇金スレ',
-    description: '闇金に関する情報や被害経験を共有する掲示板',
-    slug: 'illegal-finance'
-  }
-];
-
 const app = express();
-
-// サーバー起動時にカテゴリーデータを確認し、必要に応じて投入
-async function ensureCategories(log = console.log, errorLog = console.error) {
-  try {
-    const count = await Category.count();
-    if (count === 0) {
-      log('カテゴリーデータが存在しないため、シードデータを投入します...');
-      await Category.bulkCreate(categorySeeds, {
-        ignoreDuplicates: true // 重複を無視
-      });
-      log('カテゴリーデータの投入が完了しました');
-    } else {
-      log('カテゴリーデータは既に存在します');
-    }
-  } catch (error) {
-    errorLog('カテゴリーデータの確認/投入中にエラーが発生しました:', error);
-  }
-}
 
 // サーバー起動時に基本データを初期化
 async function initializeData() {
@@ -94,15 +29,9 @@ async function initializeData() {
     const logInfo = isTestEnv ? () => {} : console.log;
     const logError = isTestEnv ? () => {} : console.error;
     
-    // カテゴリーデータを確認・投入
-    await ensureCategories(logInfo, logError);
-    
-    // スーパーユーザーを確認・作成
-    await createSuperUser();
-    
-    // 開発環境の場合のみ、かつ、初回実行フラグがない場合のみ街金カテゴリーの初期スレッドを作成
+    // 開発環境の場合のみ、街金カテゴリーの初期スレッドを作成
+    // カテゴリーとスーパーユーザーはマイグレーションで作成済みという前提
     if (process.env.NODE_ENV !== 'production') {
-      // 常に初期スレッドをチェックして存在しない場合は作成する
       try {
         await seedLocalFinanceThreads();
         logInfo('街金カテゴリーの初期スレッドを確認しました');
@@ -120,7 +49,7 @@ async function initializeData() {
   }
 }
 
-// グローバル変数の初期化
+// グローバル変数の初期化（レガシーコードとの互換性のため残す）
 global.seedDataInitialized = false;
 global.superUserInitialized = false;
 
