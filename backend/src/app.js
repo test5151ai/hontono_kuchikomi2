@@ -121,6 +121,7 @@ async function initializeData() {
 
 // グローバル変数の初期化
 global.seedDataInitialized = false;
+global.superUserInitialized = false;
 
 // アプリケーション起動時に初期データを投入
 initializeData();
