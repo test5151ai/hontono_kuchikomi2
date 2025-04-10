@@ -34,7 +34,7 @@
                             <form id="registerForm" class="auth-form">
                                 <div class="mb-4">
                                     <label for="nickname" class="form-label">ニックネーム</label>
-                                    <input type="text" class="form-control" id="nickname" name="nickname" required>
+                                    <input type="text" class="form-control" id="username" name="username" required>
                                     <div class="form-text">公開されるお名前です</div>
                                 </div>
 
@@ -65,6 +65,23 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="submission_method" class="form-label">連絡方法</label>
+                                    <select class="form-select" id="submission_method" name="submission_method" required>
+                                        <option value="" selected disabled>選択してください</option>
+                                        <option value="email">メール</option>
+                                        <option value="phone">電話</option>
+                                        <option value="line">LINE</option>
+                                    </select>
+                                    <div class="form-text">承認時の連絡方法を選択してください</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="submission_contact" class="form-label">連絡先</label>
+                                    <input type="text" class="form-control" id="submission_contact" name="submission_contact" required>
+                                    <div class="form-text">連絡先情報を入力してください（メールアドレス/電話番号/LINE ID）</div>
                                 </div>
                                 
                                 <div class="mb-4">
