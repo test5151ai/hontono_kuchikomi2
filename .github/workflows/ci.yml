@@ -10,6 +10,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres123456
+          POSTGRES_DB: hontono_kuchikomi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       matrix:
         node-version: [18.x]
@@ -30,9 +45,27 @@ jobs:
       working-directory: ./backend
       run: npm install
 
+    - name: Setup database
+      working-directory: ./backend
+      run: npx sequelize-cli db:migrate --migrations-path=./src/database/migrations
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres123456
+        DB_NAME: hontono_kuchikomi
+        DB_HOST: localhost
+        DB_PORT: 5432
+        NODE_ENV: test
+
     - name: Run backend tests
       working-directory: ./backend
       run: npm test
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres123456
+        DB_NAME: hontono_kuchikomi
+        DB_HOST: localhost
+        DB_PORT: 5432
+        NODE_ENV: test
 
     - name: Install frontend dependencies
       working-directory: ./frontend
