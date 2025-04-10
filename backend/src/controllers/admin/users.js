@@ -297,20 +297,32 @@ exports.getPendingUsers = async (req, res) => {
         
         const users = await User.findAll({
             where: {
+                // すべての未承認ユーザーを取得するため、isApprovedがfalseであることだけを条件にする
                 isApproved: false
             },
             attributes: [
                 'id', 'username', 'email', 'documentStatus', 
-                'documentSubmittedAt', 'createdAt', 'documentRejectReason'
+                'documentSubmittedAt', 'createdAt', 'documentRejectReason',
+                'isApproved', 'role', 'submission_method', 'submission_contact'
             ],
             order: [['createdAt', 'DESC']]
         });
 
         console.log('取得した承認待ちユーザー数:', users.length);
 
+        // 各ユーザーにdocumentStatusが未設定の場合はデフォルト値を設定
+        const processedUsers = users.map(user => {
+            const userData = user.toJSON();
+            // documentStatusが設定されていない場合はデフォルト値を設定
+            if (!userData.documentStatus) {
+                userData.documentStatus = 'not_submitted';
+            }
+            return userData;
+        });
+
         res.json({
             success: true,
-            data: users
+            data: processedUsers
         });
     } catch (error) {
         console.error('承認待ちユーザー取得エラー:', error);
