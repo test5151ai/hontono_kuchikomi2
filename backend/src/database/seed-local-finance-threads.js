@@ -6,20 +6,25 @@ const { sequelize, Thread, Post, Category } = require('../models');
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 async function seedLocalFinanceThreads() {
+  // テスト環境の場合、ログ出力を抑制
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const logInfo = isTestEnv ? () => {} : console.log;
+  const logError = isTestEnv ? () => {} : console.error;
+
   try {
-    console.log('街金関連ダミースレッドの作成を開始します...');
+    logInfo('街金関連ダミースレッドの作成を開始します...');
     
     // カテゴリー一覧を取得
     const categories = await Category.findAll();
     if (categories.length === 0) {
-      console.log('カテゴリーが見つかりません。先にカテゴリーを作成してください。');
+      logInfo('カテゴリーが見つかりません。先にカテゴリーを作成してください。');
       return;
     }
     
     // 街金カテゴリーを探す
     const localFinanceCategory = categories.find(category => category.slug === 'local-finance');
     if (!localFinanceCategory) {
-      console.log('街金カテゴリーが見つかりません。先にカテゴリーを作成してください。');
+      logInfo('街金カテゴリーが見つかりません。先にカテゴリーを作成してください。');
       return;
     }
     
@@ -30,7 +35,7 @@ async function seedLocalFinanceThreads() {
     
     // 既に街金カテゴリーにスレッドが存在する場合は処理を中止
     if (existingThreadsCount > 0) {
-      console.log(`街金カテゴリーには既に${existingThreadsCount}件のスレッドが存在します。重複作成を防ぐため処理をスキップします。`);
+      logInfo(`街金カテゴリーには既に${existingThreadsCount}件のスレッドが存在します。重複作成を防ぐため処理をスキップします。`);
       return;
     }
     
@@ -94,7 +99,7 @@ async function seedLocalFinanceThreads() {
     await sequelize.transaction(async (t) => {
       // 各スレッドを作成
       for (const threadData of localFinanceThreads) {
-        console.log(`スレッド「${threadData.title}」を作成中...`);
+        logInfo(`スレッド「${threadData.title}」を作成中...`);
         
         // スレッドを作成（店舗情報も含める）
         const thread = await Thread.create({
@@ -113,13 +118,13 @@ async function seedLocalFinanceThreads() {
           }, { transaction: t });
         }
         
-        console.log(`スレッド「${threadData.title}」を作成完了（投稿数: ${threadData.posts.length}）`);
+        logInfo(`スレッド「${threadData.title}」を作成完了（投稿数: ${threadData.posts.length}）`);
       }
     });
     
-    console.log('街金関連スレッドの作成が完了しました！');
+    logInfo('街金関連スレッドの作成が完了しました！');
   } catch (error) {
-    console.error('街金関連スレッドの作成中にエラーが発生しました:', error);
+    logError('街金関連スレッドの作成中にエラーが発生しました:', error);
   }
   // データベース接続は閉じない（アプリケーション全体のDB接続を維持）
 }
