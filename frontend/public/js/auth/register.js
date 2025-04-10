@@ -27,9 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = formData.get('email');
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
-        const nickname = formData.get('nickname');
+        const username = formData.get('username');
+        const submissionMethod = formData.get('submission_method');
+        const submissionContact = formData.get('submission_contact');
 
-        if (!nickname || nickname.trim().length < 2) {
+        if (!username || username.trim().length < 2) {
             errors.push('ニックネームは2文字以上で入力してください');
         }
 
@@ -43,6 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (password !== confirmPassword) {
             errors.push('パスワードが一致しません');
+        }
+
+        if (!submissionMethod) {
+            errors.push('連絡方法を選択してください');
+        }
+
+        if (!submissionContact || submissionContact.trim() === '') {
+            errors.push('連絡先を入力してください');
         }
 
         return errors;
@@ -65,36 +75,65 @@ document.addEventListener('DOMContentLoaded', () => {
             // エラーメッセージをクリア
             errorMessage.classList.add('d-none');
             
+            // APIエンドポイントを決定（ポート3000を直接指定）
+            const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? `${window.location.protocol}//${window.location.hostname}:3000/api/auth/register`
+                : '/api/auth/register';
+                
+            console.log('API呼び出し先:', apiUrl);
+            
+            // 登録データの準備
+            const registerData = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                submission_method: formData.get('submission_method') || 'email',
+                submission_contact: formData.get('submission_contact') || formData.get('email')
+            };
+            
+            console.log('送信データ:', { 
+                ...registerData, 
+                password: registerData.password ? '********' : undefined 
+            });
+            
             // 登録APIを呼び出す
-            const response = await fetch(getApiUrl('auth/register'), {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                    nickname: formData.get('nickname')
-                })
+                body: JSON.stringify(registerData)
             });
 
-            const result = await response.json();
+            // レスポンスヘッダーを確認
+            console.log('レスポンスステータス:', response.status);
+            console.log('レスポンスヘッダー:', {
+                'content-type': response.headers.get('content-type'),
+                'x-powered-by': response.headers.get('x-powered-by')
+            });
 
-            if (result.success) {
+            const data = await response.json();
+            console.log('レスポンスデータ:', data);
+
+            if (!response.ok) {
+                throw new Error(data.error || '登録処理中にエラーが発生しました');
+            }
+
+            if (data.token) {
                 // トークンをローカルストレージに保存
-                localStorage.setItem('token', result.token);
-                localStorage.setItem('refreshToken', result.refreshToken);
+                localStorage.setItem('token', data.token);
+                
+                // 成功メッセージを表示
+                alert(data.message || '登録が完了しました。管理者の承認をお待ちください。');
                 
                 // マイページにリダイレクト
                 window.location.href = '/profile.html';
-                
-                // 成功メッセージを表示
-                showAlert('success', '登録が完了しました！');
             } else {
-                showAlert('danger', result.message || '登録に失敗しました。');
+                throw new Error('トークンが返されませんでした');
             }
 
         } catch (error) {
+            console.error('登録エラー:', error);
             // エラーメッセージを表示
             errorMessage.textContent = error.message;
             errorMessage.classList.remove('d-none');
