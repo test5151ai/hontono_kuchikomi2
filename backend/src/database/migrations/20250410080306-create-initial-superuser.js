@@ -1,5 +1,6 @@
 'use strict';
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -22,8 +23,9 @@ module.exports = {
         // パスワードのハッシュ化
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // スーパーユーザーの作成
+        // スーパーユーザーの作成（idフィールドを明示的に指定）
         await queryInterface.bulkInsert('users', [{
+          id: uuidv4(), // UUIDを明示的に生成
           username,
           email,
           password: hashedPassword,
