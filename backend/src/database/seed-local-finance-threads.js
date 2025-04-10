@@ -57,9 +57,8 @@ async function seedLocalFinanceThreads() {
     console.log('※ .envファイルのMAX_POSTS_PER_THREAD=5に設定されているため、6件目の投稿で次スレが自動作成されます。');
   } catch (error) {
     console.error('街金関連ダミースレッドの作成中にエラーが発生しました:', error);
-  } finally {
-    await sequelize.close();
   }
+  // sequelize.close()を削除 - アプリケーション全体のDB接続を閉じないようにする
 }
 
 module.exports = seedLocalFinanceThreads; 
