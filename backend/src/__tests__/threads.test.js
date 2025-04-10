@@ -1,16 +1,28 @@
 const request = require('supertest');
 const app = require('../app');
 const { sequelize } = require('../models');
-const { User, Thread } = require('../models');
+const { User, Thread, Category } = require('../models');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
 describe('スレッド機能テスト', () => {
   let userToken;
   let adminToken;
+  let testCategoryId;
 
   beforeAll(async () => {
     // テストデータベースの準備
     await sequelize.sync({ force: true });
+    
+    // テスト用カテゴリーの作成
+    const category = await Category.create({
+      id: uuidv4(),
+      name: 'テストカテゴリー',
+      description: 'テスト用のカテゴリーです',
+      slug: 'test-category'
+    });
+    testCategoryId = category.id;
+    console.log('テスト用カテゴリーを作成しました:', { id: testCategoryId, name: category.name });
     
     // 一般ユーザーの作成
     const userPassword = await bcrypt.hash('userpass123', 10);
@@ -64,7 +76,7 @@ describe('スレッド機能テスト', () => {
         .send({
           title: 'テストスレッド',
           content: 'これはテストスレッドです',
-          categoryId: '9a4f3f31-4363-4554-be09-3cc6d94c788c'
+          categoryId: testCategoryId
         });
 
       expect(response.status).toBe(201);
@@ -79,7 +91,7 @@ describe('スレッド機能テスト', () => {
         .send({
           title: '管理者のスレッド',
           content: '管理者が作成したスレッド',
-          categoryId: '9a4f3f31-4363-4554-be09-3cc6d94c788c'
+          categoryId: testCategoryId
         });
 
       expect(response.status).toBe(201);
@@ -93,7 +105,7 @@ describe('スレッド機能テスト', () => {
         .send({
           title: '未認証スレッド',
           content: 'これは作成されないはずです',
-          categoryId: '9a4f3f31-4363-4554-be09-3cc6d94c788c'
+          categoryId: testCategoryId
         });
 
       expect(response.status).toBe(401);
@@ -134,7 +146,7 @@ describe('スレッド機能テスト', () => {
 
     test('存在しないスレッドにアクセスすると404', async () => {
       const response = await request(app)
-        .get('/api/threads/999999');
+        .get(`/api/threads/${uuidv4()}`); // 存在しないUUIDを使用
 
       expect(response.status).toBe(404);
     });
