@@ -46,6 +46,9 @@ router.post('/users/bulk-suspend', authenticateToken, isAdmin, userController.bu
 router.post('/users/export', authenticateToken, isAdmin, userController.exportUsers);
 router.post('/users/:id/grant-admin', authenticateToken, isAdmin, userController.grantAdminRole);
 
+// 新規管理者作成エンドポイント（スーパーユーザーのみ実行可能）
+router.post('/users/create-admin', authenticateToken, isAdmin, userController.createAdmin);
+
 // 書類管理
 router.get('/users/:id/document', authenticateToken, isAdmin, documentController.getDocumentDetails);
 router.post('/users/:id/document/approve', authenticateToken, isAdmin, documentController.approveDocument);

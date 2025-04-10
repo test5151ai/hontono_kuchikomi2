@@ -199,6 +199,7 @@ exports.suspendUser = async (req, res) => {
 exports.bulkSuspendUsers = async (req, res) => {
     try {
         const { userIds } = req.body;
+        
         await User.update(
             { status: 'suspended' },
             { where: { id: userIds } }
@@ -316,6 +317,79 @@ exports.getPendingUsers = async (req, res) => {
         res.status(500).json({
             success: false,
             message: '承認待ちユーザーの取得に失敗しました',
+            error: error.message
+        });
+    }
+};
+
+// 新規管理者アカウントを作成（スーパーユーザーのみ実行可能）
+exports.createAdmin = async (req, res) => {
+    try {
+        console.log('=== 新規管理者作成処理開始 ===');
+        console.log('リクエストボディ:', req.body);
+        
+        // スーパーユーザー権限チェック
+        if (!req.user.isSuperAdmin) {
+            console.log('権限エラー: スーパーユーザーではないため拒否');
+            return res.status(403).json({
+                success: false,
+                message: 'この操作を実行する権限がありません。スーパーユーザーのみが実行できます。'
+            });
+        }
+
+        const { username, email, password, role } = req.body;
+
+        // 必須項目の検証
+        if (!username || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'ユーザー名、メールアドレス、パスワードは必須です'
+            });
+        }
+
+        // メールアドレスの重複チェック
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'このメールアドレスは既に使用されています'
+            });
+        }
+
+        // 管理者アカウント作成（デフォルトで承認済み）
+        const newAdmin = await User.create({
+            username,
+            email,
+            password,
+            role: role || 'admin', // デフォルトは admin
+            isApproved: true,
+            approvedAt: new Date(),
+            approvedBy: req.user.id,
+            submissionMethod: 'direct',
+            submissionContact: email
+        });
+
+        console.log('新規管理者作成完了:', {
+            id: newAdmin.id,
+            username: newAdmin.username,
+            role: newAdmin.role
+        });
+
+        res.status(201).json({
+            success: true,
+            message: '管理者アカウントを作成しました',
+            data: {
+                id: newAdmin.id,
+                username: newAdmin.username,
+                email: newAdmin.email,
+                role: newAdmin.role
+            }
+        });
+    } catch (error) {
+        console.error('管理者作成エラー:', error);
+        res.status(500).json({
+            success: false,
+            message: '管理者アカウントの作成に失敗しました',
             error: error.message
         });
     }

@@ -635,74 +635,28 @@
         </footer>
     </div>
 
-    <!-- スクリーンショット確認ヘルプモーダル -->
-    <div class="modal fade" id="screenshotHelpModal" tabindex="-1" aria-labelledby="screenshotHelpModalLabel" aria-hidden="true">
+    <!-- スクリーンショット確認手順モーダル -->
+    <div class="modal fade" id="screenshotHelpModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-info">
-                    <h5 class="modal-title" id="screenshotHelpModalLabel">スクリーンショット確認手順</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title">スクリーンショット確認手順</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <h4>スクリーンショット確認の重要性</h4>
-                    <p>15chでは、実際のサービス利用者だけが口コミを投稿できるよう、スクリーンショットによる承認制を採用しています。これにより、信頼性の高い口コミの収集と、質の高いコミュニティの維持を実現しています。</p>
-                    
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> <strong>ユーザーの流れ：</strong><br>
-                        1. ユーザーは登録後、マイページからスクリーンショットをアップロード<br>
-                        2. 管理者がスクリーンショットを確認し、承認または拒否<br>
-                        3. 承認されたユーザーのみが投稿可能に
+                        <i class="bi bi-info-circle"></i> 以下の手順にしたがって、スクリーンショットの確認を行ってください。
                     </div>
-                    
-                    <h5>スクリーンショット確認のポイント：</h5>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-success text-white">
-                                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> 承認すべきスクリーンショット</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul>
-                                        <li>対象サービスの利用画面が明確に確認できる</li>
-                                        <li>ユーザー名やアカウント情報が確認できる</li>
-                                        <li>最近の日付が確認できる（可能な場合）</li>
-                                        <li>画像が鮮明で改ざんの痕跡がない</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-danger text-white">
-                                    <h5 class="mb-0"><i class="bi bi-x-circle"></i> 拒否すべきスクリーンショット</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul>
-                                        <li>対象サービスとは無関係な画像</li>
-                                        <li>明らかに編集・改ざんされている</li>
-                                        <li>極端に古い日付の画面キャプチャ</li>
-                                        <li>極端に不鮮明で内容確認ができない</li>
-                                        <li>他人の個人情報が過剰に含まれている</li>
-                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h5>確認手順：</h5>
                     <ol>
-                        <li>ユーザーリストから確認したいユーザーの「詳細」ボタンをクリック</li>
-                        <li>アップロードされたスクリーンショットを確認</li>
-                        <li>スクリーンショットの内容が基準を満たしているか確認</li>
-                        <li>問題がなければ「承認」ボタンをクリック</li>
-                        <li>問題がある場合は「拒否」をクリックし、理由を入力</li>
+                        <li>ユーザーリストから確認したいユーザーの「詳細」ボタンをクリックします。</li>
+                        <li>ユーザー詳細画面に表示されるスクリーンショットを確認します。</li>
+                        <li>利用しているサービスのロゴや画面が確認できることを確認します。</li>
+                        <li>不自然な編集や改ざんの痕跡がないことを確認します。</li>
+                        <li>問題がなければ、承認ボタンをクリックして承認します。</li>
+                        <li>問題がある場合は、拒否ボタンをクリックし、拒否理由を入力します。</li>
                     </ol>
-                    
                     <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> <strong>注意事項：</strong><br>
-                        ・拒否したユーザーには自動的に理由が通知されます<br>
-                        ・ユーザーは再度スクリーンショットを提出することができます<br>
-                        ・判断に迷う場合は、他の管理者に相談してください
+                        <i class="bi bi-exclamation-triangle"></i> スクリーンショットは個人情報や利用者の特定につながる情報が含まれている可能性があります。取り扱いには十分注意してください。
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -711,6 +665,54 @@
             </div>
         </div>
     </div>
+
+    <!-- 新規管理者作成モーダル -->
+    <div class="modal fade" id="createAdminModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新規管理者アカウント作成</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> このフォームでは管理者アカウントを直接作成できます。この操作はスーパーユーザーのみが実行できます。
+                    </div>
+                    <form id="createAdminForm">
+                        <div class="mb-3">
+                            <label for="admin-username" class="form-label">ユーザー名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="admin-username" required>
+                            <div class="form-text">管理画面で表示される名前です</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="admin-email" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="admin-email" required>
+                            <div class="form-text">ログイン時に使用するメールアドレスです</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="admin-password" class="form-label">パスワード <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="admin-password" required>
+                            <div class="form-text">8文字以上の強力なパスワードを設定してください</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="admin-role" class="form-label">権限レベル</label>
+                            <select class="form-select" id="admin-role">
+                                <option value="admin" selected>管理者</option>
+                                <option value="moderator">モデレーター</option>
+                            </select>
+                            <div class="form-text">権限レベルに応じて操作可能な範囲が異なります</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="submitCreateAdmin">作成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ユーザー詳細モーダル -->
 
     <!-- 一括拒否モーダル -->
     <div class="modal fade" id="bulkRejectModal" tabindex="-1" aria-hidden="true">
