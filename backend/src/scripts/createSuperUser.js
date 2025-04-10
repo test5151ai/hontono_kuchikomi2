@@ -10,7 +10,7 @@ const createSuperUser = async () => {
     // スーパーユーザーの存在確認
     const existingSuperUser = await User.findOne({
       where: {
-        isSuperAdmin: true
+        is_super_admin: true
       }
     });
 
@@ -29,7 +29,7 @@ const createSuperUser = async () => {
       password: hashedPassword,
       role: 'admin',
       isApproved: true,
-      isSuperAdmin: true
+      is_super_admin: true
     });
 
     console.log('スーパーユーザーを作成しました:', {

@@ -60,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false
     },
-    isSuperAdmin: {
+    is_super_admin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
