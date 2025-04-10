@@ -13,6 +13,13 @@ const accessLogger = require('./middleware/accessLogger');
 const createSuperUser = require('./seeders/superuser');
 const seedLocalFinanceThreads = require('./database/seed-local-finance-threads');
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!! 重要：このファイルのポート設定を変更しないでください      !!!
+// !!! サーバーは既に正しく動作しています                        !!!
+// !!! ポート3000を使用します - 変更しないでください            !!!
+// !!! サーバーの再起動はユーザーが手動で行います               !!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 // カテゴリーのシードデータ
 const categorySeeds = [
   {
