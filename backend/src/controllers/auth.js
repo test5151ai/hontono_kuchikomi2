@@ -6,25 +6,18 @@ const { Op } = require('sequelize');
 // 新規登録
 const register = async (req, res) => {
   try {
-    const { username, email, password, submission_method, submission_contact } = req.body;
+    const { username, email, password } = req.body;
     
     console.log('新規登録リクエスト受信:', { 
       username, 
       email, 
-      passwordLength: password ? password.length : 0,
-      submission_method, 
-      hasSubmissionContact: !!submission_contact 
+      passwordLength: password ? password.length : 0
     });
 
     // 入力値の検証
     if (!username || !email || !password) {
       console.log('入力検証エラー: 必須項目が不足しています', { username: !!username, email: !!email, password: !!password });
       return res.status(400).json({ error: 'ユーザー名、メールアドレス、パスワードは必須項目です' });
-    }
-
-    if (!submission_method || !submission_contact) {
-      console.log('入力検証エラー: 連絡方法と連絡先が不足しています', { submission_method, submission_contact });
-      return res.status(400).json({ error: '連絡方法と連絡先は必須項目です' });
     }
 
     // ユーザーが既に存在するかチェック
@@ -55,8 +48,8 @@ const register = async (req, res) => {
       password: hashedPassword,
       role: 'user',
       isApproved: false,
-      submission_method: submission_method || 'email',
-      submission_contact: submission_contact || email
+      submission_method: 'email',
+      submission_contact: email
     });
     
     console.log('ユーザーを作成しました:', { id: user.id, username: user.username });

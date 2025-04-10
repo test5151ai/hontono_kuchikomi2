@@ -27,11 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = formData.get('email');
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
-        const username = formData.get('username');
-        const submissionMethod = formData.get('submission_method');
-        const submissionContact = formData.get('submission_contact');
+        const nickname = formData.get('nickname');
 
-        if (!username || username.trim().length < 2) {
+        if (!nickname || nickname.trim().length < 2) {
             errors.push('ニックネームは2文字以上で入力してください');
         }
 
@@ -45,14 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (password !== confirmPassword) {
             errors.push('パスワードが一致しません');
-        }
-
-        if (!submissionMethod) {
-            errors.push('連絡方法を選択してください');
-        }
-
-        if (!submissionContact || submissionContact.trim() === '') {
-            errors.push('連絡先を入力してください');
         }
 
         return errors;
@@ -84,11 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 登録データの準備
             const registerData = {
-                username: formData.get('username'),
+                username: formData.get('nickname'),
                 email: formData.get('email'),
-                password: formData.get('password'),
-                submission_method: formData.get('submission_method') || 'email',
-                submission_contact: formData.get('submission_contact') || formData.get('email')
+                password: formData.get('password')
             };
             
             console.log('送信データ:', { 
