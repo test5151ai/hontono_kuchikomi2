@@ -23,6 +23,17 @@ async function seedLocalFinanceThreads() {
       return;
     }
     
+    // 既存のスレッド数を確認
+    const existingThreadsCount = await Thread.count({
+      where: { categoryId: localFinanceCategory.id }
+    });
+    
+    // 既に街金カテゴリーにスレッドが存在する場合は処理を中止
+    if (existingThreadsCount > 0) {
+      console.log(`街金カテゴリーには既に${existingThreadsCount}件のスレッドが存在します。重複作成を防ぐため処理をスキップします。`);
+      return;
+    }
+    
     // 街金関連のスレッド
     const localFinanceThreads = [
       {
