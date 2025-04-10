@@ -1,5 +1,10 @@
 const { sequelize, Thread, Post, Category } = require('../models');
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!! 重要: このファイルの内容を勝手に変更しないでください !!!
+// !!! ユーザーから明示的な指示がない限り修正禁止         !!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 async function seedLocalFinanceThreads() {
   try {
     console.log('街金関連ダミースレッドの作成を開始します...');
@@ -18,47 +23,84 @@ async function seedLocalFinanceThreads() {
       return;
     }
     
-    // 街金関連のダミースレッド
-    const localFinanceThread = {
-      title: '街金の金利情報と体験談スレ',
-      categoryId: localFinanceCategory.id,
-      posts: [
-        { content: '街金の金利情報や利用体験について情報交換するスレッドです。実際の体験談や金利の状況など共有しましょう。', postNumber: 1 },
-        { content: '先日、都内の街金で30万円借りました。金利は18%でした。審査は当日完了しました。', postNumber: 2 },
-        { content: '私は地方の街金で借りましたが、金利は20%でした。担保は不要で、身分証明書だけで借りられました。', postNumber: 3 },
-        { content: '街金は便利ですが、返済計画はしっかり立てないと厳しいですね。計画的に利用すれば有用だと思います。', postNumber: 4 },
-        { content: '私の知り合いは街金で借りて、返済が厳しくなってしまったようです。注意が必要ですね。', postNumber: 5 }
-      ]
-    };
+    // 街金関連のスレッド
+    const localFinanceThreads = [
+      {
+        title: 'フクホーの口コミ',
+        categoryId: localFinanceCategory.id,
+        posts: [
+          { content: '全国どこにいても申し込みが可能で、信用情報がブラックでも融資してもらえたという声があります。', postNumber: 1 },
+          { content: '収入が少なくても初回は9.9万円借りることができる点が評価されています。', postNumber: 2 },
+          { content: '家族や知人に消費者金融を利用していることがバレたくない方におすすめです。', postNumber: 3 },
+          { content: '審査に時間がかかり必要な時にお金が工面できなかったという不満もあります。', postNumber: 4 },
+          { content: '利息は高めですが、計画的に返済できたという利用者の声もあります。', postNumber: 5 }
+        ]
+      },
+      {
+        title: 'エイワの口コミ',
+        categoryId: localFinanceCategory.id,
+        posts: [
+          { content: '審査が柔軟で、他の消費者金融では審査に通らなかった人でも融資が可能だったという報告があります。', postNumber: 1 },
+          { content: '対面与信を採用しているため、AI診断に比べて柔軟な審査が可能です。', postNumber: 2 },
+          { content: '金利が高いため、返済負担が増えることがあります。', postNumber: 3 },
+          { content: '**「ここが最後の砦」**と感じる人も多く、他の金融機関で審査に落ちた人に人気です。', postNumber: 4 },
+          { content: '店舗に行って申し込みが必要で、即日融資は難しい場合があります。', postNumber: 5 }
+        ]
+      },
+      {
+        title: 'セントラルの口コミ',
+        categoryId: localFinanceCategory.id,
+        posts: [
+          { content: 'スピーディで丁寧な対応が評価されています。', postNumber: 1 },
+          { content: '過去に債務整理をした人でも融資が可能だったという声があります。', postNumber: 2 },
+          { content: '即日融資が可能で、希望額よりも多く融資してもらえたというケースもあります。', postNumber: 3 },
+          { content: '店舗やスタッフによって対応がまちまちで、不満も見られます。', postNumber: 4 },
+          { content: '返済期日までに資金の準備ができない場合、対応が悪いという意見もあります。', postNumber: 5 }
+        ]
+      },
+      {
+        title: 'アローの口コミ',
+        categoryId: localFinanceCategory.id,
+        posts: [
+          { content: '審査が最短45分で即日融資に対応しているため、急ぎでお金が必要な人におすすめです。', postNumber: 1 },
+          { content: '借り換え専用ローンもあり、複数の借り入れを整理するのに便利です。', postNumber: 2 },
+          { content: '**金利は年15.00%〜19.94%**で、最大借入額は200万円です。', postNumber: 3 },
+          { content: '迅速な対応が評価されている一方で、金利が高めであるという意見もあります。', postNumber: 4 },
+          { content: '具体的な口コミ情報は限られているため、他の金融機関と比較して評価が難しいです。', postNumber: 5 }
+        ]
+      }
+    ];
     
     // トランザクションを開始
     await sequelize.transaction(async (t) => {
-      console.log(`スレッド「${localFinanceThread.title}」を作成中...`);
-      
-      // スレッドを作成
-      const thread = await Thread.create({
-        title: localFinanceThread.title,
-        categoryId: localFinanceThread.categoryId
-      }, { transaction: t });
-      
-      // 投稿を作成
-      for (const postData of localFinanceThread.posts) {
-        await Post.create({
-          content: postData.content,
-          threadId: thread.id,
-          postNumber: postData.postNumber
+      // 各スレッドを作成
+      for (const threadData of localFinanceThreads) {
+        console.log(`スレッド「${threadData.title}」を作成中...`);
+        
+        // スレッドを作成
+        const thread = await Thread.create({
+          title: threadData.title,
+          categoryId: threadData.categoryId
         }, { transaction: t });
+        
+        // 投稿を作成
+        for (const postData of threadData.posts) {
+          await Post.create({
+            content: postData.content,
+            threadId: thread.id,
+            postNumber: postData.postNumber
+          }, { transaction: t });
+        }
+        
+        console.log(`スレッド「${threadData.title}」を作成完了（投稿数: ${threadData.posts.length}）`);
       }
-      
-      console.log(`スレッド「${localFinanceThread.title}」を作成完了（投稿数: ${localFinanceThread.posts.length}）`);
     });
     
-    console.log('街金関連ダミースレッドの作成が完了しました！');
-    console.log('※ .envファイルのMAX_POSTS_PER_THREAD=5に設定されているため、6件目の投稿で次スレが自動作成されます。');
+    console.log('街金関連スレッドの作成が完了しました！');
   } catch (error) {
-    console.error('街金関連ダミースレッドの作成中にエラーが発生しました:', error);
+    console.error('街金関連スレッドの作成中にエラーが発生しました:', error);
   }
-  // sequelize.close()を削除 - アプリケーション全体のDB接続を閉じないようにする
+  // データベース接続は閉じない（アプリケーション全体のDB接続を維持）
 }
 
 module.exports = seedLocalFinanceThreads; 
