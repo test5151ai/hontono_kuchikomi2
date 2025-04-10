@@ -69,28 +69,33 @@ const categorySeeds = [
 const app = express();
 
 // サーバー起動時にカテゴリーデータを確認し、必要に応じて投入
-async function ensureCategories() {
+async function ensureCategories(log = console.log, errorLog = console.error) {
   try {
     const count = await Category.count();
     if (count === 0) {
-      console.log('カテゴリーデータが存在しないため、シードデータを投入します...');
+      log('カテゴリーデータが存在しないため、シードデータを投入します...');
       await Category.bulkCreate(categorySeeds, {
         ignoreDuplicates: true // 重複を無視
       });
-      console.log('カテゴリーデータの投入が完了しました');
+      log('カテゴリーデータの投入が完了しました');
     } else {
-      console.log('カテゴリーデータは既に存在します');
+      log('カテゴリーデータは既に存在します');
     }
   } catch (error) {
-    console.error('カテゴリーデータの確認/投入中にエラーが発生しました:', error);
+    errorLog('カテゴリーデータの確認/投入中にエラーが発生しました:', error);
   }
 }
 
 // サーバー起動時に基本データを初期化
 async function initializeData() {
   try {
+    // テスト環境の場合、ログ出力を抑制
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    const logInfo = isTestEnv ? () => {} : console.log;
+    const logError = isTestEnv ? () => {} : console.error;
+    
     // カテゴリーデータを確認・投入
-    await ensureCategories();
+    await ensureCategories(logInfo, logError);
     
     // スーパーユーザーを確認・作成
     await createSuperUser();
@@ -100,16 +105,18 @@ async function initializeData() {
       // 常に初期スレッドをチェックして存在しない場合は作成する
       try {
         await seedLocalFinanceThreads();
-        console.log('街金カテゴリーの初期スレッドを確認しました');
+        logInfo('街金カテゴリーの初期スレッドを確認しました');
       } catch (error) {
-        console.error('街金カテゴリーの初期スレッド作成中にエラーが発生しました:', error);
-        console.log('街金カテゴリーの初期スレッド作成に失敗しましたが、処理を続行します');
+        logError('街金カテゴリーの初期スレッド作成中にエラーが発生しました:', error);
+        logInfo('街金カテゴリーの初期スレッド作成に失敗しましたが、処理を続行します');
       }
     }
     
-    console.log('基本データの初期化が完了しました');
+    logInfo('基本データの初期化が完了しました');
   } catch (error) {
-    console.error('基本データの初期化中にエラーが発生しました:', error);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('基本データの初期化中にエラーが発生しました:', error);
+    }
   }
 }
 
