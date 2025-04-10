@@ -29,7 +29,9 @@ const createSuperUser = async () => {
       password: hashedPassword,
       role: 'admin',
       isApproved: true,
-      is_super_admin: true
+      is_super_admin: true,
+      submission_method: 'email',
+      submission_contact: process.env.SUPERUSER_EMAIL
     });
 
     console.log('スーパーユーザーを作成しました:', {
