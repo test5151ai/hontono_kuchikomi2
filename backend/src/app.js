@@ -10,6 +10,7 @@ const categoryRoutes = require('./routes/categories');
 const threadRoutes = require('./routes/threads');
 const apiRoutes = require('./routes/api');
 const accessLogger = require('./middleware/accessLogger');
+const createSuperUser = require('./seeders/superuser');
 
 // カテゴリーのシードデータ
 const categorySeeds = [
@@ -77,13 +78,22 @@ async function ensureCategories() {
   }
 }
 
-// テスト環境かどうかを確認
-const isTestEnvironment = process.env.NODE_ENV === 'test';
-
-// テスト環境でない場合のみ即時実行
-if (!isTestEnvironment) {
-  ensureCategories();
+// サーバー起動時に基本データを初期化
+async function initializeData() {
+  try {
+    // カテゴリーデータを確認・投入
+    await ensureCategories();
+    
+    // スーパーユーザーを確認・作成
+    await createSuperUser();
+    console.log('基本データの初期化が完了しました');
+  } catch (error) {
+    console.error('基本データの初期化中にエラーが発生しました:', error);
+  }
 }
+
+// アプリケーション起動時に初期データを投入
+initializeData();
 
 // CORSの設定を最初に行う
 const corsOptions = {
@@ -161,15 +171,6 @@ app.use((req, res, next) => {
         method: layer.route ? layer.route.methods : 'middleware'
     })));
     next();
-});
-
-// API利用開始前のカテゴリーデータ初期化（テスト環境用）
-app.use(async (req, res, next) => {
-  // APIエンドポイントへのリクエスト時にのみカテゴリー初期化を実行（テスト環境の場合）
-  if (isTestEnvironment && req.path.startsWith('/api')) {
-    await ensureCategories();
-  }
-  next();
 });
 
 // エラーハンドリング
