@@ -143,8 +143,6 @@ describe('スレッド機能テスト', () => {
     });
 
     test('未認証ユーザーはスレッドを作成できない', async () => {
-      // このテストはAPIの現在の実装と一致していないため、
-      // 期待値を現在の動作に合わせる（後でAPIのセキュリティ強化が必要）
       const response = await request(app)
         .post('/api/threads')
         .send({
@@ -153,18 +151,9 @@ describe('スレッド機能テスト', () => {
           categoryId: testCategoryId
         });
 
-      // 現在の実装では未認証でもスレッド作成が可能なためコメントアウト
-      // expect(response.status).toBe(401);
-      
-      // 現在の実際の動作に合わせる
-      expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.success).toBe(true);
-      
-      // 作成されたスレッドIDを記録（後でクリーンアップするため）
-      if (response.body.id) {
-        createdThreads.push(response.body.id);
-      }
+      // 未認証ユーザーはスレッドを作成できないことを確認
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('error', '認証が必要です');
     });
   });
 
