@@ -175,8 +175,13 @@ class SiteSidebar extends HTMLElement {
             console.log('カテゴリー一覧取得URL:', apiUrl.toString());
             
             const response = await fetch(apiUrl);
-            const categories = await response.json();
+            const result = await response.json();
             
+            if (!result.success) {
+                throw new Error(result.message || 'カテゴリー一覧の取得に失敗しました');
+            }
+            
+            const categories = result.data;
             const categoriesContainer = document.getElementById('categories-container');
             
             if (!categories || categories.length === 0) {
@@ -269,26 +274,32 @@ class SiteSidebar extends HTMLElement {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            
-            if (response.ok) {
-                const userData = await response.json();
-                const isAdmin = userData.role === 'admin' || userData.role === 'superuser';
-                
-                const adminBtn = document.getElementById('admin-create-thread-btn');
-                const userBtn = document.getElementById('user-request-thread-btn');
-                
-                if (adminBtn && userBtn) {
-                    if (isAdmin) {
-                        adminBtn.classList.remove('d-none');
-                        userBtn.classList.add('d-none');
-                    } else {
-                        adminBtn.classList.add('d-none');
-                        userBtn.classList.remove('d-none');
-                    }
-                }
+
+            if (!response.ok) {
+                throw new Error('認証エラー');
+            }
+
+            const userData = await response.json();
+            const isAdmin = userData.role === 'admin' || userData.role === 'superuser';
+
+            // ボタンの表示制御
+            const adminButton = document.getElementById('admin-create-thread-btn');
+            const userButton = document.getElementById('user-request-thread-btn');
+
+            if (isAdmin) {
+                adminButton.classList.remove('d-none');
+                userButton.classList.add('d-none');
+            } else {
+                adminButton.classList.add('d-none');
+                userButton.classList.remove('d-none');
             }
         } catch (error) {
             console.error('管理者権限チェックエラー:', error);
+            // エラー時は一般ユーザー用ボタンのみ表示
+            const adminButton = document.getElementById('admin-create-thread-btn');
+            const userButton = document.getElementById('user-request-thread-btn');
+            adminButton.classList.add('d-none');
+            userButton.classList.remove('d-none');
         }
     }
 }

@@ -183,9 +183,36 @@
         }
 
         // ページ読み込み時の処理
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCategories();
-            setupFormValidation();
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(getApiUrl('users/me'), {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    alert('ログインが必要です');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const userData = await response.json();
+                const isAdmin = userData.role === 'admin' || userData.role === 'superuser';
+
+                if (!isAdmin) {
+                    alert('スレッド作成は管理者のみが行えます。スレッド作成リクエストページに移動します。');
+                    window.location.href = '/thread-request.html';
+                    return;
+                }
+                
+                loadCategories();
+                setupFormValidation();
+            } catch (error) {
+                console.error('権限チェックエラー:', error);
+                alert('エラーが発生しました。ログインページに移動します。');
+                window.location.href = '/login.html';
+            }
         });
     </script>
 

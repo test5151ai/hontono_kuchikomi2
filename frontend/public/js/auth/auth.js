@@ -2,22 +2,22 @@
 const AuthService = {
     // トークンの保存
     saveToken: (token) => {
-        localStorage.setItem('authToken', token);
+        localStorage.setItem('token', token);
     },
 
     // トークンの取得
     getToken: () => {
-        return localStorage.getItem('authToken');
+        return localStorage.getItem('token');
     },
 
     // トークンの削除
     removeToken: () => {
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
     },
 
     // ログイン状態の確認
     isLoggedIn: () => {
-        return !!localStorage.getItem('authToken');
+        return !!localStorage.getItem('token');
     },
 
     // 共通のエラーハンドリング
