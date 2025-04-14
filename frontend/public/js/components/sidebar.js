@@ -85,6 +85,7 @@ class SiteSidebar extends HTMLElement {
     connectedCallback() {
         this.render();
         this.loadContent();
+        this.checkAdminStatus();
     }
 
     render() {
@@ -138,9 +139,16 @@ class SiteSidebar extends HTMLElement {
                 <div class="card shadow-sm mb-4">
                     <div class="card-body p-3 text-center">
                         <p class="mb-3">新しいスレッドを作成しますか？</p>
-                        <a href="/create-thread.html" class="btn btn-primary w-100">
-                            <i class="fas fa-plus me-2"></i>スレッドを作成する
-                        </a>
+                        <div id="thread-creation-options">
+                            <!-- 管理者用のスレッド作成ボタン -->
+                            <a href="/create-thread.html" class="btn btn-primary w-100 d-none" id="admin-create-thread-btn">
+                                <i class="fas fa-plus me-2"></i>スレッドを作成する
+                            </a>
+                            <!-- 一般ユーザー用のスレッド作成依頼リンク -->
+                            <a href="/thread-request.html" class="btn btn-outline-primary w-100" id="user-request-thread-btn">
+                                <i class="fas fa-envelope me-2"></i>スレッド作成を依頼する
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -250,6 +258,37 @@ class SiteSidebar extends HTMLElement {
             console.error('最新スレッドの取得に失敗しました:', error);
             const latestThreadsContainer = document.getElementById('latest-threads-container');
             latestThreadsContainer.innerHTML = '<div class="alert alert-danger p-3">最新スレッドの取得に失敗しました。</div>';
+        }
+    }
+
+    // 管理者権限をチェックしてボタンの表示を切り替える
+    async checkAdminStatus() {
+        try {
+            const response = await fetch(getApiUrl('users/me'), {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                const isAdmin = userData.role === 'admin' || userData.role === 'superuser';
+                
+                const adminBtn = document.getElementById('admin-create-thread-btn');
+                const userBtn = document.getElementById('user-request-thread-btn');
+                
+                if (adminBtn && userBtn) {
+                    if (isAdmin) {
+                        adminBtn.classList.remove('d-none');
+                        userBtn.classList.add('d-none');
+                    } else {
+                        adminBtn.classList.add('d-none');
+                        userBtn.classList.remove('d-none');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('管理者権限チェックエラー:', error);
         }
     }
 }
