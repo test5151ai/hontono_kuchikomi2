@@ -24,6 +24,14 @@ function appendInfoThreadSuffix(title) {
 // スレッドを作成
 exports.createThread = async (req, res) => {
     try {
+        // 承認チェック
+        if (!req.user.isApproved && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+            return res.status(403).json({
+                success: false,
+                message: 'アカウントが承認されていません。書き込み機能は承認後に利用可能になります。'
+            });
+        }
+
         const { categoryId, title, content, authorName } = req.body;
         debug('受信したデータ:', { categoryId, title, content, authorName });
 
@@ -165,6 +173,14 @@ exports.getThreadPosts = async (req, res) => {
 // スレッドに投稿を追加
 exports.createPost = async (req, res) => {
     try {
+        // 承認チェック
+        if (!req.user.isApproved && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+            return res.status(403).json({
+                success: false,
+                message: 'アカウントが承認されていません。書き込み機能は承認後に利用可能になります。'
+            });
+        }
+
         const { id } = req.params;
         const { content, authorName } = req.body;
         

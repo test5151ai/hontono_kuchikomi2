@@ -22,11 +22,6 @@ const register = async (req, res) => {
       return res.status(400).json({ error: 'ユーザー名、メールアドレス、パスワードは必須項目です' });
     }
 
-    if (!submission_method || !submission_contact) {
-      console.log('入力検証エラー: 連絡方法と連絡先が不足しています', { submission_method, submission_contact });
-      return res.status(400).json({ error: '連絡方法と連絡先は必須項目です' });
-    }
-
     // ユーザーが既に存在するかチェック
     const existingUser = await User.findOne({
       where: {

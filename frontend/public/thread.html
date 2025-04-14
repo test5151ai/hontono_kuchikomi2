@@ -1032,44 +1032,64 @@
                 const response = await fetch(getApiUrl(`threads/${threadId}/posts`), {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({ content, authorName })
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // スレッド上限に達して新しいスレッドが作成された場合のリダイレクト処理
-                    if (data.redirectTo) {
-                        // 新しいスレッドが作成されたことを通知
-                        alert(data.message || '投稿数上限に達したため、新しいスレッドを作成しました。新しいスレッドに移動します。');
-                        
-                        // 新しいスレッドにリダイレクト
-                        window.location.href = data.redirectTo;
-                        return;
+
+                const result = await response.json();
+
+                if (response.status === 403) {
+                    // 書類提出状態を確認
+                    const userResponse = await fetch(getApiUrl('users/me'), {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    const userData = await userResponse.json();
+
+                    if (userData.documentStatus === 'not_submitted') {
+                        alert('書類が未提出です。プロフィールページから書類を提出してください。');
+                    } else if (userData.documentStatus === 'submitted') {
+                        alert('書類は提出済みです。管理者の承認をお待ちください。');
                     }
                     
-                    // 通常の投稿成功処理
-                    // フォームをリセット
-                    form.reset();
-                    form.classList.remove('was-validated');
-                    
-                    // 投稿一覧を再読み込み
-                    loadPosts();
-                    
-                    // 投稿数を更新
-                    updatePostCount();
-                    
-                    // 一番下にスクロール
-                    window.scrollTo(0, document.body.scrollHeight);
-                } else {
-                    const data = await response.json();
-                    alert(`投稿に失敗しました: ${data.message || 'エラーが発生しました'}`);
+                    // プロフィールページにリダイレクト
+                    window.location.href = '/profile.html';
+                    return;
                 }
+
+                if (!response.ok) {
+                    throw new Error(result.message || '投稿の作成に失敗しました');
+                }
+
+                // スレッド上限に達して新しいスレッドが作成された場合のリダイレクト処理
+                if (result.redirectTo) {
+                    // 新しいスレッドが作成されたことを通知
+                    alert(result.message || '投稿数上限に達したため、新しいスレッドを作成しました。新しいスレッドに移動します。');
+                    
+                    // 新しいスレッドにリダイレクト
+                    window.location.href = result.redirectTo;
+                    return;
+                }
+                
+                // 通常の投稿成功処理
+                // フォームをリセット
+                form.reset();
+                form.classList.remove('was-validated');
+                
+                // 投稿一覧を再読み込み
+                await loadPosts();
+                
+                // 投稿数を更新
+                updatePostCount();
+                
+                // 一番下にスクロール
+                window.scrollTo(0, document.body.scrollHeight);
             } catch (error) {
                 console.error('投稿の送信に失敗しました:', error);
-                alert('投稿の送信に失敗しました。');
+                alert(error.message || '投稿の送信に失敗しました。');
             } finally {
                 // ボタンを元に戻す
                 submitButton.disabled = false;

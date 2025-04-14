@@ -1,3 +1,29 @@
+// アラートを表示する関数
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    // 既存のアラートがあれば削除
+    const existingAlert = document.querySelector('.alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    // フォームの前にアラートを挿入
+    const form = document.getElementById('registerForm');
+    form.parentNode.insertBefore(alertDiv, form);
+    
+    // 5秒後に自動的に消える
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('registerForm');
     const errorMessage = document.getElementById('errorMessage');
@@ -27,11 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = formData.get('email');
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
-        const username = formData.get('username');
-        const submissionMethod = formData.get('submission_method');
-        const submissionContact = formData.get('submission_contact');
+        const nickname = formData.get('nickname');
 
-        if (!username || username.trim().length < 2) {
+        if (!nickname || nickname.trim().length < 2) {
             errors.push('ニックネームは2文字以上で入力してください');
         }
 
@@ -45,14 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (password !== confirmPassword) {
             errors.push('パスワードが一致しません');
-        }
-
-        if (!submissionMethod) {
-            errors.push('連絡方法を選択してください');
-        }
-
-        if (!submissionContact || submissionContact.trim() === '') {
-            errors.push('連絡先を入力してください');
         }
 
         return errors;
@@ -75,65 +91,37 @@ document.addEventListener('DOMContentLoaded', () => {
             // エラーメッセージをクリア
             errorMessage.classList.add('d-none');
             
-            // APIエンドポイントを決定（ポート3000を直接指定）
-            const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? `${window.location.protocol}//${window.location.hostname}:3000/api/auth/register`
-                : '/api/auth/register';
-                
-            console.log('API呼び出し先:', apiUrl);
-            
-            // 登録データの準備
-            const registerData = {
-                username: formData.get('username'),
-                email: formData.get('email'),
-                password: formData.get('password'),
-                submission_method: formData.get('submission_method') || 'email',
-                submission_contact: formData.get('submission_contact') || formData.get('email')
-            };
-            
-            console.log('送信データ:', { 
-                ...registerData, 
-                password: registerData.password ? '********' : undefined 
-            });
-            
             // 登録APIを呼び出す
-            const response = await fetch(apiUrl, {
+            const response = await fetch(getApiUrl('auth/register'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(registerData)
+                body: JSON.stringify({
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    username: formData.get('nickname')
+                })
             });
 
-            // レスポンスヘッダーを確認
-            console.log('レスポンスステータス:', response.status);
-            console.log('レスポンスヘッダー:', {
-                'content-type': response.headers.get('content-type'),
-                'x-powered-by': response.headers.get('x-powered-by')
-            });
+            const result = await response.json();
 
-            const data = await response.json();
-            console.log('レスポンスデータ:', data);
-
-            if (!response.ok) {
-                throw new Error(data.error || '登録処理中にエラーが発生しました');
-            }
-
-            if (data.token) {
+            if (response.status === 201) {
                 // トークンをローカルストレージに保存
-                localStorage.setItem('token', data.token);
+                localStorage.setItem('token', result.token);
                 
                 // 成功メッセージを表示
-                alert(data.message || '登録が完了しました。管理者の承認をお待ちください。');
+                showAlert('success', '登録が完了しました。プロフィール画像をアップロードしてください。書き込み機能は管理者の承認後に利用可能になります。');
                 
-                // マイページにリダイレクト
-                window.location.href = '/profile.html';
+                // プロフィールページにリダイレクト
+                setTimeout(() => {
+                    window.location.href = '/profile.html';
+                }, 2000);
             } else {
-                throw new Error('トークンが返されませんでした');
+                showAlert('danger', result.error || '登録に失敗しました。');
             }
 
         } catch (error) {
-            console.error('登録エラー:', error);
             // エラーメッセージを表示
             errorMessage.textContent = error.message;
             errorMessage.classList.remove('d-none');

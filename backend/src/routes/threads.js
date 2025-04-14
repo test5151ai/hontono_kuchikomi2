@@ -10,7 +10,7 @@ router.get('/', threadController.getThreads);
 router.get('/popular', threadController.getPopularThreads);
 
 // スレッドを作成
-router.post('/', threadController.createThread);
+router.post('/', authenticateToken, threadController.createThread);
 
 // スレッド詳細を取得
 router.get('/:id', threadController.getThread);
@@ -19,7 +19,7 @@ router.get('/:id', threadController.getThread);
 router.get('/:id/posts', threadController.getThreadPosts);
 
 // スレッドに投稿を追加
-router.post('/:id/posts', threadController.createPost);
+router.post('/:id/posts', authenticateToken, threadController.createPost);
 
 // 管理者用 - スレッドを編集
 router.put('/:id', authenticateToken, isAdmin, threadController.updateThread);
