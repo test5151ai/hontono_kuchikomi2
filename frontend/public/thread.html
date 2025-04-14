@@ -1037,11 +1037,11 @@
                     },
                     body: JSON.stringify({ content, authorName })
                 });
-
+                
                 const result = await response.json();
 
                 if (response.status === 403) {
-                    // 書類提出状態を確認
+                    // ユーザー情報を取得
                     const userResponse = await fetch(getApiUrl('users/me'), {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -1049,6 +1049,14 @@
                     });
                     const userData = await userResponse.json();
 
+                    // 承認状態をチェック
+                    if (!userData.isApproved) {
+                        alert('アカウントが承認されていません。管理者の承認をお待ちください。');
+                        window.location.href = '/profile.html';
+                        return;
+                    }
+
+                    // 書類提出状態を確認
                     if (userData.documentStatus === 'not_submitted') {
                         alert('書類が未提出です。プロフィールページから書類を提出してください。');
                     } else if (userData.documentStatus === 'submitted') {
@@ -1059,12 +1067,7 @@
                     window.location.href = '/profile.html';
                     return;
                 }
-
-                if (!response.ok) {
-                    throw new Error(result.message || '投稿の作成に失敗しました');
-                }
-
-                // スレッド上限に達して新しいスレッドが作成された場合のリダイレクト処理
+                
                 if (result.redirectTo) {
                     // 新しいスレッドが作成されたことを通知
                     alert(result.message || '投稿数上限に達したため、新しいスレッドを作成しました。新しいスレッドに移動します。');
@@ -1080,7 +1083,7 @@
                 form.classList.remove('was-validated');
                 
                 // 投稿一覧を再読み込み
-                await loadPosts();
+                loadPosts();
                 
                 // 投稿数を更新
                 updatePostCount();
@@ -1089,7 +1092,7 @@
                 window.scrollTo(0, document.body.scrollHeight);
             } catch (error) {
                 console.error('投稿の送信に失敗しました:', error);
-                alert(error.message || '投稿の送信に失敗しました。');
+                alert('投稿の送信に失敗しました。');
             } finally {
                 // ボタンを元に戻す
                 submitButton.disabled = false;
