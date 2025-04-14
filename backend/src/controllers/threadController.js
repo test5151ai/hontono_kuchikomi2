@@ -176,6 +176,14 @@ exports.createPost = async (req, res) => {
         const { id } = req.params;
         const { content, authorName } = req.body;
         
+        // ユーザーの承認状態をチェック
+        if (!req.user.isApproved) {
+            return res.status(403).json({
+                success: false,
+                message: 'アカウントが承認されていません'
+            });
+        }
+
         // スレッドの存在確認
         const thread = await Thread.findByPk(id, {
             include: [
