@@ -100,25 +100,19 @@ describe('スレッド機能テスト', () => {
   });
 
   describe('スレッド作成 POST /api/threads', () => {
-    test('一般ユーザーがスレッドを作成できる（現状の動作）', async () => {
+    test('一般ユーザーはスレッド作成が制限される', async () => {
       const response = await request(app)
         .post('/api/threads')
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           title: 'テストスレッド',
-          content: 'これはテストスレッドです',
-          categoryId: testCategoryId
+          content: 'テスト内容',
+          categoryId: 1
         });
 
-      expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBeTruthy();
-      
-      // 作成されたスレッドIDを記録（後でクリーンアップするため）
-      if (response.body.id) {
-        createdThreads.push(response.body.id);
-      }
+      expect(response.status).toBe(403);
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('message', 'スレッドの作成は管理者のみが行えます');
     });
 
     test('管理者がスレッドを作成できる', async () => {
