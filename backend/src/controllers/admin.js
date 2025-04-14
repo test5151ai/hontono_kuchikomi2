@@ -16,8 +16,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// 承認待ちユーザー一覧の取得
-exports.getPendingUsers = async (req, res) => {
+const getPendingUsers = async (req, res) => {
   console.log('getPendingUsers が呼び出されました');
   try {
     const users = await User.findAll({
@@ -38,36 +37,26 @@ exports.getPendingUsers = async (req, res) => {
   }
 };
 
-// ユーザー詳細情報の取得
-exports.getUserDetails = async (req, res) => {
+const getUserDetails = async (req, res) => {
   console.log('getUserDetails が呼び出されました');
   try {
-    const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'email', 'submissionMethod', 'submissionContact', 'createdAt']
+    const { userId } = req.params;
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'username', 'email', 'isApproved', 'isSuperAdmin', 'createdAt']
     });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'ユーザーが見つかりません'
-      });
+      return res.status(404).json(createResponse(false, 'ユーザーが見つかりません'));
     }
 
-    res.json({
-      success: true,
-      data: user
-    });
+    return res.status(200).json(createResponse(true, 'ユーザー詳細を取得しました', { user }));
   } catch (error) {
     console.error('ユーザー詳細取得エラー:', error);
-    res.status(500).json({
-      success: false,
-      error: 'ユーザー詳細の取得に失敗しました'
-    });
+    return res.status(500).json(createResponse(false, 'サーバーエラーが発生しました'));
   }
 };
 
-// ユーザーの承認
-exports.approveUser = async (req, res) => {
+const approveUser = async (req, res) => {
   console.log('approveUser が呼び出されました');
   try {
     const user = await User.findByPk(req.params.id);
@@ -107,8 +96,7 @@ exports.approveUser = async (req, res) => {
   }
 };
 
-// ユーザーの拒否
-exports.rejectUser = async (req, res) => {
+const rejectUser = async (req, res) => {
   console.log('rejectUser が呼び出されました');
   try {
     const user = await User.findByPk(req.params.id);
@@ -143,8 +131,7 @@ exports.rejectUser = async (req, res) => {
   }
 };
 
-// 一括承認
-exports.bulkApproveUsers = async (req, res) => {
+const bulkApproveUsers = async (req, res) => {
   console.log('bulkApproveUsers が呼び出されました');
   try {
     const { userIds } = req.body;
@@ -192,8 +179,7 @@ exports.bulkApproveUsers = async (req, res) => {
   }
 };
 
-// 管理者ダッシュボード用の統計情報
-exports.getDashboardStats = async (req, res) => {
+const getDashboardStats = async (req, res) => {
   console.log('getDashboardStats が呼び出されました');
   try {
     const [pendingCount, approvedCount] = await Promise.all([
@@ -225,8 +211,7 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// 管理者権限の付与（スーパーユーザーのみ可能）
-exports.grantAdminRole = async (req, res) => {
+const grantAdminRole = async (req, res) => {
   console.log('grantAdminRole が呼び出されました');
   try {
     // スーパーユーザーチェック
@@ -267,13 +252,23 @@ exports.grantAdminRole = async (req, res) => {
   }
 };
 
+module.exports = {
+  getPendingUsers,
+  getUserDetails,
+  approveUser,
+  rejectUser,
+  bulkApproveUsers,
+  getDashboardStats,
+  grantAdminRole
+};
+
 // デバッグ用のログ出力
 console.log('エクスポートする関数:', {
-  getPendingUsers: typeof exports.getPendingUsers,
-  getUserDetails: typeof exports.getUserDetails,
-  approveUser: typeof exports.approveUser,
-  rejectUser: typeof exports.rejectUser,
-  bulkApproveUsers: typeof exports.bulkApproveUsers,
-  getDashboardStats: typeof exports.getDashboardStats,
-  grantAdminRole: typeof exports.grantAdminRole
+  getPendingUsers: typeof module.exports.getPendingUsers,
+  getUserDetails: typeof module.exports.getUserDetails,
+  approveUser: typeof module.exports.approveUser,
+  rejectUser: typeof module.exports.rejectUser,
+  bulkApproveUsers: typeof module.exports.bulkApproveUsers,
+  getDashboardStats: typeof module.exports.getDashboardStats,
+  grantAdminRole: typeof module.exports.grantAdminRole
 }); 

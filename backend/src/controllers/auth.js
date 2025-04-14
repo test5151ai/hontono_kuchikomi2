@@ -174,7 +174,10 @@ const login = async (req, res) => {
     // スーパーユーザーと管理者は常にログイン可能
     if (user.role !== 'superuser' && user.role !== 'admin' && !user.isApproved) {
       console.log('アカウントが承認されていません');
-      return res.status(403).json({ error: 'アカウントが承認されていません' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'アカウントが承認されていません。管理者の承認をお待ちください。'
+      });
     }
 
     // JWTトークンの生成

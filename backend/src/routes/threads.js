@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const threadController = require('../controllers/threadController');
-const { authenticateToken, isAdmin } = require('../middleware/auth');
+const threadController = require('../controllers/thread');
+const authMiddleware = require('../middleware/auth');
 
 // スレッド一覧を取得
 router.get('/', threadController.getThreads);
@@ -10,7 +10,7 @@ router.get('/', threadController.getThreads);
 router.get('/popular', threadController.getPopularThreads);
 
 // スレッドを作成
-router.post('/', authenticateToken, threadController.createThread);
+router.post('/', authMiddleware.verifyToken, authMiddleware.checkApproved, threadController.createThread);
 
 // スレッド詳細を取得
 router.get('/:id', threadController.getThread);
@@ -19,15 +19,21 @@ router.get('/:id', threadController.getThread);
 router.get('/:id/posts', threadController.getThreadPosts);
 
 // スレッドに投稿を追加
-router.post('/:id/posts', authenticateToken, threadController.createPost);
+router.post('/:id/posts', authMiddleware.verifyToken, authMiddleware.checkApproved, threadController.createPost);
 
-// 管理者用 - スレッドを編集
-router.put('/:id', authenticateToken, isAdmin, threadController.updateThread);
+// スレッドを更新
+router.put('/:id', authMiddleware.verifyToken, authMiddleware.checkApproved, threadController.updateThread);
 
-// 管理者用 - スレッドを削除
-router.delete('/:id', authenticateToken, isAdmin, threadController.deleteThread);
+// スレッドを削除
+router.delete('/:id', authMiddleware.verifyToken, authMiddleware.checkApproved, threadController.deleteThread);
 
 // 管理者用 - スレッドの店舗情報を更新
-router.put('/:id/shop-details', authenticateToken, isAdmin, threadController.updateShopDetails);
+router.put('/:id/shop-details', authMiddleware.verifyToken, authMiddleware.checkApproved, threadController.updateShopDetails);
+
+// スレッドのコメントを取得
+router.get('/:id/comments', threadController.getComments);
+
+// スレッドにコメントを投稿
+router.post('/:id/comments', authMiddleware.verifyToken, authMiddleware.checkApproved, threadController.createComment);
 
 module.exports = router; 

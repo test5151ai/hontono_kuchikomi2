@@ -66,7 +66,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     submission_method: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       defaultValue: 'email',
       validate: {
         isIn: [['email', 'line']]
@@ -74,7 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     submission_contact: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: {
         notEmpty: true
       }

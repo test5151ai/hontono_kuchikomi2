@@ -11,12 +11,25 @@ const authController = {
 
             const user = await User.findOne({ where: { email } });
             if (!user) {
-                return res.status(401).json(createResponse.error('メールアドレスまたはパスワードが正しくありません'));
+                return res.status(401).json({
+                    success: false,
+                    message: 'メールアドレスまたはパスワードが正しくありません。'
+                });
             }
 
             const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) {
-                return res.status(401).json(createResponse.error('メールアドレスまたはパスワードが正しくありません'));
+                return res.status(401).json({
+                    success: false,
+                    message: 'メールアドレスまたはパスワードが正しくありません。'
+                });
+            }
+
+            if (!user.isApproved) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'アカウントが承認されていません。管理者の承認をお待ちください。'
+                });
             }
 
             const token = jwt.sign(
@@ -30,17 +43,30 @@ const authController = {
                 { expiresIn: '24h' }
             );
 
-            res.json(createResponse.success({ token }));
+            res.json({
+                success: true,
+                token,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    isApproved: user.isApproved
+                }
+            });
         } catch (error) {
             console.error('Login error:', error);
-            res.status(500).json(createResponse.error('ログイン処理中にエラーが発生しました'));
+            res.status(500).json({
+                success: false,
+                message: 'ログイン処理中にエラーが発生しました。'
+            });
         }
     },
 
     // 新規登録処理
     register: async (req, res) => {
         try {
-            const { email, password, name } = req.body;
+            const { email, password, username } = req.body;
 
             const existingUser = await User.findOne({ where: { email } });
             if (existingUser) {
@@ -51,15 +77,15 @@ const authController = {
             const user = await User.create({
                 email,
                 password: hashedPassword,
-                name,
+                username,
                 role: 'user',
                 isApproved: false
             });
 
-            res.status(201).json(createResponse.success({ 
+            res.status(201).json({ 
                 message: '登録が完了しました',
                 userId: user.id
-            }));
+            });
         } catch (error) {
             console.error('Registration error:', error);
             res.status(500).json(createResponse.error('登録処理中にエラーが発生しました'));
@@ -81,6 +107,10 @@ const authController = {
                 return res.status(401).json(createResponse.error('ユーザーが見つかりません'));
             }
 
+            if (!user.isApproved) {
+                return res.status(403).json(createResponse.error('アカウントが承認されていません'));
+            }
+
             const newToken = jwt.sign(
                 { 
                     id: user.id,
@@ -92,7 +122,16 @@ const authController = {
                 { expiresIn: '24h' }
             );
 
-            res.json(createResponse.success({ token: newToken }));
+            res.json({
+                token: newToken,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    isApproved: user.isApproved
+                }
+            });
         } catch (error) {
             console.error('Token refresh error:', error);
             res.status(401).json(createResponse.error('トークンの更新に失敗しました'));

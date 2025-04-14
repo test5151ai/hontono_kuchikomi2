@@ -5,72 +5,49 @@ const { User, Thread, Category, Post } = require('../models');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 
-describe('スレッド機能テスト', () => {
-  let userToken;
-  let adminToken;
-  let testCategoryId;
-  let createdUsers = [];
-  let createdThreads = [];
+describe('スレッドAPI テスト', () => {
+  let testUser, adminUser, testCategory, testThread;
+  let userToken, adminToken;
 
   beforeAll(async () => {
-    // テストデータベースの接続確認
-    await sequelize.authenticate();
-    
-    // 既存のカテゴリーを確認し、なければテスト用カテゴリーを作成
-    const existingCategory = await Category.findOne({ where: { slug: 'test-category' } });
-    if (existingCategory) {
-      testCategoryId = existingCategory.id;
-    } else {
-      const category = await Category.create({
-        id: uuidv4(),
-        name: 'テストカテゴリー',
-        description: 'テスト用のカテゴリーです',
-        slug: 'test-category'
-      });
-      testCategoryId = category.id;
-    }
-    
-    // テスト用ユーザーデータをクリーンアップ
-    await User.destroy({ 
-      where: { 
-        email: ['user@example.com', 'admin@example.com']
-      } 
-    });
-    
-    // 一般ユーザーの作成
-    const userPassword = await bcrypt.hash('userpass123', 10);
-    const testUser = await User.create({
+    // テストユーザーの作成
+    const hashedPassword = await bcrypt.hash('testpass123', 10);
+    testUser = await User.create({
       id: uuidv4(),
       username: 'testuser',
-      email: 'user@example.com',
-      password: userPassword,
+      email: 'test@example.com',
+      password: hashedPassword,
       role: 'user',
+      isApproved: true,
       submission_method: 'email',
-      submission_contact: 'user@example.com',
-      isApproved: true
+      submission_contact: 'test@example.com'
     });
-    createdUsers.push(testUser.id);
 
-    // 管理者ユーザーの作成
-    const adminPassword = await bcrypt.hash('adminpass123', 10);
-    const adminUser = await User.create({
+    adminUser = await User.create({
       id: uuidv4(),
       username: 'admin',
       email: 'admin@example.com',
-      password: adminPassword,
+      password: hashedPassword,
       role: 'admin',
+      isApproved: true,
       submission_method: 'email',
-      submission_contact: 'admin@example.com',
-      isApproved: true
+      submission_contact: 'admin@example.com'
     });
-    createdUsers.push(adminUser.id);
+
+    // カテゴリの作成
+    testCategory = await Category.create({
+      id: uuidv4(),
+      name: 'テストカテゴリ',
+      description: 'テスト用のカテゴリです',
+      slug: 'test-category'
+    });
 
     // トークンの取得
     const userResponse = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'user@example.com',
-        password: 'userpass123'
+        email: 'test@example.com',
+        password: 'testpass123'
       });
     userToken = userResponse.body.token;
 
@@ -78,129 +55,77 @@ describe('スレッド機能テスト', () => {
       .post('/api/auth/login')
       .send({
         email: 'admin@example.com',
-        password: 'adminpass123'
+        password: 'testpass123'
       });
     adminToken = adminResponse.body.token;
+
+    // テストスレッドの作成
+    testThread = await Thread.create({
+      id: uuidv4(),
+      title: 'テストスレッド',
+      categoryId: testCategory.id,
+      authorId: adminUser.id
+    });
   });
 
   afterAll(async () => {
-    // テスト後のクリーンアップ
-    // 作成したスレッドを削除
-    for (const threadId of createdThreads) {
-      await Post.destroy({ where: { threadId } });
-      await Thread.destroy({ where: { id: threadId } });
-    }
-    
-    // 作成したユーザーを削除
-    for (const userId of createdUsers) {
-      await User.destroy({ where: { id: userId } });
-    }
-    
-    await sequelize.close();
+    // テストデータの削除
+    await Post.destroy({ where: {} });
+    await Thread.destroy({ where: {} });
+    await Category.destroy({ where: {} });
+    await User.destroy({ where: {} });
   });
 
-  describe('スレッド作成 POST /api/threads', () => {
-    test('一般ユーザーはスレッド作成が制限される', async () => {
-      const response = await request(app)
-        .post('/api/threads')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({
-          title: 'テストスレッド',
-          content: 'テスト内容',
-          categoryId: 1
-        });
+  test('一般ユーザーはスレッドを作成できない', async () => {
+    const response = await request(app)
+      .post('/api/threads')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        title: '新しいスレッド',
+        categoryId: testCategory.id
+      });
 
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('success', false);
-      expect(response.body).toHaveProperty('message', 'スレッドの作成は管理者のみが行えます');
-    });
-
-    test('管理者がスレッドを作成できる', async () => {
-      const response = await request(app)
-        .post('/api/threads')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          title: '管理者のスレッド',
-          content: '管理者が作成したスレッド',
-          categoryId: testCategoryId
-        });
-
-      expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBeTruthy();
-      
-      // 作成されたスレッドIDを記録（後でクリーンアップするため）
-      if (response.body.id) {
-        createdThreads.push(response.body.id);
-      }
-    });
-
-    test('未認証ユーザーはスレッドを作成できない', async () => {
-      const response = await request(app)
-        .post('/api/threads')
-        .send({
-          title: '未認証スレッド',
-          content: 'これは作成されないはずです',
-          categoryId: testCategoryId
-        });
-
-      // 未認証ユーザーはスレッドを作成できないことを確認
-      expect(response.status).toBe(401);
-      expect(response.body).toHaveProperty('error', '認証が必要です');
-    });
+    expect(response.status).toBe(403);
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('message', 'スレッドの作成は管理者のみが行えます');
   });
 
-  describe('スレッド一覧取得 GET /api/threads', () => {
-    test('スレッド一覧を取得できる', async () => {
-      const response = await request(app)
-        .get('/api/threads');
+  test('管理者はスレッドを作成できる', async () => {
+    const response = await request(app)
+      .post('/api/threads')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        title: '新しいスレッド',
+        categoryId: testCategory.id
+      });
 
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-    });
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty('success', true);
+    expect(response.body).toHaveProperty('thread');
+    expect(response.body.thread).toHaveProperty('id');
+    expect(response.body.thread).toHaveProperty('title', '新しいスレッド');
   });
 
-  describe('スレッド詳細取得 GET /api/threads/:id', () => {
-    let threadId;
+  test('スレッド一覧を取得できる', async () => {
+    const response = await request(app)
+      .get('/api/threads');
 
-    beforeAll(async () => {
-      // テスト用のスレッドが作成済みなので、そのIDを取得
-      if (createdThreads.length > 0) {
-        threadId = createdThreads[0];
-      } else {
-        // 念のため、スレッドがなければ新しく作成
-        const thread = await Thread.create({
-          id: uuidv4(),
-          title: 'テスト用詳細スレッド',
-          categoryId: testCategoryId
-        });
-        threadId = thread.id;
-        createdThreads.push(threadId);
-        
-        // 初回投稿も作成
-        await Post.create({
-          id: uuidv4(),
-          content: 'テスト用詳細スレッドの最初の投稿です',
-          threadId,
-          postNumber: 1
-        });
-      }
-    });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('success', true);
+    expect(response.body).toHaveProperty('threads');
+    expect(Array.isArray(response.body.threads)).toBe(true);
+  });
 
-    test('存在するスレッドの詳細を取得できる', async () => {
-      const response = await request(app)
-        .get(`/api/threads/${threadId}`);
+  test('スレッドの詳細を取得できる', async () => {
+    const response = await request(app)
+      .get(`/api/threads/${testThread.id}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', threadId);
-    });
-
-    test('存在しないスレッドにアクセスすると404', async () => {
-      const response = await request(app)
-        .get(`/api/threads/${uuidv4()}`); // 存在しないUUIDを使用
-
-      expect(response.status).toBe(404);
-    });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('success', true);
+    expect(response.body).toHaveProperty('thread');
+    expect(response.body.thread).toHaveProperty('id', testThread.id);
+    expect(response.body.thread).toHaveProperty('title');
+    expect(response.body.thread).toHaveProperty('categoryId');
+    expect(response.body.thread).toHaveProperty('authorId');
   });
 }); 

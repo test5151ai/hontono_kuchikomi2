@@ -3,7 +3,7 @@ const { Post, Thread } = require('../models');
 /**
  * 投稿を編集（管理者用）
  */
-exports.updatePost = async (req, res) => {
+const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
     const { content, authorName } = req.body;
@@ -40,7 +40,7 @@ exports.updatePost = async (req, res) => {
 /**
  * 投稿を削除（管理者用）
  */
-exports.deletePost = async (req, res) => {
+const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -72,7 +72,7 @@ exports.deletePost = async (req, res) => {
 /**
  * 投稿に「参考になった」を追加
  */
-exports.addHelpful = async (req, res) => {
+const addHelpful = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -100,4 +100,10 @@ exports.addHelpful = async (req, res) => {
       message: '参考になったの追加に失敗しました'
     });
   }
+};
+
+module.exports = {
+  updatePost,
+  deletePost,
+  addHelpful
 }; 

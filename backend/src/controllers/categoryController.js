@@ -39,10 +39,16 @@ exports.getAllCategories = async (req, res) => {
         
         console.log('スレッド数を追加したカテゴリー:', JSON.stringify(categoriesWithCount, null, 2));
         
-        res.json(categoriesWithCount);
+        res.json({
+            success: true,
+            data: categoriesWithCount
+        });
     } catch (error) {
         console.error('カテゴリー一覧の取得に失敗:', error);
-        res.status(500).json({ message: 'カテゴリー一覧の取得に失敗しました' });
+        res.status(500).json({ 
+            success: false,
+            message: 'カテゴリー一覧の取得に失敗しました'
+        });
     }
 };
 

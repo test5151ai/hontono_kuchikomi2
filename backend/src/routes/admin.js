@@ -7,6 +7,7 @@ const userController = require('../controllers/admin/users');
 const documentController = require('../controllers/admin/document');
 const adminThreadsController = require('../controllers/admin/threads');
 const analyticsController = require('../controllers/admin/analytics');
+const authMiddleware = require('../middleware/auth');
 
 // デバッグ用のログ出力
 console.log('admin.js ルートファイルの読み込み開始');
@@ -35,41 +36,40 @@ functionNames.forEach(name => {
 });
 
 // ユーザー管理
-router.get('/users', authenticateToken, isAdmin, userController.getUsers);
-router.get('/users/pending', authenticateToken, isAdmin, userController.getPendingUsers);
-router.get('/users/:id', authenticateToken, isAdmin, userController.getUserDetails);
-router.post('/users/:id/approve', authenticateToken, isAdmin, userController.approveUser);
-router.post('/users/:id/reject', authenticateToken, isAdmin, userController.rejectUser);
-router.post('/users/:id/suspend', authenticateToken, isAdmin, userController.suspendUser);
-router.post('/users/bulk-approve', authenticateToken, isAdmin, userController.bulkApproveUsers);
-router.post('/users/bulk-suspend', authenticateToken, isAdmin, userController.bulkSuspendUsers);
-router.post('/users/export', authenticateToken, isAdmin, userController.exportUsers);
-router.post('/users/:id/grant-admin', authenticateToken, isAdmin, userController.grantAdminRole);
+router.get('/users', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.getPendingUsers);
+router.get('/users/:id', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.getUserDetails);
+router.post('/users/:id/approve', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.approveUser);
+router.post('/users/:id/reject', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.rejectUser);
+router.post('/users/:id/suspend', authMiddleware.verifyToken, authMiddleware.isAdmin, userController.suspendUser);
+router.post('/users/bulk-approve', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.bulkApproveUsers);
+router.post('/users/bulk-suspend', authMiddleware.verifyToken, authMiddleware.isAdmin, userController.bulkSuspendUsers);
+router.post('/users/export', authMiddleware.verifyToken, authMiddleware.isAdmin, userController.exportUsers);
+router.post('/users/:id/grant-admin', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.grantAdminRole);
 
 // 新規管理者作成エンドポイント（スーパーユーザーのみ実行可能）
-router.post('/users/create-admin', authenticateToken, isAdmin, userController.createAdmin);
+router.post('/users/create-admin', authMiddleware.verifyToken, authMiddleware.isAdmin, userController.createAdmin);
 
 // 書類管理
-router.get('/users/:id/document', authenticateToken, isAdmin, documentController.getDocumentDetails);
-router.post('/users/:id/document/approve', authenticateToken, isAdmin, documentController.approveDocument);
-router.post('/users/:id/document/reject', authenticateToken, isAdmin, documentController.rejectDocument);
+router.get('/users/:id/document', authMiddleware.verifyToken, authMiddleware.isAdmin, documentController.getDocumentDetails);
+router.post('/users/:id/document/approve', authMiddleware.verifyToken, authMiddleware.isAdmin, documentController.approveDocument);
+router.post('/users/:id/document/reject', authMiddleware.verifyToken, authMiddleware.isAdmin, documentController.rejectDocument);
 
 // ダッシュボード
-router.get('/dashboard', authenticateToken, isAdmin, adminController.getDashboardStats);
+router.get('/stats', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.getDashboardStats);
 
 // アクセス統計
-router.get('/analytics/monthly', authenticateToken, isAdmin, analyticsController.getMonthlyAccessStats);
-router.get('/analytics/popular-threads', authenticateToken, isAdmin, analyticsController.getPopularThreads);
+router.get('/analytics/monthly', authMiddleware.verifyToken, authMiddleware.isAdmin, analyticsController.getMonthlyAccessStats);
+router.get('/analytics/popular-threads', authMiddleware.verifyToken, authMiddleware.isAdmin, analyticsController.getPopularThreads);
 
 // カテゴリー管理
-router.get('/categories', authenticateToken, isAdmin, categoryController.getCategories);
-router.post('/categories', authenticateToken, isAdmin, categoryController.createCategory);
-router.put('/categories/:id', authenticateToken, isAdmin, categoryController.updateCategory);
-router.delete('/categories/:id', authenticateToken, isAdmin, categoryController.deleteCategory);
-router.post('/categories/:id/move-threads', authenticateToken, isAdmin, categoryController.moveThreadsToUncategorized);
+router.get('/categories', authMiddleware.verifyToken, authMiddleware.isAdmin, categoryController.getCategories);
+router.post('/categories', authMiddleware.verifyToken, authMiddleware.isAdmin, categoryController.createCategory);
+router.put('/categories/:id', authMiddleware.verifyToken, authMiddleware.isAdmin, categoryController.updateCategory);
+router.delete('/categories/:id', authMiddleware.verifyToken, authMiddleware.isAdmin, categoryController.deleteCategory);
+router.post('/categories/:id/move-threads', authMiddleware.verifyToken, authMiddleware.isAdmin, categoryController.moveThreadsToUncategorized);
 
 // スレッド管理ルート
-router.get('/threads', authenticateToken, isAdmin, adminThreadsController.getThreads);
-router.post('/threads/check-duplicate', authenticateToken, isAdmin, adminThreadsController.checkDuplicateTitle);
+router.get('/threads', authMiddleware.verifyToken, authMiddleware.isAdmin, adminThreadsController.getThreads);
+router.post('/threads/check-duplicate', authMiddleware.verifyToken, authMiddleware.isAdmin, adminThreadsController.checkDuplicateTitle);
 
 module.exports = router; 

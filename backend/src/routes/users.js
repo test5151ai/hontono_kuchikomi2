@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
-const { authenticateToken } = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 // コントローラーがまだ存在しないためコメントアウト
 // const userController = require('../controllers/user');
 const documentController = require('../controllers/user/document');
@@ -9,32 +9,49 @@ const profileController = require('../controllers/user/profile');
 const documentUpload = require('../middleware/upload/document');
 
 // ユーザー情報を取得
-router.get('/me', authenticateToken, async (req, res) => {
+router.get('/me', authMiddleware.verifyToken, async (req, res) => {
     try {
         const user = await User.findByPk(req.user.id, {
-            attributes: ['id', 'username', 'email', 'role', 'icon', 'isApproved', 'createdAt', 'updatedAt']
+            attributes: ['id', 'email', 'name', 'role', 'isApproved', 'createdAt', 'updatedAt']
         });
 
         if (!user) {
-            return res.status(404).json({ message: 'ユーザーが見つかりません' });
+            return res.status(404).json({
+                success: false,
+                message: 'ユーザーが見つかりません'
+            });
         }
 
-        res.json(user);
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                isApproved: user.isApproved,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            }
+        });
     } catch (error) {
-        console.error('ユーザー情報取得エラー:', error);
-        res.status(500).json({ message: 'サーバーエラーが発生しました' });
+        console.error('User info error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'ユーザー情報の取得中にエラーが発生しました'
+        });
     }
 });
 
 // プロフィール更新
-router.put('/profile', authenticateToken, profileController.updateProfile);
+router.put('/profile', authMiddleware.verifyToken, profileController.updateProfile);
 
 // 書類管理ルート - 複数書類アップロード対応
-router.post('/document/upload', authenticateToken, documentUpload, documentController.uploadDocument);
-router.get('/document/status', authenticateToken, documentController.getDocumentStatus);
-router.get('/document', authenticateToken, documentController.getDocuments);
-router.delete('/document/:documentId', authenticateToken, documentController.deleteDocument);
-router.delete('/document', authenticateToken, documentController.deleteAllDocuments);
+router.post('/document/upload', authMiddleware.verifyToken, documentUpload, documentController.uploadDocument);
+router.get('/document/status', authMiddleware.verifyToken, documentController.getDocumentStatus);
+router.get('/document', authMiddleware.verifyToken, documentController.getDocuments);
+router.delete('/document/:documentId', authMiddleware.verifyToken, documentController.deleteDocument);
+router.delete('/document', authMiddleware.verifyToken, documentController.deleteAllDocuments);
 
 // 投稿履歴取得は一時的に無効化
 // router.get('/me/posts', authenticateToken, async (req, res) => {

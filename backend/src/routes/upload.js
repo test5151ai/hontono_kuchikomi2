@@ -1,13 +1,22 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const { uploadScreenshot } = require('../controllers/upload');
-const { authenticateToken } = require('../middleware/auth');
-const { uploadScreenshot: uploadMiddleware } = require('../middleware/upload');
+const authMiddleware = require('../middleware/auth');
 
-// 認証ミドルウェアを使用
-router.use(authenticateToken);
+// アップロード用のmulter設定
+const uploadMiddleware = multer({
+    dest: 'uploads/',
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    }
+});
 
 // スクリーンショットのアップロード
-router.post('/screenshot', uploadMiddleware.single('screenshot'), uploadScreenshot);
+router.post('/screenshot', 
+    authMiddleware.verifyToken,
+    uploadMiddleware.single('screenshot'),
+    uploadScreenshot
+);
 
 module.exports = router; 
