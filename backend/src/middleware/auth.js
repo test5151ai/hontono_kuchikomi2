@@ -8,76 +8,50 @@ const debug = (message, data) => {
     }
 };
 
-const authenticateToken = async (req, res, next) => {
-  try {
-    debug('authenticateToken ミドルウェア実行:', {
-      headers: req.headers,
-      authorization: req.header('Authorization')
-    });
+const authMiddleware = {
+    // トークン検証
+    verifyToken: (req, res, next) => {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ 
+                success: false,
+                message: '認証トークンが必要です'
+            });
+        }
 
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      debug('トークンが存在しません');
-      throw new Error();
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = decoded;
+            next();
+        } catch (error) {
+            return res.status(401).json({ 
+                success: false,
+                message: '無効なトークンです'
+            });
+        }
+    },
+
+    // 管理者権限チェック
+    checkAdmin: (req, res, next) => {
+        if (!req.user || !req.user.isAdmin) {
+            return res.status(403).json({ 
+                success: false,
+                message: '管理者権限が必要です'
+            });
+        }
+        next();
+    },
+
+    // 承認済みユーザーチェック
+    checkApproved: (req, res, next) => {
+        if (!req.user || !req.user.isApproved) {
+            return res.status(403).json({ 
+                success: false,
+                message: 'ユーザーが承認されていません'
+            });
+        }
+        next();
     }
-
-    debug('トークンを検証:', token);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    debug('トークン検証結果:', decoded);
-
-    const user = await User.findOne({ where: { id: decoded.id } });
-    debug('ユーザー検索結果:', user ? {
-      id: user.id,
-      role: user.role,
-      isApproved: user.isApproved
-    } : null);
-
-    if (!user) {
-      debug('ユーザーが見つかりません');
-      throw new Error();
-    }
-
-    req.user = user;
-    req.token = token;
-    next();
-  } catch (error) {
-    console.error('authenticateToken ミドルウェアエラー:', error.message);
-    res.status(401).json({ error: '認証が必要です' });
-  }
 };
 
-const isAdmin = async (req, res, next) => {
-  try {
-    debug('isAdmin ミドルウェア実行:', {
-      user: req.user ? {
-        id: req.user.id,
-        role: req.user.role,
-        isApproved: req.user.isApproved
-      } : null,
-      headers: req.headers
-    });
-
-    if (!req.user) {
-      throw new Error('認証が必要です');
-    }
-
-    if (!req.user.isApproved) {
-      throw new Error('アカウントが承認されていません');
-    }
-
-    if (req.user.role !== 'admin' && req.user.role !== 'superadmin' && req.user.role !== 'superuser') {
-      throw new Error('管理者権限が必要です');
-    }
-
-    next();
-  } catch (error) {
-    console.error('isAdmin ミドルウェアエラー:', error.message);
-    res.status(403).json({ error: error.message });
-  }
-};
-
-module.exports = {
-  authenticateToken,
-  isAdmin
-}; 
+module.exports = authMiddleware; 
